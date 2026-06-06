@@ -9,6 +9,7 @@ import ExecutiveTeam from "./pages/ExecutiveTeam";
 import ActivityOrganized from "./pages/ActivityOrganized";
 import DistinguishedAlumni from "./pages/DistinguishedAlumni";
 import AnnualReport from "./pages/AnnualReport";
+import { Footer } from "./pages/footer";
 
 function Home() {
   return (
@@ -48,6 +49,7 @@ function App() {
         </Routes>
       </main>
 
+      <Footer />
       <FeedbackButton />
     </div>
   );
