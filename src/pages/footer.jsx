@@ -9,13 +9,13 @@ const aboutLinks = [
 ];
 
 const quickLinks = [
-  { label: "Notice", path: "#" },
-  { label: "AGM Report", path: "#" },
-  { label: "RACA Khoj", path: "#" },
-  { label: "Membership", path: "#" },
-  { label: "Newsletters", path: "#" },
-  { label: "Contribute", path: "#" },
-  { label: "Donations", path: "#" },
+  { label: "Nomination", path: "/membership/nomination" },
+  { label: "Withdrawal Form", path: "/membership/withdrawal-form" },
+  { label: "Contribution", path: "/contribution" },
+  { label: "Newsletter", path: "/newsletter" },
+  { label: "Donation", path: "/donation" },
+  { label: "Event Registration", path: "/event/registration" },
+  { label: "Contact", path: "/contact" },
 ];
 
 export const Footer = () => {
@@ -70,12 +70,12 @@ export const Footer = () => {
             <ul className="space-y-2">
               {quickLinks.map((item) => (
                 <li key={item.label}>
-                  <a
-                    href={item.path}
+                  <Link
+                    to={item.path}
                     className="text-sm text-blue-200 transition-colors duration-150 hover:text-white"
                   >
                     {item.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

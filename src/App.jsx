@@ -9,6 +9,13 @@ import ExecutiveTeam from "./pages/ExecutiveTeam";
 import ActivityOrganized from "./pages/ActivityOrganized";
 import DistinguishedAlumni from "./pages/DistinguishedAlumni";
 import AnnualReport from "./pages/AnnualReport";
+import Nomination from "./pages/Nomination";
+import WithdrawalForm from "./pages/WithdrawalForm";
+import Contribution from "./pages/Contribution";
+import Newsletter from "./pages/Newsletter";
+import Donation from "./pages/Donation";
+import EventRegistration from "./pages/EventRegistration";
+import ContactPage from "./pages/ContactPage";
 import { Footer } from "./pages/footer";
 
 function Home() {
@@ -45,6 +52,13 @@ function App() {
           <Route path="/about/activity-organized" element={<ActivityOrganized />} />
           <Route path="/about/distinguished-alumni" element={<DistinguishedAlumni />} />
           <Route path="/about/annual-report" element={<AnnualReport />} />
+          <Route path="/membership/nomination" element={<Nomination />} />
+          <Route path="/membership/withdrawal-form" element={<WithdrawalForm />} />
+          <Route path="/contribution" element={<Contribution />} />
+          <Route path="/newsletter" element={<Newsletter />} />
+          <Route path="/donation" element={<Donation />} />
+          <Route path="/event/registration" element={<EventRegistration />} />
+          <Route path="/contact" element={<ContactPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
