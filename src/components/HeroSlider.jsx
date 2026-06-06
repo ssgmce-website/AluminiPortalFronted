@@ -39,7 +39,7 @@ function HeroSlider() {
           autoplay={{ delay: 3000, disableOnInteraction: false }}
           loop
           pagination={{ clickable: true }}
-          className="h-[320px] sm:h-[430px] lg:h-[505px]"
+          className="h-[300px] sm:h-[400px] lg:h-[505px]"
         >
           {slides.map((slide) => (
             <SwiperSlide key={slide.image}>
@@ -50,14 +50,14 @@ function HeroSlider() {
                   alt={slide.alt}
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-blue-950/45 to-transparent" />
-                <div className="absolute bottom-8 left-5 max-w-2xl text-white sm:bottom-10 sm:left-10">
-                  <p className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-blue-200">
+                <div className="absolute bottom-6 left-4 right-4 max-w-2xl text-white sm:bottom-10 sm:left-10 sm:right-auto">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-blue-200 sm:text-sm sm:tracking-[0.2em]">
                     SSGMCE Alumni Connect
                   </p>
-                  <h2 className="text-3xl font-extrabold leading-tight md:text-5xl">
+                  <h2 className="text-2xl font-extrabold leading-tight sm:text-3xl md:text-5xl">
                     {slide.title}
                   </h2>
-                  <p className="mt-4 max-w-xl text-base leading-7 text-blue-50 md:text-lg">
+                  <p className="mt-3 max-w-xl text-sm leading-6 text-blue-50 sm:mt-4 sm:text-base sm:leading-7 md:text-lg">
                     {slide.description}
                   </p>
                 </div>
