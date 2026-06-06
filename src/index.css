@@ -1,59 +1,13 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer base {
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-    }
-
-    html {
-        scroll-behavior: smooth;
-    }
-
-    body {
-        font-family: 'Inter', system-ui, sans-serif;
-        color: #1e293b;
-        background-color: #ffffff;
-    }
+html {
+  scroll-behavior: smooth;
 }
 
-@layer components {
-    .page-container {
-        @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
-    }
-
-    .section-heading {
-        @apply text-3xl font-bold text-primary-900 mb-2;
-    }
-
-    .section-subheading {
-        @apply text-lg text-slate-500 mb-8;
-    }
-    
-    .divider-blue {
-        @apply w-16 h-1 bg-primary-600 mb-8 rounded-full;
-    }
-
-    .card {
-        @apply bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden;
-    }
-
-    .btn-primary {
-        @apply bg-primary-700 hover:bg-primary-800 text-white font-semibold px-6 py-3 rounded-lg transition-colors duration-200 inline-block;
-    }
-
-    .btn-outline {
-        @apply border-2 border-white text-white hover:bg-white hover:text-primary-800 font-semibold px-6 py-3 rounded-lg transition-colors duration-200 inline-block;
-    }
-
-    .nav-link {
-        @apply text-slate-700 hover:text-primary-700 font-medium transition-colors duration-150 text-sm;
-    }
-
-    .dropdown-item {
-        @apply block px-4 py-2.5 text-sm text-slate-700 hover:bg-primary-50 hover:text-primary-700 transition-colors duration-150;
-    }
+body {
+  margin: 0;
+  min-width: 320px;
+  background: #f7f2eb;
+  color: #1f2937;
+  font-family: Arial, Helvetica, sans-serif;
 }
