@@ -1,3 +1,5 @@
+import PageShell from "../components/PageShell";
+
 function AnnualReport() {
   const reports = [
     { year: "2025-26", status: "Report will be uploaded soon" },
@@ -6,16 +8,8 @@ function AnnualReport() {
   ];
 
   return (
-    <section className="mx-auto mt-8 max-w-[1425px] border border-blue-100 bg-white p-8 shadow-xl shadow-slate-950/15">
-      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-500">
-        About
-      </p>
-
-      <h2 className="mt-2 text-4xl font-bold text-blue-800">
-        Annual Report
-      </h2>
-
-      <div className="mt-6 overflow-hidden border border-blue-100">
+    <PageShell eyebrow="About" title="Annual Report">
+      <div className="overflow-hidden rounded-md border border-blue-100">
         {reports.map((report) => (
           <div className="grid gap-2 border-b border-blue-100 p-4 last:border-b-0 md:grid-cols-[160px_1fr]" key={report.year}>
             <p className="font-bold text-blue-800">{report.year}</p>
@@ -23,7 +17,7 @@ function AnnualReport() {
           </div>
         ))}
       </div>
-    </section>
+    </PageShell>
   );
 }
 

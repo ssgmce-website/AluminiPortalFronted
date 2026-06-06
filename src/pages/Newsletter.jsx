@@ -1,17 +1,26 @@
+import PageShell from "../components/PageShell";
+
 function Newsletter() {
+  const editions = ["June 2026 Edition", "Annual Alumni Bulletin", "Department Updates"];
+
   return (
-    <section className="mx-auto max-w-[1425px] border border-blue-100 bg-white p-8 shadow-xl shadow-slate-950/15">
-      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-500">
-        Updates
-      </p>
-
-      <h2 className="mt-2 text-4xl font-bold text-blue-800">Newsletter</h2>
-
-      <p className="mt-5 max-w-4xl text-base leading-8 text-slate-700">
+    <PageShell eyebrow="Updates" title="Newsletter">
+      <p className="max-w-4xl text-base leading-8 text-slate-700">
         Add newsletter PDFs, alumni stories, announcements, and college
         achievements here.
       </p>
-    </section>
+
+      <div className="mt-8 divide-y divide-blue-100 rounded-md border border-blue-100">
+        {editions.map((edition) => (
+          <div className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between" key={edition}>
+            <span className="font-semibold text-blue-800">{edition}</span>
+            <button className="w-fit rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">
+              View
+            </button>
+          </div>
+        ))}
+      </div>
+    </PageShell>
   );
 }
 

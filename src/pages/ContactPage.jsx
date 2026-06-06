@@ -1,19 +1,26 @@
+import PageShell from "../components/PageShell";
+
 function ContactPage() {
   return (
-    <section className="mx-auto max-w-[1425px] border border-blue-100 bg-white p-8 shadow-xl shadow-slate-950/15">
-      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-500">
-        Contact
-      </p>
+    <PageShell eyebrow="Contact" title="Contact Us">
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="rounded-md border border-blue-100 bg-slate-50 p-5 text-base leading-8 text-slate-700">
+          <p className="font-bold text-blue-800">SSGMCE Alumni Connect</p>
+          <p>Shri Sant Gajanan Maharaj College of Engineering, Shegaon</p>
+          <p>Email: alumni@ssgmce.ac.in</p>
+          <p>Phone: +91 00000 00000</p>
+        </div>
 
-      <h2 className="mt-2 text-4xl font-bold text-blue-800">Contact Us</h2>
-
-      <div className="mt-6 space-y-3 text-base leading-8 text-slate-700">
-        <p>SSGMCE Alumni Connect</p>
-        <p>Shri Sant Gajanan Maharaj College of Engineering, Shegaon</p>
-        <p>Email: alumni@ssgmce.ac.in</p>
-        <p>Phone: +91 00000 00000</p>
+        <div className="grid gap-4">
+          {["Name", "Email", "Message"].map((label) => (
+            <label className="block" key={label}>
+              <span className="text-sm font-semibold text-slate-700">{label}</span>
+              <input className="mt-2 w-full rounded-md border border-blue-100 px-4 py-3 outline-none focus:border-blue-500" />
+            </label>
+          ))}
+        </div>
       </div>
-    </section>
+    </PageShell>
   );
 }
 

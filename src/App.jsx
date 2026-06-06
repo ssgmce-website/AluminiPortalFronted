@@ -29,7 +29,7 @@ function Home() {
 
 function NotFound() {
   return (
-    <section className="mx-auto max-w-[1425px] border border-blue-100 bg-white p-8 shadow-xl shadow-slate-950/15">
+    <section className="mx-auto max-w-[1425px] rounded-lg border border-blue-100 bg-white p-8 shadow-lg shadow-blue-950/10">
       <h2 className="text-4xl font-bold text-blue-800">Page Not Found</h2>
       <p className="mt-4 text-slate-700">
         The page you are looking for does not exist.
@@ -44,7 +44,7 @@ function App() {
       <Header />
       <Navbar />
 
-      <main className="min-h-screen bg-[linear-gradient(135deg,rgba(15,23,42,0.90),rgba(30,64,175,0.86)),radial-gradient(circle_at_18%_16%,rgba(147,197,253,0.35)_0_120px,transparent_121px),radial-gradient(circle_at_82%_72%,rgba(14,165,233,0.22)_0_160px,transparent_161px)] px-4 py-8 sm:px-6">
+      <main className="min-h-screen bg-[linear-gradient(180deg,#eff6ff_0%,#f8fafc_48%,#e0f2fe_100%)] px-4 py-10 sm:px-6 lg:py-12">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about/alumni-cell" element={<AlumniCell />} />

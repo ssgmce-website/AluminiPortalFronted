@@ -1,3 +1,5 @@
+import PageShell from "../components/PageShell";
+
 function ExecutiveTeam() {
   const members = [
     { name: "Dr. Faculty Coordinator", role: "Alumni Cell Coordinator" },
@@ -6,24 +8,19 @@ function ExecutiveTeam() {
   ];
 
   return (
-    <section className="mx-auto mt-8 max-w-[1425px] border border-blue-100 bg-white p-8 shadow-xl shadow-slate-950/15">
-      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-500">
-        About
-      </p>
-
-      <h2 className="mt-2 text-4xl font-bold text-blue-800">
-        Executive Team
-      </h2>
-
-      <div className="mt-6 grid gap-4 md:grid-cols-3">
+    <PageShell eyebrow="About" title="Executive Team">
+      <div className="grid gap-4 md:grid-cols-3">
         {members.map((member) => (
-          <div className="border border-blue-100 bg-blue-50 p-5" key={member.name}>
+          <div className="rounded-md border border-blue-100 bg-slate-50 p-5" key={member.name}>
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-blue-700 text-lg font-bold text-white">
+              {member.name.charAt(0)}
+            </div>
             <h3 className="text-lg font-bold text-blue-800">{member.name}</h3>
             <p className="mt-2 text-sm text-slate-600">{member.role}</p>
           </div>
         ))}
       </div>
-    </section>
+    </PageShell>
   );
 }
 
