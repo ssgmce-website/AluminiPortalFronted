@@ -5,23 +5,47 @@ import { DashboardLayout } from '../layouts/DashboardLayout';
 import { SignIn } from '../pages/SignIn';
 import { Dashboard } from '../pages/Dashboard';
 import { AuthCallback } from '../pages/AuthCallback';
-import { HomePage } from '../pages/HomePage';
 import { ProtectedRoute } from './ProtectedRoute';
-import { Header } from '../components/Header';
-import { Navbar } from '../components/Navbar';
-import { footer as Footer } from '../pages/footer';
 import ScrollToTop from '../components/ScrollToTop';
 
-// Public-facing site layout (Header + Navbar + Footer)
+// Public site UI (incoming changes)
+import Header from '../components/Header';
+import Navbar from '../components/Navbar';
+import HeroSlider from '../components/HeroSlider';
+import Newsroom from '../components/Newsroom';
+import FeedbackButton from '../components/FeedbackButton';
+import { Footer } from '../pages/footer';
+import AlumniCell from '../pages/AlumniCell';
+import ExecutiveTeam from '../pages/ExecutiveTeam';
+import ActivityOrganized from '../pages/ActivityOrganized';
+import DistinguishedAlumni from '../pages/DistinguishedAlumni';
+import AnnualReport from '../pages/AnnualReport';
+import Nomination from '../pages/Nomination';
+import WithdrawalForm from '../pages/WithdrawalForm';
+import Contribution from '../pages/Contribution';
+import Newsletter from '../pages/Newsletter';
+import Donation from '../pages/Donation';
+import EventRegistration from '../pages/EventRegistration';
+import ContactPage from '../pages/ContactPage';
+
+// Public-facing site layout (incoming UI: Header + Navbar + gradient main + Footer + Feedback)
 const MainLayout = () => (
-  <div className="flex flex-col min-h-screen">
+  <div className="min-h-screen bg-slate-50">
     <Header />
     <Navbar />
-    <main className="flex-1">
+    <main className="min-h-screen bg-[linear-gradient(180deg,#eff6ff_0%,#f8fafc_48%,#e0f2fe_100%)] px-4 py-10 sm:px-6 lg:py-12">
       <Outlet />
     </main>
     <Footer />
+    <FeedbackButton />
   </div>
+);
+
+const Home = () => (
+  <>
+    <HeroSlider />
+    <Newsroom />
+  </>
 );
 
 export const AppRoutes = () => {
@@ -31,9 +55,21 @@ export const AppRoutes = () => {
     <>
       <ScrollToTop />
       <Routes>
-        {/* Public pages */}
+        {/* Public pages (incoming UI) */}
         <Route element={<MainLayout />}>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/about/alumni-cell" element={<AlumniCell />} />
+          <Route path="/about/executive-team" element={<ExecutiveTeam />} />
+          <Route path="/about/activity-organized" element={<ActivityOrganized />} />
+          <Route path="/about/distinguished-alumni" element={<DistinguishedAlumni />} />
+          <Route path="/about/annual-report" element={<AnnualReport />} />
+          <Route path="/membership/nomination" element={<Nomination />} />
+          <Route path="/membership/withdrawal-form" element={<WithdrawalForm />} />
+          <Route path="/contribution" element={<Contribution />} />
+          <Route path="/newsletter" element={<Newsletter />} />
+          <Route path="/donation" element={<Donation />} />
+          <Route path="/event/registration" element={<EventRegistration />} />
+          <Route path="/contact" element={<ContactPage />} />
         </Route>
 
         {/* Auth page — no site navigation */}
