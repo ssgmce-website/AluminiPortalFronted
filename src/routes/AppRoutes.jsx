@@ -75,14 +75,13 @@ export const AppRoutes = () => {
         {/* Auth page — no site navigation */}
         <Route element={<AuthLayout />}>
           <Route
-            path="/signin"
+            path="/sign-in"
             element={currentUser ? <Navigate to="/dashboard" replace /> : <SignIn />}
           />
         </Route>
 
         {/* /login and /register are aliases for /signin (passwordless: sign-in creates the account) */}
-        <Route path="/login" element={<Navigate to="/signin" replace />} />
-        <Route path="/register" element={<Navigate to="/signin" replace />} />
+        <Route path="/Sign-in" element={<Navigate to="/signin" replace />} />
 
         {/* OAuth / email-link callback — bare page, no layout */}
         <Route path="/auth/callback" element={<AuthCallback />} />

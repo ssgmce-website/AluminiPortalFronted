@@ -49,7 +49,7 @@ export const Dashboard = () => {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-primary-700 to-primary-900 rounded-2xl p-6 text-white"
+        className="bg-gradient-to-r from-blue-700 to-blue-900 rounded-2xl p-6 text-white"
       >
         <p className="text-primary-200 text-sm font-medium mb-1">Welcome back 👋</p>
         <h1 className="text-2xl font-bold">{userProfile?.name || 'Alumni'}</h1>
@@ -76,10 +76,10 @@ export const Dashboard = () => {
 
       {/* Stats grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={BookOpen}  label="Course"         value={userProfile?.course}       color="bg-primary-600" />
-        <StatCard icon={Calendar}  label="Admission Year" value={userProfile?.yearOfAdmission} color="bg-indigo-500" />
+        <StatCard icon={BookOpen} label="Course" value={userProfile?.course} color="bg-primary-600" />
+        <StatCard icon={Calendar} label="Admission Year" value={userProfile?.yearOfAdmission} color="bg-indigo-500" />
         <StatCard icon={CheckCircle} label="Passout Year" value={userProfile?.yearOfPassout} color="bg-emerald-500" />
-        <StatCard icon={Briefcase} label="Company"        value={userProfile?.companyName}  color="bg-amber-500" />
+        <StatCard icon={Briefcase} label="Company" value={userProfile?.companyName} color="bg-amber-500" />
       </div>
 
       {/* Profile details card */}
@@ -95,23 +95,23 @@ export const Dashboard = () => {
         </div>
 
         <div className="px-6 py-2">
-          <ProfileRow label="Full Name"         value={userProfile?.name} />
-          <ProfileRow label="Email"             value={userProfile?.email} />
-          <ProfileRow label="Alternate Email"   value={userProfile?.alternateEmail} />
-          <ProfileRow label="Contact Number"    value={userProfile?.contactNumber} />
-          <ProfileRow label="Date of Birth"     value={userProfile?.dob ? new Date(userProfile.dob).toLocaleDateString('en-IN') : null} />
-          <ProfileRow label="Branch"            value={userProfile?.branch} />
-          <ProfileRow label="Company"           value={userProfile?.companyName} />
-          <ProfileRow label="Designation"       value={userProfile?.designation} />
+          <ProfileRow label="Full Name" value={userProfile?.name} />
+          <ProfileRow label="Email" value={userProfile?.email} />
+          <ProfileRow label="Alternate Email" value={userProfile?.alternateEmail} />
+          <ProfileRow label="Contact Number" value={userProfile?.contactNumber} />
+          <ProfileRow label="Date of Birth" value={userProfile?.dob ? new Date(userProfile.dob).toLocaleDateString('en-IN') : null} />
+          <ProfileRow label="Branch" value={userProfile?.branch} />
+          <ProfileRow label="Company" value={userProfile?.companyName} />
+          <ProfileRow label="Designation" value={userProfile?.designation} />
         </div>
       </div>
 
       {/* Placeholder sections for future features */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { icon: Users,    label: 'Network',  desc: 'Connect with batchmates' },
-          { icon: Briefcase,label: 'Jobs',     desc: 'Alumni job postings' },
-          { icon: Clock,    label: 'Events',   desc: 'Upcoming reunions & events' },
+          { icon: Users, label: 'Network', desc: 'Connect with batchmates' },
+          { icon: Briefcase, label: 'Jobs', desc: 'Alumni job postings' },
+          { icon: Clock, label: 'Events', desc: 'Upcoming reunions & events' },
         ].map(({ icon: Icon, label, desc }) => (
           <div key={label} className="bg-white rounded-xl border border-dashed border-gray-200 p-5 flex flex-col items-center text-center gap-2 text-gray-400">
             <Icon size={28} />

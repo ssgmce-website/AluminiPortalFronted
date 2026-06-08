@@ -118,7 +118,7 @@ export const SignIn = () => {
           <button
             onClick={() => sendLink(otpSent)}
             disabled={cooldown > 0 || lockedOut}
-            className="w-full bg-white border border-green-300 text-green-800 text-sm font-medium py-2 rounded-lg hover:bg-green-100 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-primary-700 border border-green-300 text-green-800 text-sm font-medium py-2 rounded-lg hover:bg-green-100 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
             {lockedOut
               ? 'Resend limit reached'
@@ -154,7 +154,7 @@ export const SignIn = () => {
           <button
             type="submit"
             disabled={otpForm.formState.isSubmitting}
-            className="w-full bg-primary-700 hover:bg-primary-800 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
+            className="w-full bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
           >
             {otpForm.formState.isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
             {otpForm.formState.isSubmitting ? 'Sending…' : 'Email me a sign-in link'}

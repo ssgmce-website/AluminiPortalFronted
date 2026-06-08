@@ -29,18 +29,11 @@ function Header() {
 
         <div className="flex w-full flex-col items-stretch gap-2 text-sm font-semibold uppercase tracking-wide sm:w-auto sm:flex-row sm:items-center sm:gap-3">
           <a
-            className="inline-flex items-center justify-center gap-2 rounded-md border border-blue-200 px-4 py-2 text-blue-700 transition hover:border-blue-600 hover:bg-blue-50"
-            href="#register"
-          >
-            <UserPlus size={16} />
-            Register
-          </a>
-          <a
             className="inline-flex items-center justify-center gap-2 rounded-md bg-blue-700 px-4 py-2 text-white shadow-sm transition hover:bg-blue-800"
-            href="#login"
+            href="/sign-in"
           >
             <LogIn size={16} />
-            Login
+            Sign In
           </a>
         </div>
       </div>
