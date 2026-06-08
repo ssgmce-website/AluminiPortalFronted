@@ -108,17 +108,12 @@ export const Footer = () => {
             </ul>
 
             <div className="mt-6 flex gap-3">
+             
               <a
-                href="#register"
-                className="rounded-md border border-blue-400 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-blue-200 transition hover:border-white hover:text-white"
-              >
-                Register
-              </a>
-              <a
-                href="#login"
+                href="/sign-in"
                 className="rounded-md bg-blue-600 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-blue-500"
               >
-                Login
+                Sign In
               </a>
             </div>
           </div>
