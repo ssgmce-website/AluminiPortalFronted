@@ -3,18 +3,6 @@ import PageShell from "../components/PageShell";
 import FormField from "../components/FormField";
 
 function Nomination() {
-  return (
-    <label className="block">
-      <span className={labelCls}>
-        {label} {required && <span className="text-red-600">*</span>}
-      </span>
-      {note && <span className={noteCls}>{note}</span>}
-      <input type={type} className={inputCls} {...props} />
-    </label>
-  );
-}
-
-function Nomination() {
   const [consent, setConsent] = useState(false);
   const [file, setFile] = useState(null);
   const [fileError, setFileError] = useState("");
@@ -77,7 +65,7 @@ function Nomination() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* ── Candidate Details ── */}
+        {/* Candidate Details */}
         <section>
           <h3 className="mb-4 border-b border-blue-200 pb-1 text-base font-bold uppercase tracking-wide text-blue-800">
             Candidate Details
@@ -95,7 +83,7 @@ function Nomination() {
           </div>
         </section>
 
-        {/* ── Proposer Details ── */}
+        {/* Proposer Details */}
         <section>
           <h3 className="mb-4 border-b border-blue-200 pb-1 text-base font-bold uppercase tracking-wide text-blue-800">
             Proposer Details
@@ -114,7 +102,7 @@ function Nomination() {
           </div>
         </section>
 
-        {/* ── Seconder Details ── */}
+        {/* Seconder Details */}
         <section>
           <h3 className="mb-4 border-b border-blue-200 pb-1 text-base font-bold uppercase tracking-wide text-blue-800">
             Seconder Details
@@ -133,7 +121,7 @@ function Nomination() {
           </div>
         </section>
 
-        {/* ── Consent ── */}
+        {/* Consent */}
         <section>
           <h3 className="mb-4 border-b border-blue-200 pb-1 text-base font-bold uppercase tracking-wide text-blue-800">
             Consent
@@ -155,7 +143,7 @@ function Nomination() {
           </label>
         </section>
 
-        {/* ── Attachment ── */}
+        {/* Attachment */}
         <section>
           <h3 className="mb-4 border-b border-blue-200 pb-1 text-base font-bold uppercase tracking-wide text-blue-800">
             Attachment
@@ -183,7 +171,7 @@ function Nomination() {
           </div>
         </section>
 
-        {/* ── Submit ── */}
+        {/* Submit */}
         <div>
           <button
             type="submit"

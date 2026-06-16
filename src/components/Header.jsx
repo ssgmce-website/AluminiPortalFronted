@@ -1,13 +1,8 @@
 import { Link } from "react-router-dom";
 import logo from "../assets/logo.png";
-<<<<<<< HEAD
 import { LogIn, UserPlus, LayoutDashboard } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { routeForProfile } from "../utils/authRoutes";
-=======
-import { LogIn, UserPlus } from "lucide-react";
-import { Link } from "react-router-dom";
->>>>>>> fd763f8 (Add some modification in various pages)
 
 function Header() {
   const { currentUser, userProfile } = useAuth();
