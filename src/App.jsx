@@ -15,6 +15,7 @@ import Contribution from "./pages/Contribution";
 import Newsletter from "./pages/Newsletter";
 import Donation from "./pages/Donation";
 import EventRegistration from "./pages/EventRegistration";
+import EventGallery from "./pages/EventGallery";
 import ContactPage from "./pages/ContactPage";
 import { Footer } from "./pages/footer";
 
@@ -58,6 +59,7 @@ function App() {
           <Route path="/newsletter" element={<Newsletter />} />
           <Route path="/donation" element={<Donation />} />
           <Route path="/event/registration" element={<EventRegistration />} />
+          <Route path="/event/gallery" element={<EventGallery />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

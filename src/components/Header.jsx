@@ -1,18 +1,23 @@
 import logo from "../assets/logo.png";
 import { LogIn, UserPlus } from "lucide-react";
+import { Link } from "react-router-dom";
 
 function Header() {
   return (
     <header className="border-b border-blue-100 bg-white shadow-sm">
       <div className="mx-auto flex min-h-32 max-w-[1425px] flex-col items-center justify-between gap-5 px-4 py-5 text-center sm:px-5 md:flex-row md:text-left lg:px-10">
         <div className="flex flex-col items-center gap-5 sm:flex-row">
-          <div className="flex h-20 w-20 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 p-2 shadow-sm sm:h-24 sm:w-24">
+          <Link
+            to="/"
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="flex h-20 w-20 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 p-2 shadow-sm transition hover:shadow-md sm:h-24 sm:w-24"
+          >
             <img
               className="h-full w-full object-contain"
               src={logo}
               alt="SSGMCE Alumni Connect logo"
             />
-          </div>
+          </Link>
 
           <div>
             <p className="mb-1 text-xs font-semibold uppercase tracking-[0.22em] text-blue-500">
