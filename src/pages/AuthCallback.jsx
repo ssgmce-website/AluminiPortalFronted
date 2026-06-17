@@ -4,9 +4,18 @@ import { signInWithCustomToken, getRedirectResult } from 'firebase/auth';
 import { Loader2, AlertTriangle, Mail } from 'lucide-react';
 import { auth } from '../firebase/firebase';
 import { useAuth } from '../contexts/AuthContext';
-import { isEmailLink, completeEmailLink } from '../services/authService';
+import {
+  isEmailLink,
+  completeEmailLink,
+  getAuthIntent,
+  getRegistrationDetails,
+  clearAuthIntent,
+  registerWithBackend,
+  loginWithBackend,
+  logout,
+} from '../services/authService';
 import { friendlyAuthError } from '../utils/authErrors';
-import api from '../services/api';
+import { routeForProfile } from '../utils/authRoutes';
 
 export const AuthCallback = () => {
   const [params] = useSearchParams();
@@ -20,7 +29,55 @@ export const AuthCallback = () => {
 
   const finish = (profile) => {
     setUserProfile(profile);
-    navigate('/dashboard', { replace: true });
+    navigate(routeForProfile(profile), { replace: true });
+  };
+
+  // Firebase auth is now established. Either register (with the stashed details)
+  // or log in, depending on what the user was doing before they left the page.
+  const completeBackend = async () => {
+    const intent = getAuthIntent();
+
+    if (intent === 'register') {
+      const details = getRegistrationDetails();
+      if (!details) {
+        clearAuthIntent();
+        await logout();
+        navigate('/register?error=missing_details', { replace: true });
+        return;
+      }
+      setStatus('Submitting your registration…');
+      try {
+        const { user } = await registerWithBackend(details);
+        clearAuthIntent();
+        finish(user);
+      } catch (err) {
+        if (err?.response?.status === 409) {
+          // Already registered — send them to sign in (or pending).
+          clearAuthIntent();
+          const st = err.response.data?.status;
+          navigate(st === 'approved' ? '/sign-in?error=already_registered' : '/pending', { replace: true });
+          return;
+        }
+        throw err;
+      }
+      return;
+    }
+
+    // Login
+    setStatus('Loading your profile…');
+    try {
+      const { user } = await loginWithBackend();
+      clearAuthIntent();
+      finish(user);
+    } catch (err) {
+      if (err?.response?.status === 404) {
+        clearAuthIntent();
+        await logout(); // sign the unregistered user back out of Firebase
+        navigate('/sign-in?error=not_registered', { replace: true });
+        return;
+      }
+      throw err;
+    }
   };
 
   const handle = async (fallbackEmail) => {
@@ -30,7 +87,7 @@ export const AuthCallback = () => {
     // OAuth error bounced back from the backend (e.g. LinkedIn).
     const oauthError = params.get('error');
     if (oauthError) {
-      navigate(`/signin?error=${encodeURIComponent(oauthError)}`);
+      navigate(`/sign-in?error=${encodeURIComponent(oauthError)}`, { replace: true });
       return;
     }
 
@@ -38,19 +95,17 @@ export const AuthCallback = () => {
       // 1) LinkedIn — backend minted a Firebase custom token
       const customToken = params.get('customToken');
       if (customToken) {
-        setStatus('Signing in with LinkedIn…');
+        setStatus('Verifying with LinkedIn…');
         await signInWithCustomToken(auth, customToken);
-        setStatus('Loading your profile…');
-        const { data } = await api.post('/auth/sync');
-        finish(data.user);
+        await completeBackend();
         return;
       }
 
       // 2) Email OTP — this URL is a Firebase passwordless email link
       if (isEmailLink()) {
         setStatus('Verifying your email link…');
-        const profile = await completeEmailLink(fallbackEmail);
-        finish(profile);
+        await completeEmailLink(fallbackEmail);
+        await completeBackend();
         return;
       }
 
@@ -58,14 +113,12 @@ export const AuthCallback = () => {
       setStatus('Completing Google sign-in…');
       const result = await getRedirectResult(auth);
       if (result?.user) {
-        setStatus('Loading your profile…');
-        const { data } = await api.post('/auth/sync');
-        finish(data.user);
+        await completeBackend();
         return;
       }
 
       // Nothing to complete here — go back to sign in.
-      navigate('/signin', { replace: true });
+      navigate('/sign-in', { replace: true });
     } catch (err) {
       if (err?.code === 'auth/missing-email') {
         // The link was opened on a different device/browser; ask for the email.

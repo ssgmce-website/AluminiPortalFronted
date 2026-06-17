@@ -1,13 +1,24 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { GraduationCap, Loader2, Mail, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { loginWithGoogle, loginWithLinkedIn, requestEmailOtp } from '../services/authService';
+import {
+  googleAuth,
+  linkedInRedirect,
+  requestEmailOtp,
+  loginWithBackend,
+  checkEmailRegistered,
+  setAuthIntent,
+  logout,
+} from '../services/authService';
 import { friendlyAuthError } from '../utils/authErrors';
+import { routeForProfile } from '../utils/authRoutes';
 import { useAuth } from '../contexts/AuthContext';
+
+const NOT_REGISTERED_MSG = 'This email is not registered. Please register first.';
 
 const otpSchema = z.object({ email: z.email('Enter a valid email') });
 
@@ -58,6 +69,13 @@ export const SignIn = () => {
   const sendLink = async (email) => {
     setError('');
     try {
+      // Login only: refuse to email a link to an email that isn't registered.
+      const { exists } = await checkEmailRegistered(email);
+      if (!exists) {
+        setError(NOT_REGISTERED_MSG);
+        return;
+      }
+      setAuthIntent('login');
       const { remaining } = await requestEmailOtp(email);
       setOtpSent(email);
       setCooldown(RESEND_COOLDOWN);
@@ -72,16 +90,29 @@ export const SignIn = () => {
     setError('');
     setGoogleLoading(true);
     try {
-      const profile = await loginWithGoogle();
-      if (profile) { // null means a redirect was triggered; AuthCallback finishes it
-        setUserProfile(profile);
-        navigate('/dashboard');
+      setAuthIntent('login');
+      const popped = await googleAuth();
+      if (popped) { // null means a redirect was triggered; AuthCallback finishes it
+        const { user } = await loginWithBackend();
+        setUserProfile(user);
+        navigate(routeForProfile(user));
       }
     } catch (err) {
-      setError(friendlyAuthError(err));
+      if (err?.response?.status === 404) {
+        setError(NOT_REGISTERED_MSG);
+        await logout(); // sign the unregistered user back out of Firebase
+      } else {
+        setError(friendlyAuthError(err));
+      }
     } finally {
       setGoogleLoading(false);
     }
+  };
+
+  const handleLinkedIn = () => {
+    setError('');
+    setAuthIntent('login');
+    linkedInRedirect();
   };
 
   const resetOtp = () => { setOtpSent(''); setLockedOut(false); setCooldown(0); setError(''); };
@@ -97,7 +128,9 @@ export const SignIn = () => {
           <GraduationCap size={28} className="text-white" />
         </div>
         <h1 className="text-2xl font-bold text-gray-900">Welcome</h1>
-        <p className="text-gray-500 text-sm mt-1">Sign in to SSGMCE Alumni Portal</p>
+        <p className="text-gray-500 text-sm mt-1">
+          Sign in to SSGMCE Alumni Portal
+        </p>
       </div>
 
       {error && (
@@ -110,45 +143,59 @@ export const SignIn = () => {
       {otpSent ? (
         <div className="bg-green-50 border border-green-200 rounded-lg p-5 text-center space-y-3">
           <CheckCircle2 size={32} className="text-green-600 mx-auto" />
-          <p className="text-sm font-semibold text-green-800">Check your inbox</p>
+          <p className="text-sm font-semibold text-green-800">
+            Check your inbox
+          </p>
           <p className="text-xs text-green-700">
-            We sent a one-time sign-in link to <strong>{otpSent}</strong>. Open it on this device to finish signing in.
+            We sent a one-time sign-in link to <strong>{otpSent}</strong>. Open
+            it on this device to finish signing in.
           </p>
 
           <button
             onClick={() => sendLink(otpSent)}
             disabled={cooldown > 0 || lockedOut}
-            className="w-full bg-primary-700 border border-green-300 text-green-800 text-sm font-medium py-2 rounded-lg hover:bg-green-100 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-green-100 border border-green-300 text-green-800 text-sm font-medium py-2 rounded-lg  disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
           >
             {lockedOut
-              ? 'Resend limit reached'
+              ? "Resend limit reached"
               : cooldown > 0
                 ? `Resend link in ${cooldown}s`
-                : 'Didn’t get it? Resend link'}
+                : "Didn’t get it? Resend link"}
           </button>
 
           {lockedOut && (
             <p className="text-xs text-red-600">
-              You’ve reached the maximum of 3 link requests per hour. Please try again later or use Google / LinkedIn.
+              You’ve reached the maximum of 3 link requests per hour. Please try
+              again later or use Google / LinkedIn.
             </p>
           )}
 
-          <button onClick={resetOtp} className="text-xs text-primary-700 font-medium hover:underline">
+          <button
+            onClick={resetOtp}
+            className="text-xs text-primary-700 font-medium hover:underline"
+          >
             Use a different email
           </button>
         </div>
       ) : (
-        <form onSubmit={otpForm.handleSubmit(({ email }) => sendLink(email))} className="space-y-4">
+        <form
+          onSubmit={otpForm.handleSubmit(({ email }) => sendLink(email))}
+          className="space-y-4"
+        >
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
             <input
-              {...otpForm.register('email')}
+              {...otpForm.register("email")}
               type="email"
               placeholder="you@example.com"
               className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
             />
             {otpForm.formState.errors.email && (
-              <p className="text-red-500 text-xs mt-1">{otpForm.formState.errors.email.message}</p>
+              <p className="text-red-500 text-xs mt-1">
+                {otpForm.formState.errors.email.message}
+              </p>
             )}
           </div>
           <button
@@ -156,10 +203,18 @@ export const SignIn = () => {
             disabled={otpForm.formState.isSubmitting}
             className="w-full bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
           >
-            {otpForm.formState.isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
-            {otpForm.formState.isSubmitting ? 'Sending…' : 'Email me a sign-in link'}
+            {otpForm.formState.isSubmitting ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Mail size={16} />
+            )}
+            {otpForm.formState.isSubmitting
+              ? "Sending…"
+              : "Email me a sign-in link"}
           </button>
-          <p className="text-xs text-gray-400 text-center">No password needed — we&apos;ll email you a secure link.</p>
+          <p className="text-xs text-gray-400 text-center">
+            No password needed — we&apos;ll email you a secure link.
+          </p>
         </form>
       )}
 
@@ -169,7 +224,9 @@ export const SignIn = () => {
           <div className="w-full border-t border-gray-200" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-white px-3 text-xs text-gray-400">Or continue with</span>
+          <span className="bg-white px-3 text-xs text-gray-400">
+            Or continue with
+          </span>
         </div>
       </div>
 
@@ -180,11 +237,15 @@ export const SignIn = () => {
           disabled={googleLoading}
           className="flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60 transition-colors"
         >
-          {googleLoading ? <Loader2 size={16} className="animate-spin" /> : <GoogleIcon />}
+          {googleLoading ? (
+            <Loader2 size={16} className="animate-spin" />
+          ) : (
+            <GoogleIcon />
+          )}
           Google
         </button>
         <button
-          onClick={loginWithLinkedIn}
+          onClick={handleLinkedIn}
           className="flex items-center justify-center gap-2 bg-[#0A66C2] hover:bg-[#004182] rounded-lg py-2.5 text-sm font-medium text-white transition-colors"
         >
           <LinkedInIcon />
@@ -193,7 +254,14 @@ export const SignIn = () => {
       </div>
 
       <p className="text-center text-xs text-gray-400 mt-6">
-        New here? Signing in with any method above creates your account automatically.
+        New here?{" "}
+        <Link
+          to="/register"
+          className="text-primary-700 font-medium hover:underline"
+        >
+          Register as alumni
+        </Link>{" "}
+        — your account needs admin approval before you can sign in.
       </p>
     </motion.div>
   );
