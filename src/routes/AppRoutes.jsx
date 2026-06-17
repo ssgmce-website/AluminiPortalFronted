@@ -3,9 +3,15 @@ import { useAuth } from '../contexts/AuthContext';
 import { AuthLayout } from '../layouts/AuthLayout';
 import { DashboardLayout } from '../layouts/DashboardLayout';
 import { SignIn } from '../pages/SignIn';
+import { Register } from '../pages/Register';
 import { Dashboard } from '../pages/Dashboard';
 import { AuthCallback } from '../pages/AuthCallback';
+import { PendingApproval } from '../pages/PendingApproval';
+import { AdminPortal } from '../pages/AdminPortal';
+import { AdminLayout } from '../layouts/AdminLayout';
 import { ProtectedRoute } from './ProtectedRoute';
+import { AdminRoute } from './AdminRoute';
+import { routeForProfile } from '../utils/authRoutes';
 import ScrollToTop from '../components/ScrollToTop';
 
 // Public site UI (incoming changes)
@@ -49,7 +55,7 @@ const Home = () => (
 );
 
 export const AppRoutes = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, userProfile } = useAuth();
 
   return (
     <>
@@ -72,19 +78,27 @@ export const AppRoutes = () => {
           <Route path="/contact" element={<ContactPage />} />
         </Route>
 
-        {/* Auth page — no site navigation */}
+        {/* Auth pages — no site navigation */}
         <Route element={<AuthLayout />}>
           <Route
             path="/sign-in"
-            element={currentUser ? <Navigate to="/dashboard" replace /> : <SignIn />}
+            element={currentUser && userProfile ? <Navigate to={routeForProfile(userProfile)} replace /> : <SignIn />}
+          />
+          <Route
+            path="/register"
+            element={currentUser && userProfile ? <Navigate to={routeForProfile(userProfile)} replace /> : <Register />}
           />
         </Route>
 
-        {/* /login and /register are aliases for /signin (passwordless: sign-in creates the account) */}
-        <Route path="/Sign-in" element={<Navigate to="/signin" replace />} />
+        {/* Aliases for the sign-in route */}
+        <Route path="/signin" element={<Navigate to="/sign-in" replace />} />
+        <Route path="/Sign-in" element={<Navigate to="/sign-in" replace />} />
 
         {/* OAuth / email-link callback — bare page, no layout */}
         <Route path="/auth/callback" element={<AuthCallback />} />
+
+        {/* Account awaiting admin approval (or rejected) */}
+        <Route path="/pending" element={<PendingApproval />} />
 
         {/* Protected dashboard */}
         <Route
@@ -96,6 +110,18 @@ export const AppRoutes = () => {
           }
         >
           <Route index element={<Dashboard />} />
+        </Route>
+
+        {/* Admin portal — admin role only */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }
+        >
+          <Route index element={<AdminPortal />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

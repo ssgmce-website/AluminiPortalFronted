@@ -1,13 +1,24 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { GraduationCap, Loader2, Mail, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { loginWithGoogle, loginWithLinkedIn, requestEmailOtp } from '../services/authService';
+import {
+  googleAuth,
+  linkedInRedirect,
+  requestEmailOtp,
+  loginWithBackend,
+  checkEmailRegistered,
+  setAuthIntent,
+  logout,
+} from '../services/authService';
 import { friendlyAuthError } from '../utils/authErrors';
+import { routeForProfile } from '../utils/authRoutes';
 import { useAuth } from '../contexts/AuthContext';
+
+const NOT_REGISTERED_MSG = 'This email is not registered. Please register first.';
 
 const otpSchema = z.object({ email: z.email('Enter a valid email') });
 
@@ -58,6 +69,13 @@ export const SignIn = () => {
   const sendLink = async (email) => {
     setError('');
     try {
+      // Login only: refuse to email a link to an email that isn't registered.
+      const { exists } = await checkEmailRegistered(email);
+      if (!exists) {
+        setError(NOT_REGISTERED_MSG);
+        return;
+      }
+      setAuthIntent('login');
       const { remaining } = await requestEmailOtp(email);
       setOtpSent(email);
       setCooldown(RESEND_COOLDOWN);
@@ -72,16 +90,29 @@ export const SignIn = () => {
     setError('');
     setGoogleLoading(true);
     try {
-      const profile = await loginWithGoogle();
-      if (profile) { // null means a redirect was triggered; AuthCallback finishes it
-        setUserProfile(profile);
-        navigate('/dashboard');
+      setAuthIntent('login');
+      const popped = await googleAuth();
+      if (popped) { // null means a redirect was triggered; AuthCallback finishes it
+        const { user } = await loginWithBackend();
+        setUserProfile(user);
+        navigate(routeForProfile(user));
       }
     } catch (err) {
-      setError(friendlyAuthError(err));
+      if (err?.response?.status === 404) {
+        setError(NOT_REGISTERED_MSG);
+        await logout(); // sign the unregistered user back out of Firebase
+      } else {
+        setError(friendlyAuthError(err));
+      }
     } finally {
       setGoogleLoading(false);
     }
+  };
+
+  const handleLinkedIn = () => {
+    setError('');
+    setAuthIntent('login');
+    linkedInRedirect();
   };
 
   const resetOtp = () => { setOtpSent(''); setLockedOut(false); setCooldown(0); setError(''); };
@@ -184,7 +215,7 @@ export const SignIn = () => {
           Google
         </button>
         <button
-          onClick={loginWithLinkedIn}
+          onClick={handleLinkedIn}
           className="flex items-center justify-center gap-2 bg-[#0A66C2] hover:bg-[#004182] rounded-lg py-2.5 text-sm font-medium text-white transition-colors"
         >
           <LinkedInIcon />
@@ -193,7 +224,11 @@ export const SignIn = () => {
       </div>
 
       <p className="text-center text-xs text-gray-400 mt-6">
-        New here? Signing in with any method above creates your account automatically.
+        New here?{' '}
+        <Link to="/register" className="text-primary-700 font-medium hover:underline">
+          Register as alumni
+        </Link>{' '}
+        — your account needs admin approval before you can sign in.
       </p>
     </motion.div>
   );

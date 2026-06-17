@@ -39,6 +39,14 @@ export const friendlyAuthError = (err) => {
     case 'linkedin_no_email':
       return 'LinkedIn didn’t share an email for your account. Please use another sign-in method.';
 
+    // ── Admin-approved registration ──────────────────────────────────
+    case 'not_registered':
+      return 'This email is not registered. Please register first.';
+    case 'already_registered':
+      return 'This email is already registered. Please sign in instead.';
+    case 'missing_details':
+      return 'Your registration details were lost. Please fill the form again.';
+
     // ── Network / session ─────────────────────────────────────────────
     case 'auth/network-request-failed':
       return 'Network error. Check your connection and try again.';
