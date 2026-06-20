@@ -78,6 +78,7 @@ export const AppRoutes = () => {
           <Route path="/donation" element={<Donation />} />
           <Route path="/event/registration" element={<EventRegistration />} />
           <Route path="/event/gallery" element={<EventGallery />} />
+          <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<ContactPage />} />
         </Route>
 
