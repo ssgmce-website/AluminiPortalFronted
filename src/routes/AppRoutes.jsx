@@ -34,6 +34,7 @@ import Donation from '../pages/Donation';
 import EventRegistration from '../pages/EventRegistration';
 import EventGallery from '../pages/EventGallery';
 import ContactPage from '../pages/ContactPage';
+import Gallery from '../pages/Gallery';
 
 // Public-facing site layout (incoming UI: Header + Navbar + gradient main + Footer + Feedback)
 const MainLayout = () => (
