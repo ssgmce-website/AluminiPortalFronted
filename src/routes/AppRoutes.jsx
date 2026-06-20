@@ -32,6 +32,7 @@ import Contribution from '../pages/Contribution';
 import Newsletter from '../pages/Newsletter';
 import Donation from '../pages/Donation';
 import EventRegistration from '../pages/EventRegistration';
+import EventGallery from '../pages/EventGallery';
 import ContactPage from '../pages/ContactPage';
 import Gallery from '../pages/Gallery';
 
@@ -76,7 +77,7 @@ export const AppRoutes = () => {
           <Route path="/newsletter" element={<Newsletter />} />
           <Route path="/donation" element={<Donation />} />
           <Route path="/event/registration" element={<EventRegistration />} />
-          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/event/gallery" element={<EventGallery />} />
           <Route path="/contact" element={<ContactPage />} />
         </Route>
 
