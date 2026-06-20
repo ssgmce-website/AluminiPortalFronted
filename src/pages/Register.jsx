@@ -140,15 +140,19 @@ export const Register = () => {
   };
 
   const goNext = async () => {
-    if (step === 0) {
-      const ok = await trigger(['name', 'email']);
-      if (!ok) return;
-    }
-    if (step === 1) {
-      const ok = await trigger(['course', 'branch', 'yearOfAdmission', 'yearOfPassout']);
-      if (!ok) return;
+    let ok = true;
+    if (step === 0) ok = await trigger(['name', 'email']);
+    if (step === 1) ok = await trigger(['course', 'branch', 'yearOfAdmission', 'yearOfPassout']);
+    if (!ok) {
+      document.querySelector('.text-red-500.text-xs')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
     }
     setStep((s) => s + 1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const goToStep = (target) => {
+    if (target < step) setStep(target);
   };
 
   const collectDetails = async () => {
@@ -279,21 +283,24 @@ export const Register = () => {
                   }`}
                 />
               )}
-              <div
+              <button
+                type="button"
+                onClick={() => goToStep(i)}
                 className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold border-2 transition-colors ${
                   i < step
-                    ? 'bg-blue-600 border-blue-600 text-white'
+                    ? 'bg-blue-600 border-blue-600 text-white cursor-pointer hover:bg-blue-700'
                     : i === step
-                    ? 'border-blue-600 text-blue-600 bg-white'
-                    : 'border-gray-300 text-gray-400 bg-white'
+                    ? 'border-blue-600 text-blue-600 bg-white cursor-default'
+                    : 'border-gray-300 text-gray-400 bg-white cursor-not-allowed'
                 }`}
               >
                 {i < step ? '✓' : i + 1}
-              </div>
+              </button>
               <p
                 className={`mt-2 text-xs font-semibold text-center leading-tight ${
-                  i === step ? 'text-blue-700' : i < step ? 'text-blue-500' : 'text-gray-400'
+                  i === step ? 'text-blue-700' : i < step ? 'text-blue-500 cursor-pointer' : 'text-gray-400'
                 }`}
+                onClick={() => goToStep(i)}
               >
                 {label}
               </p>
@@ -896,7 +903,7 @@ export const Register = () => {
         {step > 0 ? (
           <button
             type="button"
-            onClick={() => setStep((s) => s - 1)}
+            onClick={() => { setStep((s) => s - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
             className="flex items-center gap-1.5 rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition"
           >
             <ChevronLeft size={16} /> Back
