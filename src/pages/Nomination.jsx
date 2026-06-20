@@ -1,14 +1,8 @@
 import { useState } from "react";
 import PageShell from "../components/PageShell";
+import FormField from "../components/FormField";
 
-const inputCls =
-  "mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm text-slate-800 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600";
-
-const labelCls = "block text-sm font-semibold text-slate-700";
-
-const noteCls = "mt-0.5 text-xs text-slate-500";
-
-function Field({ label, note, required, type = "text", ...props }) {
+function Nomination() {
   return (
     <label className="block">
       <span className={labelCls}>
@@ -89,24 +83,15 @@ function Nomination() {
             Candidate Details
           </h3>
           <div className="grid gap-4 md:grid-cols-2">
-            <Field label="Name" required />
-            <Field label="Personal Email ID" required type="email" />
-            <Field label="Contact No." required type="tel" />
-            <Field label="Candidate Membership No" required />
-            <Field label="Department and Degree" required />
-            <Field label="Year of Graduation" required type="number" />
+            <FormField label="Name" required />
+            <FormField label="Personal Email ID" required type="email" />
+            <FormField label="Contact No." required type="tel" />
+            <FormField label="Candidate Membership No" required />
+            <FormField label="Department and Degree" required />
+            <FormField label="Year of Graduation" required type="number" />
           </div>
           <div className="mt-4">
-            <label className="block">
-              <span className={labelCls}>
-                Address <span className="text-red-600">*</span>
-              </span>
-              <textarea
-                rows={3}
-                required
-                className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm text-slate-800 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
-              />
-            </label>
+            <FormField label="Address" required textarea />
           </div>
         </section>
 
@@ -116,16 +101,16 @@ function Nomination() {
             Proposer Details
           </h3>
           <div className="grid gap-4 md:grid-cols-2">
-            <Field
+            <FormField
               label="Proposer Name"
               required
               note="Should be a Life Member"
             />
-            <Field label="Proposer Life Membership No" required />
-            <Field label="Department and Degree" required />
-            <Field label="Year of Graduation" required type="number" />
-            <Field label="Contact No." required type="tel" />
-            <Field label="Email ID" required type="email" />
+            <FormField label="Proposer Life Membership No" required />
+            <FormField label="Department and Degree" required />
+            <FormField label="Year of Graduation" required type="number" />
+            <FormField label="Contact No." required type="tel" />
+            <FormField label="Email ID" required type="email" />
           </div>
         </section>
 
@@ -135,16 +120,16 @@ function Nomination() {
             Seconder Details
           </h3>
           <div className="grid gap-4 md:grid-cols-2">
-            <Field
+            <FormField
               label="Seconder Name"
               required
               note="Should be a Life Member"
             />
-            <Field label="Seconder Life Membership No" required />
-            <Field label="Department and Degree" required />
-            <Field label="Year of Graduation" required type="number" />
-            <Field label="Contact No." required type="tel" />
-            <Field label="Email ID" required type="email" />
+            <FormField label="Seconder Life Membership No" required />
+            <FormField label="Department and Degree" required />
+            <FormField label="Year of Graduation" required type="number" />
+            <FormField label="Contact No." required type="tel" />
+            <FormField label="Email ID" required type="email" />
           </div>
         </section>
 

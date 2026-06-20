@@ -1,10 +1,6 @@
 import { useState } from "react";
 import PageShell from "../components/PageShell";
-
-const inputCls =
-  "mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm text-slate-800 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600";
-
-const labelCls = "block text-sm font-semibold text-slate-700";
+import FormField from "../components/FormField";
 
 function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -52,44 +48,11 @@ function ContactPage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <label className="block">
-              <span className={labelCls}>
-                Name <span className="text-red-600">*</span>
-              </span>
-              <input type="text" required className={inputCls} />
-            </label>
-
-            <label className="block">
-              <span className={labelCls}>
-                Personal Email ID <span className="text-red-600">*</span>
-              </span>
-              <input type="email" required className={inputCls} />
-            </label>
-
-            <label className="block">
-              <span className={labelCls}>
-                Contact No. <span className="text-red-600">*</span>
-              </span>
-              <input type="tel" required className={inputCls} />
-            </label>
-
-            <label className="block">
-              <span className={labelCls}>
-                Subject <span className="text-red-600">*</span>
-              </span>
-              <input type="text" required className={inputCls} />
-            </label>
-
-            <label className="block">
-              <span className={labelCls}>
-                Message <span className="text-red-600">*</span>
-              </span>
-              <textarea
-                rows={4}
-                required
-                className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm text-slate-800 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
-              />
-            </label>
+            <FormField label="Name" required />
+            <FormField label="Personal Email ID" required type="email" />
+            <FormField label="Contact No." required type="tel" />
+            <FormField label="Subject" required />
+            <FormField label="Message" required textarea />
 
             <button
               type="submit"
