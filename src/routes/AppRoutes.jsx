@@ -33,6 +33,7 @@ import Newsletter from '../pages/Newsletter';
 import Donation from '../pages/Donation';
 import EventRegistration from '../pages/EventRegistration';
 import ContactPage from '../pages/ContactPage';
+import Gallery from '../pages/Gallery';
 
 // Public-facing site layout (incoming UI: Header + Navbar + gradient main + Footer + Feedback)
 const MainLayout = () => (
@@ -75,6 +76,7 @@ export const AppRoutes = () => {
           <Route path="/newsletter" element={<Newsletter />} />
           <Route path="/donation" element={<Donation />} />
           <Route path="/event/registration" element={<EventRegistration />} />
+          <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<ContactPage />} />
         </Route>
 
