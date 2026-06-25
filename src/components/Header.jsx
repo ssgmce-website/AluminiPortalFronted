@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import logo from "../assets/logo.png";
+import logo from "../assets/logo.jpeg";
 import { LogIn, UserPlus, LayoutDashboard } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { routeForProfile } from "../utils/authRoutes";
