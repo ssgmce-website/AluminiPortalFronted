@@ -6,3 +6,6 @@ export const routeForProfile = (profile) => {
   if (profile?.status === 'approved') return '/dashboard';
   return '/pending';
 };
+
+
+
