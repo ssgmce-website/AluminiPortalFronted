@@ -3,6 +3,40 @@ import PageShell from "../components/PageShell";
 import FormField from "../components/FormField";
 
 function Nomination() {
+  const [consent, setConsent] = useState(false);
+  const [file, setFile] = useState(null);
+  const [fileError, setFileError] = useState("");
+
+  const allowedTypes = [".doc", ".docx", ".pdf", ".png", ".jpeg", ".jpg", ".zip"];
+
+  function handleFile(e) {
+    const selected = e.target.files[0];
+    if (!selected) return;
+    const ext = "." + selected.name.split(".").pop().toLowerCase();
+    if (!allowedTypes.includes(ext)) {
+      setFileError("File type not allowed.");
+      setFile(null);
+      return;
+    }
+    const isZip = ext === ".zip";
+    const maxBytes = isZip ? 10 * 1024 * 1024 : 2 * 1024 * 1024;
+    if (selected.size > maxBytes) {
+      setFileError(
+        isZip
+          ? "ZIP file must be less than 10 MB."
+          : "File must be less than 2 MB."
+      );
+      setFile(null);
+      return;
+    }
+    setFileError("");
+    setFile(selected);
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+  }
+
   return (
     <label className="block">
       <span className={labelCls}>

@@ -160,6 +160,18 @@ function Navbar() {
               onNavigate={closeMobileMenu}
             />
 
+            <NavLink
+              to="/gallery"
+              onClick={closeMobileMenu}
+              className={({ isActive }) =>
+                `block border-b border-blue-100 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-800 ${
+                  isActive ? "bg-blue-50 text-blue-800" : ""
+                }`
+              }
+            >
+              Gallery
+            </NavLink>
+
             <MobileDropdown
               name="membership"
               label="Membership"
@@ -193,18 +205,6 @@ function Navbar() {
               }
             >
               Newsletter
-            </NavLink>
-
-            <NavLink
-              to="/donation"
-              onClick={closeMobileMenu}
-              className={({ isActive }) =>
-                `block border-b border-blue-100 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-800 ${
-                  isActive ? "bg-blue-50 text-blue-800" : ""
-                }`
-              }
-            >
-              Donation
             </NavLink>
 
             <MobileDropdown
@@ -243,6 +243,10 @@ function Navbar() {
             active={location.pathname.startsWith("/about")}
           />
 
+          <NavLink to="/gallery" className={navLinkClass}>
+            Gallery
+          </NavLink>
+
           <DropdownMenu
             name="membership"
             label="Membership"
@@ -259,10 +263,6 @@ function Navbar() {
 
           <NavLink to="/newsletter" className={navLinkClass}>
             Newsletter
-          </NavLink>
-
-          <NavLink to="/donation" className={navLinkClass}>
-            Donation
           </NavLink>
 
           <DropdownMenu
