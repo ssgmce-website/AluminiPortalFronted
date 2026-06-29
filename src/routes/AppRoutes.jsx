@@ -22,8 +22,14 @@ const AuthCallback    = lazy(() => import('../pages/AuthCallback').then(m => ({ 
 const PendingApproval = lazy(() => import('../pages/PendingApproval').then(m => ({ default: m.PendingApproval })));
 
 // Protected
-const Dashboard       = lazy(() => import('../pages/Dashboard').then(m => ({ default: m.Dashboard })));
-const AdminPortal     = lazy(() => import('../pages/AdminPortal').then(m => ({ default: m.AdminPortal })));
+const Dashboard    = lazy(() => import('../pages/Dashboard').then(m => ({ default: m.Dashboard })));
+
+// Admin panels
+const MembersPanel  = lazy(() => import('../pages/admin/MembersPanel').then(m => ({ default: m.MembersPanel })));
+const EventsPanel   = lazy(() => import('../pages/admin/EventsPanel').then(m => ({ default: m.EventsPanel })));
+const FinancesPanel = lazy(() => import('../pages/admin/FinancesPanel').then(m => ({ default: m.FinancesPanel })));
+const TravelPanel   = lazy(() => import('../pages/admin/TravelPanel').then(m => ({ default: m.TravelPanel })));
+const PostsPanel    = lazy(() => import('../pages/admin/PostsPanel').then(m => ({ default: m.PostsPanel })));
 
 // Public pages
 const HomePage           = lazy(() => import('../pages/HomePage'));
@@ -144,7 +150,30 @@ export const AppRoutes = () => {
             </AdminRoute>
           }
         >
-          <Route index element={<Suspense fallback={<PageLoader />}><AdminPortal /></Suspense>} />
+          <Route index element={<Navigate to="/admin/members" replace />} />
+
+          {/* Members */}
+          <Route path="members"           element={<Suspense fallback={<PageLoader />}><MembersPanel tab="pending" /></Suspense>} />
+          <Route path="members/approved"  element={<Suspense fallback={<PageLoader />}><MembersPanel tab="approved" /></Suspense>} />
+          <Route path="members/rejected"  element={<Suspense fallback={<PageLoader />}><MembersPanel tab="rejected" /></Suspense>} />
+          <Route path="members/dept-wise" element={<Suspense fallback={<PageLoader />}><MembersPanel tab="dept-wise" /></Suspense>} />
+
+          {/* Events */}
+          <Route path="events/current" element={<Suspense fallback={<PageLoader />}><EventsPanel tab="current" /></Suspense>} />
+          <Route path="events/old"     element={<Suspense fallback={<PageLoader />}><EventsPanel tab="old" /></Suspense>} />
+
+          {/* Finances */}
+          <Route path="finances/donations"     element={<Suspense fallback={<PageLoader />}><FinancesPanel tab="donations" /></Suspense>} />
+          <Route path="finances/contributions" element={<Suspense fallback={<PageLoader />}><FinancesPanel tab="contributions" /></Suspense>} />
+
+          {/* Travel */}
+          <Route path="travel/plans"         element={<Suspense fallback={<PageLoader />}><TravelPanel tab="plans" /></Suspense>} />
+          <Route path="travel/accommodation" element={<Suspense fallback={<PageLoader />}><TravelPanel tab="accommodation" /></Suspense>} />
+
+          {/* Posts */}
+          <Route path="posts/jobs"           element={<Suspense fallback={<PageLoader />}><PostsPanel tab="jobs" /></Suspense>} />
+          <Route path="posts/activities"     element={<Suspense fallback={<PageLoader />}><PostsPanel tab="activities" /></Suspense>} />
+          <Route path="posts/guest-lectures" element={<Suspense fallback={<PageLoader />}><PostsPanel tab="guest-lectures" /></Suspense>} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
