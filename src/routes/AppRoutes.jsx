@@ -1,102 +1,129 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { AuthLayout } from '../layouts/AuthLayout';
 import { DashboardLayout } from '../layouts/DashboardLayout';
-import { SignIn } from '../pages/SignIn';
-import { Register } from '../pages/Register';
-import { Dashboard } from '../pages/Dashboard';
-import { AuthCallback } from '../pages/AuthCallback';
-import { PendingApproval } from '../pages/PendingApproval';
-import { AdminPortal } from '../pages/AdminPortal';
 import { AdminLayout } from '../layouts/AdminLayout';
 import { ProtectedRoute } from './ProtectedRoute';
 import { AdminRoute } from './AdminRoute';
 import { routeForProfile } from '../utils/authRoutes';
 import ScrollToTop from '../components/ScrollToTop';
-
-// Public site UI
 import Header from '../components/Header';
 import Navbar from '../components/Navbar';
 import FeedbackButton from '../components/FeedbackButton';
-import HomePage from '../pages/HomePage';
 import { Footer } from '../pages/footer';
-import AlumniCell from '../pages/AlumniCell';
-import ExecutiveTeam from '../pages/ExecutiveTeam';
-import ActivityOrganized from '../pages/ActivityOrganized';
-import DistinguishedAlumni from '../pages/DistinguishedAlumni';
-import AnnualReport from '../pages/AnnualReport';
-import Nomination from '../pages/Nomination';
-import WithdrawalForm from '../pages/WithdrawalForm';
-import Contribution from '../pages/Contribution';
-import Newsletter from '../pages/Newsletter';
-import Donation from '../pages/Donation';
-import EventRegistration from '../pages/EventRegistration';
-import EventGallery from '../pages/EventGallery';
-import ContactPage from '../pages/ContactPage';
-import Gallery from '../pages/Gallery';
 
-// Public-facing site layout
+// ─── CODE-SPLIT: every page is a separate JS chunk ────────────────────────────
+// Auth (small, load fast)
+const SignIn          = lazy(() => import('../pages/SignIn').then(m => ({ default: m.SignIn })));
+const Register        = lazy(() => import('../pages/Register').then(m => ({ default: m.Register })));
+const AuthCallback    = lazy(() => import('../pages/AuthCallback').then(m => ({ default: m.AuthCallback })));
+const PendingApproval = lazy(() => import('../pages/PendingApproval').then(m => ({ default: m.PendingApproval })));
+
+// Protected
+const Dashboard       = lazy(() => import('../pages/Dashboard').then(m => ({ default: m.Dashboard })));
+const AdminPortal     = lazy(() => import('../pages/AdminPortal').then(m => ({ default: m.AdminPortal })));
+
+// Public pages
+const HomePage           = lazy(() => import('../pages/HomePage'));
+const AlumniCell         = lazy(() => import('../pages/AlumniCell'));
+const ExecutiveTeam      = lazy(() => import('../pages/ExecutiveTeam'));
+const ActivityOrganized  = lazy(() => import('../pages/ActivityOrganized'));
+const DistinguishedAlumni = lazy(() => import('../pages/DistinguishedAlumni'));
+const AnnualReport       = lazy(() => import('../pages/AnnualReport'));
+const Nomination         = lazy(() => import('../pages/Nomination'));
+const WithdrawalForm     = lazy(() => import('../pages/WithdrawalForm'));
+const Contribution       = lazy(() => import('../pages/Contribution'));
+const Newsletter         = lazy(() => import('../pages/Newsletter'));
+const Donation           = lazy(() => import('../pages/Donation'));
+const EventRegistration  = lazy(() => import('../pages/EventRegistration'));
+const EventGallery       = lazy(() => import('../pages/EventGallery'));
+const Gallery            = lazy(() => import('../pages/Gallery'));
+const ContactPage        = lazy(() => import('../pages/ContactPage'));
+
+// ─── LOADING FALLBACK ─────────────────────────────────────────────────────────
+const PageLoader = () => (
+  <div className="flex min-h-[50vh] items-center justify-center">
+    <Loader2 size={28} className="animate-spin text-blue-600" />
+  </div>
+);
+
+// ─── LAYOUTS ─────────────────────────────────────────────────────────────────
 const MainLayout = () => (
-  <div className="min-h-screen" style={{ background: '#f7f2eb' }}>
+  <div className="min-h-screen bg-[#f7f2eb]">
     <Header />
     <Navbar />
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-      <Outlet />
+      <Suspense fallback={<PageLoader />}>
+        <Outlet />
+      </Suspense>
     </main>
     <Footer />
     <FeedbackButton />
   </div>
 );
 
+// ─── ROUTES ───────────────────────────────────────────────────────────────────
 export const AppRoutes = () => {
   const { currentUser, userProfile } = useAuth();
+  const alreadyIn = currentUser && userProfile;
 
   return (
     <>
       <ScrollToTop />
       <Routes>
-        {/* Public pages (incoming UI) */}
+
+        {/* ── Public site ───────────────────────────────────────────────── */}
         <Route element={<MainLayout />}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/about/alumni-cell" element={<AlumniCell />} />
-          <Route path="/about/executive-team" element={<ExecutiveTeam />} />
-          <Route path="/about/activity-organized" element={<ActivityOrganized />} />
+          <Route path="/"                          element={<HomePage />} />
+          <Route path="/about/alumni-cell"         element={<AlumniCell />} />
+          <Route path="/about/executive-team"      element={<ExecutiveTeam />} />
+          <Route path="/about/activity-organized"  element={<ActivityOrganized />} />
           <Route path="/about/distinguished-alumni" element={<DistinguishedAlumni />} />
-          <Route path="/about/annual-report" element={<AnnualReport />} />
-          <Route path="/membership/nomination" element={<Nomination />} />
+          <Route path="/about/annual-report"       element={<AnnualReport />} />
+          <Route path="/membership/nomination"     element={<Nomination />} />
           <Route path="/membership/withdrawal-form" element={<WithdrawalForm />} />
-          <Route path="/contribution" element={<Contribution />} />
-          <Route path="/newsletter" element={<Newsletter />} />
-          <Route path="/donation" element={<Donation />} />
-          <Route path="/event/registration" element={<EventRegistration />} />
-          <Route path="/event/gallery" element={<EventGallery />} />
-          <Route path="/gallery" element={<Gallery />} />
-          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/contribution"              element={<Contribution />} />
+          <Route path="/newsletter"                element={<Newsletter />} />
+          <Route path="/donation"                  element={<Donation />} />
+          <Route path="/event/registration"        element={<EventRegistration />} />
+          <Route path="/event/gallery"             element={<EventGallery />} />
+          <Route path="/gallery"                   element={<Gallery />} />
+          <Route path="/contact"                   element={<ContactPage />} />
         </Route>
 
-        {/* Auth pages — no site navigation */}
+        {/* ── Auth (no site chrome) ─────────────────────────────────────── */}
         <Route element={<AuthLayout />}>
           <Route
             path="/sign-in"
-            element={currentUser && userProfile ? <Navigate to={routeForProfile(userProfile)} replace /> : <SignIn />}
+            element={
+              alreadyIn
+                ? <Navigate to={routeForProfile(userProfile)} replace />
+                : <Suspense fallback={<PageLoader />}><SignIn /></Suspense>
+            }
           />
           <Route
             path="/register"
-            element={currentUser && userProfile ? <Navigate to={routeForProfile(userProfile)} replace /> : <Register />}
+            element={
+              alreadyIn
+                ? <Navigate to={routeForProfile(userProfile)} replace />
+                : <Suspense fallback={<PageLoader />}><Register /></Suspense>
+            }
           />
         </Route>
 
-        {/* Aliases for the sign-in route */}
-        <Route path="/signin" element={<Navigate to="/sign-in" replace />} />
-        <Route path="/Sign-in" element={<Navigate to="/sign-in" replace />} />
+        {/* ── Redirect aliases ──────────────────────────────────────────── */}
+        <Route path="/signin"   element={<Navigate to="/sign-in" replace />} />
+        <Route path="/Sign-in"  element={<Navigate to="/sign-in" replace />} />
 
-        {/* OAuth / email-link callback — bare page, no layout */}
-        <Route path="/auth/callback" element={<AuthCallback />} />
+        {/* ── OAuth / email-link callback — no layout ───────────────────── */}
+        <Route path="/auth/callback" element={<Suspense fallback={<PageLoader />}><AuthCallback /></Suspense>} />
 
-        {/* Account awaiting admin approval (or rejected) */}
-        <Route path="/pending" element={<PendingApproval />} />
+        {/* ── Awaiting admin approval ───────────────────────────────────── */}
+        <Route path="/pending" element={<Suspense fallback={<PageLoader />}><PendingApproval /></Suspense>} />
 
-        {/* Protected dashboard */}
+        {/* ── Protected dashboard ───────────────────────────────────────── */}
         <Route
           path="/dashboard"
           element={
@@ -105,10 +132,10 @@ export const AppRoutes = () => {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Dashboard />} />
+          <Route index element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
         </Route>
 
-        {/* Admin portal — admin role only */}
+        {/* ── Admin portal ──────────────────────────────────────────────── */}
         <Route
           path="/admin"
           element={
@@ -117,7 +144,7 @@ export const AppRoutes = () => {
             </AdminRoute>
           }
         >
-          <Route index element={<AdminPortal />} />
+          <Route index element={<Suspense fallback={<PageLoader />}><AdminPortal /></Suspense>} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
