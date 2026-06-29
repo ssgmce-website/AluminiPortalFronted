@@ -14,12 +14,11 @@ import { AdminRoute } from './AdminRoute';
 import { routeForProfile } from '../utils/authRoutes';
 import ScrollToTop from '../components/ScrollToTop';
 
-// Public site UI (incoming changes)
+// Public site UI
 import Header from '../components/Header';
 import Navbar from '../components/Navbar';
-import HeroSlider from '../components/HeroSlider';
-import Newsroom from '../components/Newsroom';
 import FeedbackButton from '../components/FeedbackButton';
+import HomePage from '../pages/HomePage';
 import { Footer } from '../pages/footer';
 import AlumniCell from '../pages/AlumniCell';
 import ExecutiveTeam from '../pages/ExecutiveTeam';
@@ -36,24 +35,17 @@ import EventGallery from '../pages/EventGallery';
 import ContactPage from '../pages/ContactPage';
 import Gallery from '../pages/Gallery';
 
-// Public-facing site layout (incoming UI: Header + Navbar + gradient main + Footer + Feedback)
+// Public-facing site layout
 const MainLayout = () => (
-  <div className="min-h-screen bg-slate-50">
+  <div className="min-h-screen" style={{ background: '#f7f2eb' }}>
     <Header />
     <Navbar />
-    <main className="min-h-screen bg-[linear-gradient(180deg,#eff6ff_0%,#f8fafc_48%,#e0f2fe_100%)] px-4 py-10 sm:px-6 lg:py-12">
+    <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
       <Outlet />
     </main>
     <Footer />
     <FeedbackButton />
   </div>
-);
-
-const Home = () => (
-  <>
-    <HeroSlider />
-    <Newsroom />
-  </>
 );
 
 export const AppRoutes = () => {
@@ -65,7 +57,7 @@ export const AppRoutes = () => {
       <Routes>
         {/* Public pages (incoming UI) */}
         <Route element={<MainLayout />}>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/about/alumni-cell" element={<AlumniCell />} />
           <Route path="/about/executive-team" element={<ExecutiveTeam />} />
           <Route path="/about/activity-organized" element={<ActivityOrganized />} />
