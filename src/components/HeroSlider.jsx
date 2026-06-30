@@ -1,8 +1,8 @@
 import { Autoplay, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import ceremonyImage from "../assets/slide-ceremony.jpeg";
-import sessionImage from "../assets/slide-session.jpeg";
-import meetImage from "../assets/slide-meet.jpeg";
+import sessionImage  from "../assets/slide-session.jpeg";
+import meetImage     from "../assets/slide-meet.jpeg";
 import "swiper/css";
 import "swiper/css/pagination";
 
