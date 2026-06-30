@@ -26,6 +26,7 @@ const Dashboard         = lazy(() => import('../pages/Dashboard').then(m => ({ d
 const ProfileCompletion = lazy(() => import('../pages/ProfileCompletion'));
 
 // Admin panels
+const AdminOverview = lazy(() => import('../pages/admin/AdminOverview').then(m => ({ default: m.AdminOverview })));
 const MembersPanel  = lazy(() => import('../pages/admin/MembersPanel').then(m => ({ default: m.MembersPanel })));
 const EventsPanel   = lazy(() => import('../pages/admin/EventsPanel').then(m => ({ default: m.EventsPanel })));
 const FinancesPanel = lazy(() => import('../pages/admin/FinancesPanel').then(m => ({ default: m.FinancesPanel })));
@@ -153,7 +154,7 @@ export const AppRoutes = () => {
             </AdminRoute>
           }
         >
-          <Route index element={<Navigate to="/admin/members" replace />} />
+          <Route index element={<Suspense fallback={<PageLoader />}><AdminOverview /></Suspense>} />
 
           {/* Members */}
           <Route path="members"           element={<Suspense fallback={<PageLoader />}><MembersPanel tab="pending" /></Suspense>} />

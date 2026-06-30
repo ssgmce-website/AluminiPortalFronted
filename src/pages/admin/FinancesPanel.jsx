@@ -26,21 +26,19 @@ const CONTRIBUTIONS = [
 
 const STATUS_COLOR = {
   completed: 'bg-emerald-100 text-emerald-700',
-  pending:   'bg-amber-100 text-amber-700',
+  pending:   'bg-blue-100 text-blue-700',
   rejected:  'bg-red-100 text-red-700',
   received:  'bg-emerald-100 text-emerald-700',
   ongoing:   'bg-blue-100 text-blue-700',
 };
 
-function SummaryCard({ label, value, icon: Icon, iconClass }) {
+function SummaryCard({ label, value, icon: Icon, valueColor = 'text-gray-900' }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
-      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${iconClass}`}>
-        <Icon size={17} />
-      </div>
+    <div className="bg-white rounded-lg border border-gray-200 p-5 flex items-center gap-4">
+      <Icon size={20} className="text-gray-300 shrink-0" />
       <div>
-        <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
-        <p className="text-xl font-bold text-gray-900">{value}</p>
+        <p className="text-xs text-gray-500 font-medium">{label}</p>
+        <p className={`text-2xl font-bold mt-0.5 ${valueColor}`}>{value}</p>
       </div>
     </div>
   );
@@ -65,19 +63,19 @@ function PendingConfirmations({ donations, onConfirm, onReject }) {
   if (pending.length === 0) return null;
 
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-xl overflow-hidden">
+    <div className="bg-blue-50 border border-blue-200 rounded-xl overflow-hidden">
       {/* Section header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-amber-200 bg-amber-100/60">
-        <AlertTriangle size={16} className="text-amber-600 shrink-0" />
-        <span className="font-semibold text-amber-800 text-sm">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-blue-200 bg-blue-100/60">
+        <AlertTriangle size={16} className="text-blue-600 shrink-0" />
+        <span className="font-semibold text-blue-800 text-sm">
           Pending Donation Confirmations
         </span>
-        <span className="ml-auto bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+        <span className="ml-auto bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
           {pending.length}
         </span>
       </div>
 
-      <div className="divide-y divide-amber-100">
+      <div className="divide-y divide-blue-100">
         <AnimatePresence initial={false}>
           {pending.map(d => (
             <motion.div
@@ -168,9 +166,9 @@ export const FinancesPanel = ({ tab }) => {
 
         {/* Summary cards */}
         <div className="grid grid-cols-3 gap-4">
-          <SummaryCard label="Total Received" value={`₹${totalReceived.toLocaleString('en-IN')}`} icon={IndianRupee} iconClass="bg-emerald-100 text-emerald-700" />
-          <SummaryCard label="Pending"        value={`₹${totalPending.toLocaleString('en-IN')}`}  icon={Clock}        iconClass="bg-amber-100 text-amber-700" />
-          <SummaryCard label="Donors"         value={donations.length}                             icon={Heart}        iconClass="bg-blue-100 text-blue-700" />
+          <SummaryCard label="Total Received" value={`₹${totalReceived.toLocaleString('en-IN')}`} icon={IndianRupee} valueColor="text-emerald-700" />
+          <SummaryCard label="Pending"        value={`₹${totalPending.toLocaleString('en-IN')}`}  icon={Clock}       valueColor="text-blue-600" />
+          <SummaryCard label="Total Donors"   value={donations.length}                             icon={Heart} />
         </div>
 
         {/* Pending confirmations */}
@@ -179,7 +177,7 @@ export const FinancesPanel = ({ tab }) => {
         {/* Search + full table */}
         <SearchBar value={search} onChange={setSearch} placeholder="Search by name or purpose…" />
 
-        <div className="overflow-x-auto rounded-xl border border-gray-100 bg-white shadow-sm">
+        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
               <tr>
@@ -194,7 +192,7 @@ export const FinancesPanel = ({ tab }) => {
                   key={d.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="hover:bg-gray-50 transition-colors"
+                  className="hover:bg-blue-50/40 transition-colors"
                 >
                   <td className="px-4 py-3 text-gray-400">{i + 1}</td>
                   <td className="px-4 py-3 font-medium text-gray-900">{d.name}</td>
@@ -239,9 +237,9 @@ export const FinancesPanel = ({ tab }) => {
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <SummaryCard label="Total"    value={CONTRIBUTIONS.length}                                      icon={TrendingUp} iconClass="bg-blue-100 text-blue-700" />
-        <SummaryCard label="Received" value={CONTRIBUTIONS.filter(c => c.status === 'received').length} icon={TrendingUp} iconClass="bg-emerald-100 text-emerald-700" />
-        <SummaryCard label="Ongoing"  value={CONTRIBUTIONS.filter(c => c.status === 'ongoing').length}  icon={TrendingUp} iconClass="bg-amber-100 text-amber-700" />
+        <SummaryCard label="Total Contributions" value={CONTRIBUTIONS.length}                                      icon={TrendingUp} />
+        <SummaryCard label="Received"            value={CONTRIBUTIONS.filter(c => c.status === 'received').length} icon={TrendingUp} valueColor="text-emerald-700" />
+        <SummaryCard label="Ongoing"             value={CONTRIBUTIONS.filter(c => c.status === 'ongoing').length}  icon={TrendingUp} valueColor="text-blue-700" />
       </div>
 
       <SearchBar value={search} onChange={setSearch} placeholder="Search by name or type…" />
@@ -249,7 +247,7 @@ export const FinancesPanel = ({ tab }) => {
       <div className="space-y-3">
         {filtered.map(c => (
           <motion.div key={c.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl border border-gray-100 shadow-sm p-4"
+            className="bg-white rounded-lg border border-gray-200 p-4"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1">
