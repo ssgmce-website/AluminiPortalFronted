@@ -22,8 +22,9 @@ const AuthCallback    = lazy(() => import('../pages/AuthCallback').then(m => ({ 
 const PendingApproval = lazy(() => import('../pages/PendingApproval').then(m => ({ default: m.PendingApproval })));
 
 // Protected
-const Dashboard       = lazy(() => import('../pages/Dashboard').then(m => ({ default: m.Dashboard })));
-const AdminPortal     = lazy(() => import('../pages/AdminPortal').then(m => ({ default: m.AdminPortal })));
+const Dashboard         = lazy(() => import('../pages/Dashboard').then(m => ({ default: m.Dashboard })));
+const ProfileCompletion = lazy(() => import('../pages/ProfileCompletion'));
+const AdminPortal       = lazy(() => import('../pages/AdminPortal').then(m => ({ default: m.AdminPortal })));
 
 // Public pages
 const HomePage           = lazy(() => import('../pages/HomePage'));
@@ -51,7 +52,7 @@ const PageLoader = () => (
 
 // ─── LAYOUTS ─────────────────────────────────────────────────────────────────
 const MainLayout = () => (
-  <div className="min-h-screen bg-[#f7f2eb]">
+  <div className="min-h-screen bg-slate-50">
     <Header />
     <Navbar />
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
@@ -133,6 +134,7 @@ export const AppRoutes = () => {
           }
         >
           <Route index element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
+          <Route path="profile" element={<Suspense fallback={<PageLoader />}><ProfileCompletion /></Suspense>} />
         </Route>
 
         {/* ── Admin portal ──────────────────────────────────────────────── */}
