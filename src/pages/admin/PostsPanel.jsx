@@ -134,13 +134,13 @@ function PendingQueue({ pending, onApprove, onReject }) {
   if (pending.length === 0) return null;
 
   return (
-    <div className="bg-orange-50 border border-orange-200 rounded-xl overflow-hidden">
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-orange-200 bg-orange-100/60">
+      <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-gray-200 bg-gray-50">
         <div className="flex items-center gap-2">
-          <AlertCircle size={15} className="text-orange-600 shrink-0" />
-          <span className="font-semibold text-orange-800 text-sm">Pending Posts for Approval</span>
-          <span className="bg-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+          <AlertCircle size={15} className="text-gray-500 shrink-0" />
+          <span className="font-semibold text-gray-800 text-sm">Pending Posts for Approval</span>
+          <span className="bg-gray-700 text-white text-xs font-bold px-2 py-0.5 rounded-full">
             {pending.length}
           </span>
         </div>
@@ -150,7 +150,7 @@ function PendingQueue({ pending, onApprove, onReject }) {
           <select
             value={typeFilter}
             onChange={e => setTypeFilter(e.target.value)}
-            className="appearance-none bg-white border border-orange-200 rounded-lg pl-3 pr-7 py-1 text-xs font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-200 cursor-pointer"
+            className="appearance-none bg-white border border-gray-200 rounded-lg pl-3 pr-7 py-1 text-xs font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 cursor-pointer"
           >
             <option value="all">All</option>
             <option value="job">Job</option>
@@ -161,7 +161,7 @@ function PendingQueue({ pending, onApprove, onReject }) {
         </div>
       </div>
 
-      <div className="divide-y divide-orange-100">
+      <div className="divide-y divide-gray-100">
         <AnimatePresence initial={false}>
           {visible.map(post => (
             <motion.div
@@ -267,7 +267,7 @@ export const PostsPanel = ({ tab }) => {
         <div className="space-y-3">
           {filtered.map(j => (
             <motion.div key={j.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-start justify-between gap-3"
+              className="bg-white rounded-lg border border-gray-200 p-4 flex items-start justify-between gap-3"
             >
               <div className="flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -319,7 +319,7 @@ export const PostsPanel = ({ tab }) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {filtered.map(a => (
             <motion.div key={a.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-xl border border-gray-100 shadow-sm p-4"
+              className="bg-white rounded-lg border border-gray-200 p-4"
             >
               <div className="flex items-start justify-between gap-2 mb-2">
                 <h3 className="font-semibold text-gray-900">{a.title}</h3>
@@ -364,7 +364,7 @@ export const PostsPanel = ({ tab }) => {
       <div className="space-y-3">
         {filtered.map(l => (
           <motion.div key={l.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl border border-gray-100 shadow-sm p-4"
+            className="bg-white rounded-lg border border-gray-200 p-4"
           >
             <div className="flex-1">
               <div className="flex items-center gap-2 flex-wrap">

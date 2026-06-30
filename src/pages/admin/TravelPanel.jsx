@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Navigation, Hotel, Calendar, Users, FileSpreadsheet,
+  Navigation, Hotel, Calendar, Users, FileSpreadsheet, Clock,
   Train, Car, Plane, Bus, ChevronDown,
 } from 'lucide-react';
 
@@ -101,14 +101,17 @@ function StatStrip({ plans }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
       {[
-        { label: 'Total Arriving',       value: arriving,    color: 'text-blue-700',    bg: 'bg-blue-50 border-blue-100' },
-        { label: 'Need Accommodation',   value: needsAccomm, color: 'text-violet-700',  bg: 'bg-violet-50 border-violet-100' },
-        { label: 'Confirmed',            value: confirmed,   color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-100' },
-        { label: 'Pending',              value: pending,     color: 'text-amber-700',   bg: 'bg-amber-50 border-amber-100' },
+        { label: 'Total Arriving',     value: arriving,    color: 'text-gray-900',    icon: Users },
+        { label: 'Need Accommodation', value: needsAccomm, color: 'text-gray-900',    icon: Hotel },
+        { label: 'Confirmed',          value: confirmed,   color: 'text-emerald-700', icon: Navigation },
+        { label: 'Pending',            value: pending,     color: 'text-amber-600',   icon: Clock },
       ].map(s => (
-        <div key={s.label} className={`rounded-xl border p-4 ${s.bg}`}>
-          <p className="text-xs text-gray-500 uppercase tracking-wide">{s.label}</p>
-          <p className={`text-2xl font-bold mt-1 ${s.color}`}>{s.value}</p>
+        <div key={s.label} className="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3">
+          <s.icon size={18} className="text-gray-300 shrink-0" />
+          <div>
+            <p className="text-xs text-gray-500 font-medium">{s.label}</p>
+            <p className={`text-2xl font-bold mt-0.5 ${s.color}`}>{s.value}</p>
+          </div>
         </div>
       ))}
     </div>
@@ -117,9 +120,9 @@ function StatStrip({ plans }) {
 
 function StatCard({ label, value }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-      <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
-      <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+    <div className="bg-white rounded-lg border border-gray-200 p-4">
+      <p className="text-xs text-gray-500 font-medium">{label}</p>
+      <p className="text-2xl font-bold text-gray-900 mt-0.5">{value}</p>
     </div>
   );
 }
@@ -166,7 +169,7 @@ export const TravelPanel = ({ tab }) => {
         <StatStrip plans={plans} />
 
         {/* Table + Export */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           {/* Table toolbar */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <p className="text-sm font-medium text-gray-700">
@@ -261,7 +264,7 @@ export const TravelPanel = ({ tab }) => {
       <div className="space-y-3">
         {ACCOMMODATION.map(a => (
           <motion.div key={a.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl border border-gray-100 shadow-sm p-4"
+            className="bg-white rounded-lg border border-gray-200 p-4"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1">

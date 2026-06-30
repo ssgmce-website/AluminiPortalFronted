@@ -23,7 +23,7 @@ const MemberCard = ({ u, onApprove, onReject, actingId }) => (
   <motion.div
     initial={{ opacity: 0, y: 8 }}
     animate={{ opacity: 1, y: 0 }}
-    className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex flex-col sm:flex-row sm:items-center gap-4"
+    className="bg-white rounded-lg border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center gap-4"
   >
     {u.profilePhoto ? (
       <img src={u.profilePhoto} alt="" className="w-11 h-11 rounded-full object-cover shrink-0" />
@@ -119,7 +119,7 @@ const DeptWiseView = ({ members }) => {
   return (
     <div className="space-y-4">
       {/* Bar chart summary card */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+      <div className="bg-white rounded-lg border border-gray-200 p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold text-gray-800">Department-wise Alumni Count</h2>
           <button
@@ -155,7 +155,7 @@ const DeptWiseView = ({ members }) => {
 
       {/* Collapsible dept accordions */}
       {sorted.map(([dept, list]) => (
-          <div key={dept} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div key={dept} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
             <button
               onClick={() => setExpanded(e => ({ ...e, [dept]: !e[dept] }))}
               className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors"
@@ -282,15 +282,15 @@ export const MembersPanel = ({ tab }) => {
       {/* Stat cards */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { key: 'pending',  label: 'Pending',  icon: Clock },
-          { key: 'approved', label: 'Approved', icon: CheckCircle2 },
-          { key: 'rejected', label: 'Rejected', icon: XCircle },
-        ].map(({ key, label: lbl, icon: Icon }) => (
-          <div key={key} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center gap-3">
-            <Icon size={18} className="text-gray-400" />
+          { key: 'pending',  label: 'Pending Requests',  icon: Clock,        valueColor: 'text-amber-600' },
+          { key: 'approved', label: 'Approved Members',  icon: CheckCircle2, valueColor: 'text-emerald-700' },
+          { key: 'rejected', label: 'Rejected Requests', icon: XCircle,      valueColor: 'text-red-600' },
+        ].map(({ key, label: lbl, icon: Icon, valueColor }) => (
+          <div key={key} className="bg-white rounded-lg border border-gray-200 p-5 flex items-center gap-4">
+            <Icon size={20} className="text-gray-300 shrink-0" />
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wide">{lbl}</p>
-              <p className="text-xl font-bold text-gray-900">{counts[key] ?? 0}</p>
+              <p className="text-xs text-gray-500 font-medium">{lbl}</p>
+              <p className={`text-3xl font-bold mt-0.5 ${valueColor}`}>{counts[key] ?? 0}</p>
             </div>
           </div>
         ))}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, CalendarClock, History, Users, MapPin, Clock } from 'lucide-react';
+import { Calendar, CalendarClock, History, Users, MapPin } from 'lucide-react';
 
 const CURRENT_EVENTS = [
   { id: 1, name: 'Annual Alumni Meet 2025',  date: '2025-03-15', venue: 'SSGMCE Auditorium', registrations: 148, capacity: 200, status: 'open' },
@@ -37,8 +37,10 @@ function EventCard({ event, isSelected, onClick }) {
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       onClick={() => onClick(event)}
-      className={`bg-white rounded-xl border shadow-sm p-4 cursor-pointer transition-all ${
-        isSelected ? 'border-blue-500 ring-2 ring-blue-100' : 'border-gray-100 hover:border-gray-200'
+      className={`bg-white rounded-lg border p-4 cursor-pointer transition-colors ${
+        isSelected
+          ? 'border-blue-500 ring-2 ring-blue-50'
+          : 'border-gray-200 hover:border-blue-300'
       }`}
     >
       <div className="flex items-start justify-between gap-2 mb-3">
@@ -54,10 +56,13 @@ function EventCard({ event, isSelected, onClick }) {
         <div className="flex items-center gap-1.5"><MapPin size={13} /> {event.venue}</div>
         <div className="flex items-center gap-1.5"><Users size={13} /> {event.registrations} / {event.capacity} registered</div>
       </div>
-      <div className="w-full bg-gray-100 rounded-full h-1.5">
-        <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: `${Math.min(100, pct)}%` }} />
+      <div className="w-full bg-gray-100 rounded-full h-2">
+        <div
+          className={`h-2 rounded-full transition-all duration-500 ${pct >= 90 ? 'bg-red-500' : pct >= 70 ? 'bg-amber-500' : 'bg-blue-500'}`}
+          style={{ width: `${Math.min(100, pct)}%` }}
+        />
       </div>
-      <p className="text-xs text-gray-400 mt-1 text-right">{pct}% full</p>
+      <p className="text-xs text-gray-400 mt-1 text-right">{pct}% capacity</p>
     </motion.div>
   );
 }
@@ -68,7 +73,7 @@ function RegistrationsTable({ eventId }) {
     { id: 2, name: 'Another Alumnus', email: 'another@example.com', batch: '2016', branch: 'Mechanical', registeredAt: '2025-01-02' },
   ];
   return (
-    <div className="overflow-x-auto rounded-xl border border-gray-100 bg-white shadow-sm">
+    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
       <table className="w-full text-sm">
         <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
           <tr>
@@ -111,6 +116,17 @@ export const EventsPanel = ({ tab }) => {
             ? 'Upcoming events and their live registration details.'
             : 'Past events and attendance records.'}
         </p>
+      </div>
+
+      {/* Quick stats */}
+      <div className="flex gap-6 text-sm">
+        <span className="text-gray-500">{events.length} events</span>
+        <span className="text-gray-300">|</span>
+        <span className="text-gray-500">{events.reduce((s, e) => s + e.registrations, 0)} total registrations</span>
+        <span className="text-gray-300">|</span>
+        <span className="text-gray-500">
+          {Math.round(events.reduce((s, e) => s + e.registrations / e.capacity, 0) / (events.length || 1) * 100)}% avg. capacity
+        </span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
