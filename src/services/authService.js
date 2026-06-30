@@ -44,6 +44,9 @@ export const clearAuthIntent = () => {
 // LOGIN: resolve the existing account. Throws (404) if the email isn't registered.
 export const loginWithBackend = () => api.post('/auth/sync').then((r) => r.data);
 
+// UPDATE PROFILE: patch editable fields on an approved account.
+export const updateProfile = (data) => api.put('/user/profile', data).then((r) => r.data);
+
 // REGISTER: create a pending account from the verified email + alumni details.
 export const registerWithBackend = (details) =>
   api.post('/auth/register', details).then((r) => r.data);

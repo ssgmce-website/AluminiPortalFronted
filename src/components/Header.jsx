@@ -11,14 +11,15 @@ function Header() {
   return (
     <header className="border-b border-blue-100 bg-white shadow-sm">
       <div className="mx-auto flex min-h-32 max-w-[1425px] flex-col items-center justify-between gap-5 px-4 py-5 text-center sm:px-5 md:flex-row md:text-left lg:px-10">
+
         <div className="flex flex-col items-center gap-5 sm:flex-row">
           <Link
             to="/"
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="flex h-20 w-20 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 p-2 shadow-sm transition hover:shadow-md sm:h-24 sm:w-24"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="shrink-0 transition hover:opacity-90"
           >
             <img
-              className="h-full w-full object-contain"
+              className="h-20 w-20 object-contain sm:h-24 sm:w-24"
               src={logo}
               alt="SSGMCE Alumni Connect logo"
             />
@@ -44,7 +45,7 @@ function Header() {
               to={routeForProfile(userProfile)}
             >
               <LayoutDashboard size={16} />
-              {userProfile.role === "admin" ? "Admin Portal" : "Dashboard"}
+              {userProfile.role === 'admin' ? 'Admin Portal' : 'Dashboard'}
             </Link>
           ) : (
             <>
