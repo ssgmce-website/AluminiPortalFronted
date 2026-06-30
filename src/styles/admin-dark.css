@@ -1,0 +1,90 @@
+/* ─── Admin Dark Theme ────────────────────────────────────────────────────────
+   Scoped to [data-admin-theme="dark"]
+   Palette: dark purple-navy — exactly matching SSGMCE admin dashboard screenshot
+   Page bg:  #13152c  |  Cards/Sidebar/Header: #1b1e36  |  Elevated: #242848
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Page & surface backgrounds ───────────────────────────────────────────── */
+[data-admin-theme="dark"] .bg-white    { background-color: #1b1e36 !important; }
+[data-admin-theme="dark"] .bg-gray-50  { background-color: #13152c !important; }
+[data-admin-theme="dark"] .bg-gray-100 { background-color: #242848 !important; }
+
+/* ── Borders ──────────────────────────────────────────────────────────────── */
+[data-admin-theme="dark"] .border-gray-200 { border-color: #282d55 !important; }
+[data-admin-theme="dark"] .border-gray-100 { border-color: #1e2248 !important; }
+[data-admin-theme="dark"] .border-dashed   { border-color: #282d55 !important; }
+
+/* ── Text — purple-tinted grays to match reference ────────────────────────── */
+[data-admin-theme="dark"] .text-gray-900 { color: #ffffff   !important; }
+[data-admin-theme="dark"] .text-gray-800 { color: #e8eaf6   !important; }
+[data-admin-theme="dark"] .text-gray-700 { color: #c5c8e8   !important; }
+[data-admin-theme="dark"] .text-gray-600 { color: #9da0be   !important; }
+[data-admin-theme="dark"] .text-gray-500 { color: #7a7da8   !important; }
+[data-admin-theme="dark"] .text-gray-400 { color: #6a6e98   !important; }
+[data-admin-theme="dark"] .text-gray-300 { color: #3a3e65   !important; }
+
+/* ── Dividers ─────────────────────────────────────────────────────────────── */
+[data-admin-theme="dark"] .divide-gray-50  > :not([hidden]) ~ :not([hidden]) { border-color: #1e2248 !important; }
+[data-admin-theme="dark"] .divide-gray-100 > :not([hidden]) ~ :not([hidden]) { border-color: #1e2248 !important; }
+[data-admin-theme="dark"] .divide-blue-100   > :not([hidden]) ~ :not([hidden]) { border-color: rgba(99,130,246,0.15) !important; }
+[data-admin-theme="dark"] .divide-amber-100  > :not([hidden]) ~ :not([hidden]) { border-color: rgba(234,179,8,0.15) !important; }
+[data-admin-theme="dark"] .divide-orange-100 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(249,115,22,0.15) !important; }
+
+/* ── Hover states ─────────────────────────────────────────────────────────── */
+[data-admin-theme="dark"] .hover\:bg-gray-50:hover  { background-color: #1e2248 !important; }
+[data-admin-theme="dark"] .hover\:bg-gray-100:hover { background-color: #242848 !important; }
+[data-admin-theme="dark"] .hover\:bg-red-50:hover   { background-color: rgba(239,68,68,0.12) !important; }
+[data-admin-theme="dark"] tbody tr:hover             { background-color: #1e2248 !important; }
+[data-admin-theme="dark"] .hover\:bg-blue-50\/40:hover { background-color: rgba(99,102,246,0.1) !important; }
+[data-admin-theme="dark"] .bg-blue-50\/40             { background-color: rgba(99,102,246,0.08) !important; }
+
+/* ── Icon square backgrounds — opaque tinted squares like screenshot ─────── */
+[data-admin-theme="dark"] .bg-blue-50    { background-color: rgba(99,130,246,0.22) !important; }
+[data-admin-theme="dark"] .bg-emerald-50 { background-color: rgba(20,184,166,0.22) !important; }
+[data-admin-theme="dark"] .bg-amber-50   { background-color: rgba(234,179,8,0.22)  !important; }
+[data-admin-theme="dark"] .bg-purple-50  { background-color: rgba(167,139,250,0.22) !important; }
+[data-admin-theme="dark"] .bg-red-50     { background-color: rgba(239,68,68,0.22)  !important; }
+[data-admin-theme="dark"] .bg-violet-50  { background-color: rgba(167,139,250,0.22) !important; }
+[data-admin-theme="dark"] .bg-orange-50  { background-color: rgba(249,115,22,0.22) !important; }
+
+/* ── Status badge tints ───────────────────────────────────────────────────── */
+[data-admin-theme="dark"] .bg-amber-100   { background-color: rgba(234,179,8,0.25)  !important; }
+[data-admin-theme="dark"] .bg-emerald-100 { background-color: rgba(20,184,166,0.25) !important; }
+[data-admin-theme="dark"] .bg-blue-100    { background-color: rgba(99,130,246,0.25) !important; }
+[data-admin-theme="dark"] .bg-red-100     { background-color: rgba(239,68,68,0.25)  !important; }
+[data-admin-theme="dark"] .bg-green-100   { background-color: rgba(34,197,94,0.25)  !important; }
+[data-admin-theme="dark"] .bg-gray-100    { background-color: #242848 !important; }
+
+/* ── Alert banner borders ─────────────────────────────────────────────────── */
+[data-admin-theme="dark"] .border-amber-200  { border-color: rgba(234,179,8,0.3)  !important; }
+[data-admin-theme="dark"] .border-orange-200 { border-color: rgba(249,115,22,0.3) !important; }
+[data-admin-theme="dark"] .bg-amber-100\/60  { background-color: rgba(234,179,8,0.14)  !important; }
+[data-admin-theme="dark"] .bg-orange-100\/60 { background-color: rgba(249,115,22,0.14) !important; }
+
+/* ── Table thead ──────────────────────────────────────────────────────────── */
+[data-admin-theme="dark"] thead { background-color: #1e2248 !important; }
+
+/* ── Form inputs ──────────────────────────────────────────────────────────── */
+[data-admin-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]) {
+  background-color: #13152c !important;
+  border-color: #282d55 !important;
+  color: #e8eaf6 !important;
+}
+[data-admin-theme="dark"] input::placeholder { color: #6a6e98 !important; }
+
+[data-admin-theme="dark"] select {
+  background-color: #1b1e36 !important;
+  border-color: #282d55 !important;
+  color: #e8eaf6 !important;
+}
+
+/* ── Focus rings ──────────────────────────────────────────────────────────── */
+[data-admin-theme="dark"] .focus\:ring-blue-100:focus   { --tw-ring-color: rgba(99,130,246,0.25) !important; }
+[data-admin-theme="dark"] .focus\:border-blue-300:focus { border-color: rgba(99,130,246,0.5) !important; }
+
+/* ── Progress bar tracks ──────────────────────────────────────────────────── */
+[data-admin-theme="dark"] .bg-gray-100.rounded-full { background-color: #1e2248 !important; }
+[data-admin-theme="dark"] .bg-gray-100.rounded      { background-color: #1e2248 !important; }
+
+/* ── Ring ─────────────────────────────────────────────────────────────────── */
+[data-admin-theme="dark"] .ring-blue-100 { --tw-ring-color: rgba(99,130,246,0.25) !important; }
