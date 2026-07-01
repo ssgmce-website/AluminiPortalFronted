@@ -4,7 +4,7 @@ import { motion, useInView } from 'framer-motion';
 import {
   GraduationCap, Users, Award, HeartHandshake,
   ArrowRight, Briefcase, BookOpen, Gift,
-  Building2, MapPin, ChevronRight,
+  Building2, MapPin, ChevronRight, CalendarDays, UserCheck,
 } from 'lucide-react';
 import HeroSlider from '../components/HeroSlider';
 import Newsroom from '../components/Newsroom';
@@ -60,17 +60,19 @@ const Avatar = memo(function Avatar({ src, alt, className }) {
 });
 
 // ─── STAT CARD ────────────────────────────────────────────────────────────────
-const StatCard = memo(function StatCard({ icon: Icon, label, value, suffix = '', prefix = '', color }) {
+const StatCard = memo(function StatCard({ icon: Icon, label, value, suffix = '', prefix = '' }) {
   const { count, ref } = useCountUp(value);
   return (
-    <div ref={ref} className="flex flex-col items-center gap-2 p-6 text-center">
-      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${color} shadow-sm`}>
-        <Icon size={22} className="text-white" />
+    <div ref={ref} className="flex items-center gap-4 px-8 py-6">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-100">
+        <Icon size={22} className="text-slate-600" />
       </div>
-      <p className="mt-1 text-3xl font-extrabold text-slate-800 md:text-4xl">
-        {prefix}{count.toLocaleString('en-IN')}{suffix}
-      </p>
-      <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">{label}</p>
+      <div>
+        <p className="text-2xl font-extrabold text-slate-800 leading-tight">
+          {prefix}{count.toLocaleString('en-IN')}{suffix}
+        </p>
+        <p className="mt-0.5 text-sm text-slate-500">{label}</p>
+      </div>
     </div>
   );
 });
@@ -98,10 +100,16 @@ const SectionHeader = memo(function SectionHeader({ eyebrow, title, cta, href })
 
 // ─── CONTRIBUTION TYPE CONFIG ─────────────────────────────────────────────────
 const typeConfig = {
-  'Guest Lecture':      { color: 'bg-emerald-100 text-emerald-700', icon: BookOpen },
-  'Mentoring':          { color: 'bg-blue-100    text-blue-700',    icon: Users },
-  'Scholarship':        { color: 'bg-purple-100  text-purple-700',  icon: Gift },
-  'Internship Support': { color: 'bg-amber-100   text-amber-700',   icon: Briefcase },
+  'Guest Lecture':      { badge: 'bg-emerald-100 text-emerald-700', icon: BookOpen,  banner: 'bg-green-100',   bannerText: 'text-green-700'  },
+  'Mentoring':          { badge: 'bg-blue-100    text-blue-700',    icon: Users,     banner: 'bg-blue-100',    bannerText: 'text-blue-700'   },
+  'Scholarship':        { badge: 'bg-purple-100  text-purple-700',  icon: Gift,      banner: 'bg-purple-100',  bannerText: 'text-purple-700' },
+  'Internship Support': { badge: 'bg-amber-100   text-amber-700',   icon: Briefcase, banner: 'bg-amber-50',    bannerText: 'text-amber-700'  },
+};
+
+// Extract readable title from placehold.co URL text param
+const getBannerTitle = (url) => {
+  try { return new URL(url).searchParams.get('text')?.replace(/\+/g, ' ') ?? ''; }
+  catch { return ''; }
 };
 
 const TABS = ['All', 'Guest Lecture', 'Mentoring', 'Scholarship', 'Internship Support'];
@@ -191,10 +199,10 @@ export default function HomePage() {
       <section className="mx-auto max-w-[1425px]">
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="grid grid-cols-2 divide-x divide-y divide-slate-100 md:grid-cols-4 md:divide-y-0">
-            <StatCard icon={GraduationCap}  label="Alumni Registered"   value={1200} suffix="+"  color="bg-blue-700" />
-            <StatCard icon={Users}          label="Active Batches"       value={35}   suffix="+"  color="bg-indigo-600" />
-            <StatCard icon={Award}          label="Distinguished Alumni" value={48}               color="bg-amber-500" />
-            <StatCard icon={HeartHandshake} label="Total Contributions"  value={50}   prefix="₹" suffix="L+" color="bg-emerald-600" />
+            <StatCard icon={UserCheck}    label="Registered Alumni" value={15000} suffix="+" />
+            <StatCard icon={Building2}    label="Companies"         value={350}   suffix="+" />
+            <StatCard icon={CalendarDays} label="Events Organised"  value={200}   suffix="+" />
+            <StatCard icon={Users}        label="Active Mentors"    value={1000}  suffix="+" />
           </div>
         </div>
       </section>
@@ -277,7 +285,7 @@ export default function HomePage() {
                 <motion.div
                   key={a.name}
                   variants={fadeUp}
-                  className="group min-w-[200px] overflow-hidden rounded-xl border border-slate-100 bg-white shadow-sm transition hover:shadow-md"
+                  className="group min-w-[200px] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-shadow hover:shadow-md"
                 >
                   {/* Portrait photo */}
                   <div className="h-44 overflow-hidden bg-slate-100">
@@ -332,50 +340,75 @@ export default function HomePage() {
           ))}
         </div>
 
-        {/* Cards with image-on-top (Best Labs style) */}
+        {/* Cards — real-estate style: image + overlay badge + stats + button */}
         <motion.div
           key={activeTab}
           variants={stagger}
           initial="hidden"
           whileInView="show"
           viewport={{ once: false, margin: '-40px' }}
-          className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
         >
           {filtered.slice(0, 6).map((c) => {
-            const cfg  = typeConfig[c.type] ?? { color: 'bg-slate-100 text-slate-600', icon: Award };
-            const Icon = cfg.icon;
+            const cfg   = typeConfig[c.type] ?? { badge: 'bg-slate-100 text-slate-600', icon: Award, banner: 'bg-slate-100', bannerText: 'text-slate-700' };
+            const Icon  = cfg.icon;
+            const title = getBannerTitle(c.donationImage);
             return (
               <motion.div
                 key={c.id}
                 variants={fadeUp}
-                className="group overflow-hidden rounded-xl border border-slate-100 bg-white shadow-sm transition hover:shadow-md"
+                className="overflow-hidden rounded-2xl bg-white border border-slate-100 shadow-sm transition-shadow hover:shadow-lg"
               >
-                {/* Top image */}
-                <div className="h-44 overflow-hidden bg-slate-100">
+                {/* Image with type badge overlay */}
+                <div className="relative h-52 overflow-hidden">
                   <img
                     src={c.donationImage}
-                    alt={c.type}
-                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                    alt={title}
+                    className="h-full w-full object-cover transition duration-300 hover:scale-105"
                     loading="lazy"
                   />
+                  <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur-sm">
+                    <Icon size={10} /> {c.type}
+                  </span>
                 </div>
 
                 {/* Content */}
-                <div className="p-5">
-                  <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${cfg.color}`}>
-                    <Icon size={11} /> {c.type}
-                  </span>
+                <div className="p-4">
+                  {/* Branch as "location" */}
+                  <p className="flex items-center gap-1 text-xs text-slate-400">
+                    <MapPin size={11} className="shrink-0" />
+                    {c.branch}
+                  </p>
 
-                  <h3 className="mt-3 text-base font-extrabold text-slate-800">{c.name}</h3>
-                  <p className="mt-0.5 text-xs text-slate-400">{c.branch} · Batch {c.batch}</p>
-                  <p className="mt-2.5 text-sm leading-6 text-slate-500">{c.description}</p>
+                  {/* Title */}
+                  <h3 className="mt-1 text-base font-extrabold text-slate-800 leading-snug">
+                    {title}
+                  </h3>
 
-                  <button
-                    type="button"
-                    className="mt-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-600 transition hover:text-blue-700"
-                  >
-                    Explore <ArrowRight size={13} />
-                  </button>
+                  {/* Stats row */}
+                  <div className="mt-3 flex items-center gap-4 border-b border-slate-100 pb-3 text-xs text-slate-500">
+                    <span className="flex items-center gap-1">
+                      <Users size={12} className="shrink-0 text-slate-400" />
+                      {c.name}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <GraduationCap size={12} className="shrink-0 text-slate-400" />
+                      Batch {c.batch}
+                    </span>
+                  </div>
+
+                  {/* Footer: description + CTA */}
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <p className="text-xs text-slate-400 line-clamp-1 flex-1">
+                      {c.description}
+                    </p>
+                    <button
+                      type="button"
+                      className="flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-700 px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-emerald-800"
+                    >
+                      Explore <ArrowRight size={12} />
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             );
@@ -395,7 +428,7 @@ export default function HomePage() {
             <motion.div
               key={person.name}
               variants={fadeUp}
-              className="relative overflow-hidden rounded-xl border border-slate-100 bg-white p-6 shadow-sm transition hover:shadow-md"
+              className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
             >
               {/* Decorative large quote mark */}
               <span

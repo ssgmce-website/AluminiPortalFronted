@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, MapPin, Users, GraduationCap, ArrowRight, BookOpen, HeartHandshake, Briefcase, Award } from "lucide-react";
 import PageShell from "../components/PageShell";
 import contributions from "../data/contributions.json";
 
@@ -10,43 +10,27 @@ const TYPE_LABELS = {
   "Scholarship":        "Scholarship",
 };
 
-const CARD_COLORS = [
-  { bg: "bg-blue-50",   text: "text-blue-700",   border: "border-blue-200",   heading: "text-blue-900"   },
-  { bg: "bg-emerald-50",text: "text-emerald-700", border: "border-emerald-200",heading: "text-emerald-900"},
-  { bg: "bg-violet-50", text: "text-violet-700",  border: "border-violet-200", heading: "text-violet-900" },
-  { bg: "bg-rose-50",   text: "text-rose-700",    border: "border-rose-200",   heading: "text-rose-900"   },
-  { bg: "bg-sky-50",    text: "text-sky-700",     border: "border-sky-200",    heading: "text-sky-900"    },
-  { bg: "bg-teal-50",   text: "text-teal-700",    border: "border-teal-200",   heading: "text-teal-900"   },
-  { bg: "bg-amber-50",  text: "text-amber-700",   border: "border-amber-200",  heading: "text-amber-900"  },
-  { bg: "bg-indigo-50", text: "text-indigo-700",  border: "border-indigo-200", heading: "text-indigo-900" },
-  { bg: "bg-cyan-50",   text: "text-cyan-700",    border: "border-cyan-200",   heading: "text-cyan-900"   },
-  { bg: "bg-lime-50",   text: "text-lime-700",    border: "border-lime-200",   heading: "text-lime-900"   },
-];
+const typeConfig = {
+  "Mentoring":          { badge: "bg-blue-100 text-blue-700",   icon: HeartHandshake },
+  "Guest Lecture":      { badge: "bg-green-100 text-green-700", icon: BookOpen       },
+  "Scholarship":        { badge: "bg-purple-100 text-purple-700", icon: Award        },
+  "Internship Support": { badge: "bg-amber-100 text-amber-700", icon: Briefcase      },
+};
 
-const AVATAR_BG = [
-  "bg-blue-600",   "bg-emerald-600", "bg-violet-600",
-  "bg-rose-600",   "bg-sky-600",     "bg-teal-600",
-  "bg-amber-600",  "bg-indigo-600",  "bg-cyan-600",
-  "bg-lime-600",
-];
-
-function Avatar({ name, photo, index, size = "lg" }) {
-  const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
-  const dim = size === "lg" ? "w-28 h-28 text-3xl" : "w-14 h-14 text-lg";
-  if (photo) {
-    return <img src={photo} alt={name} className={`${dim} rounded-full object-cover ring-4 ring-white/20 shadow-md shrink-0`} />;
+function getBannerTitle(url) {
+  try {
+    const text = new URL(url).searchParams.get("text") || "";
+    return text.replace(/\+/g, " ");
+  } catch {
+    return "";
   }
-  return (
-    <div className={`${dim} rounded-full ${AVATAR_BG[index % AVATAR_BG.length]} flex items-center justify-center text-white font-bold ring-4 ring-white/10 shadow-md shrink-0`}>
-      {initials}
-    </div>
-  );
 }
 
 /* ── Modal ── */
-function Modal({ c, index, onClose }) {
+function Modal({ c, onClose }) {
   if (!c) return null;
-  const col = CARD_COLORS[index % CARD_COLORS.length];
+  const cfg = typeConfig[c.type] ?? { badge: "bg-slate-100 text-slate-600", icon: Award };
+  const Icon = cfg.icon;
 
   return (
     <div
@@ -65,18 +49,18 @@ function Modal({ c, index, onClose }) {
           <X size={18} />
         </button>
 
-        {/* Donation photo — top half */}
+        {/* Donation image — top half */}
         <div className="relative h-64 w-full bg-slate-100">
           {c.donationImage ? (
             <img src={c.donationImage} alt={c.description} className="w-full h-full object-cover" />
           ) : (
-            <div className={`w-full h-full ${col.bg}`} />
+            <div className="w-full h-full bg-slate-100" />
           )}
           <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
 
           {/* Type badge */}
-          <span className={`absolute top-4 left-4 rounded-full border ${col.border} px-3 py-1 text-xs font-semibold ${col.text} bg-white/80 backdrop-blur-sm`}>
-            {TYPE_LABELS[c.type] || c.type}
+          <span className={`absolute top-4 left-4 flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${cfg.badge} bg-white/80 backdrop-blur-sm`}>
+            <Icon size={11} /> {TYPE_LABELS[c.type] || c.type}
           </span>
 
           {/* Alumni photo overlapping bottom edge */}
@@ -92,18 +76,13 @@ function Modal({ c, index, onClose }) {
 
         {/* Bottom panel */}
         <div className="pt-12 px-6 pb-6 flex flex-col gap-4">
-          {/* Name + meta */}
           <div>
             <p className="text-slate-900 text-2xl font-extrabold leading-tight">{c.name}</p>
             <p className="text-slate-500 text-sm mt-1">
               Batch {c.batch}&nbsp;·&nbsp;{c.branch}
             </p>
           </div>
-
-          {/* Divider */}
           <div className="border-t border-slate-200" />
-
-          {/* Description */}
           <p className="text-slate-700 text-base leading-7">{c.description}</p>
         </div>
       </div>
@@ -112,31 +91,64 @@ function Modal({ c, index, onClose }) {
 }
 
 /* ── Card ── */
-function ContributionCard({ c, index, onClick }) {
-  const col = CARD_COLORS[index % CARD_COLORS.length];
+function ContributionCard({ c, onClick }) {
+  const cfg   = typeConfig[c.type] ?? { badge: "bg-slate-100 text-slate-600", icon: Award };
+  const Icon  = cfg.icon;
+  const title = getBannerTitle(c.donationImage);
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`group w-full text-left rounded-2xl ${col.bg} shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer`}
+      className="group w-full text-left overflow-hidden rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-lg transition-shadow"
     >
-      <div className="flex flex-col items-center gap-5 p-8 h-80 justify-center relative">
-        <Avatar name={c.name} photo={c.photo} index={index} size="lg" />
+      {/* Image with type badge overlay */}
+      <div className="relative h-52 overflow-hidden">
+        <img
+          src={c.donationImage}
+          alt={title}
+          className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+          loading="lazy"
+        />
+        <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur-sm">
+          <Icon size={10} /> {c.type}
+        </span>
+      </div>
 
-        <div className="text-center">
-          <p className={`${col.heading} text-xl font-bold leading-snug`}>{c.name}</p>
-          <p className={`${col.text} text-sm mt-1.5`}>Batch {c.batch} · {c.branch}</p>
+      {/* Content */}
+      <div className="p-4">
+        {/* Branch as location */}
+        <p className="flex items-center gap-1 text-xs text-slate-400">
+          <MapPin size={11} className="shrink-0" />
+          {c.branch}
+        </p>
+
+        {/* Title */}
+        <h3 className="mt-1 text-base font-extrabold text-slate-800 leading-snug">
+          {title}
+        </h3>
+
+        {/* Stats row */}
+        <div className="mt-3 flex items-center gap-4 border-b border-slate-100 pb-3 text-xs text-slate-500">
+          <span className="flex items-center gap-1">
+            <Users size={12} className="shrink-0 text-slate-400" />
+            {c.name}
+          </span>
+          <span className="flex items-center gap-1">
+            <GraduationCap size={12} className="shrink-0 text-slate-400" />
+            Batch {c.batch}
+          </span>
         </div>
 
-        <span className={`rounded-full border ${col.border} px-4 py-1.5 text-sm font-semibold ${col.text} bg-white/60`}>
-          {TYPE_LABELS[c.type] || c.type}
-        </span>
-
-        {/* Click hint */}
-        <p className={`absolute bottom-3 left-0 right-0 text-center ${col.text} opacity-40 text-sm group-hover:opacity-70 transition-opacity`}>
-          click to view contribution
-        </p>
+        {/* Footer: description + CTA */}
+        <div className="mt-3 flex items-center justify-between gap-3">
+          <p className="text-xs text-slate-400 line-clamp-1 flex-1">
+            {c.description}
+          </p>
+          <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-700 px-4 py-1.5 text-xs font-semibold text-white">
+            Explore <ArrowRight size={12} />
+          </span>
+        </div>
       </div>
     </button>
   );
@@ -168,19 +180,18 @@ function Contribution() {
       <PageShell eyebrow="Alumni Support" title="Contribution">
         <SummaryBar data={contributions} />
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {contributions.map((c, idx) => (
+          {contributions.map((c) => (
             <ContributionCard
               key={c.id}
               c={c}
-              index={idx}
-              onClick={() => setSelected({ c, idx })}
+              onClick={() => setSelected(c)}
             />
           ))}
         </div>
       </PageShell>
 
       {selected && (
-        <Modal c={selected.c} index={selected.idx} onClose={() => setSelected(null)} />
+        <Modal c={selected} onClose={() => setSelected(null)} />
       )}
     </>
   );
