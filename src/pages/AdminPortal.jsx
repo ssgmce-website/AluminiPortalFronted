@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Users, Clock, CheckCircle2, XCircle, RefreshCw, Loader2, Mail, GraduationCap, AlertTriangle,
+  Users, Clock, CheckCircle2, XCircle, RefreshCw, Loader2, Mail, GraduationCap, AlertTriangle, IdCard,
 } from 'lucide-react';
 import { fetchRequests, approveRequest, rejectRequest } from '../services/adminService';
 
@@ -177,6 +177,11 @@ export const AdminPortal = () => {
                 <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-0.5 truncate">
                   <Mail size={13} /> {u.email}
                 </p>
+                {u.alumniId && (
+                  <span className="inline-flex items-center gap-1.5 mt-1 rounded-md border border-emerald-100 bg-emerald-50 px-2 py-0.5 font-mono text-xs font-semibold tracking-wide text-emerald-700">
+                    <IdCard size={13} /> {u.alumniId}
+                  </span>
+                )}
                 <div className="flex items-center gap-3 mt-1 text-xs text-gray-400 flex-wrap">
                   <span className="flex items-center gap-1">
                     <GraduationCap size={13} /> via {u.createdVia}

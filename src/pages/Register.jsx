@@ -21,14 +21,13 @@ import { useAuth } from '../contexts/AuthContext';
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const currentYear = new Date().getFullYear();
 
-const COURSES  = ['B.E', 'M.E', 'MBA', 'PhD'];
+const COURSES  = ['B.E', 'M.E', 'MBA', 'PhD','BCA'];
 const BRANCHES = [
   'Computer Science & Engineering',
   'Information Technology',
   'Electronics & Telecommunication',
   'Electrical Engineering',
   'Mechanical Engineering',
-  'Civil Engineering',
 ];
 
 // ─── VALIDATION SCHEMA ───────────────────────────────────────────────────────
