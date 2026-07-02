@@ -5,7 +5,7 @@ import {
   Pencil, Settings, MoreHorizontal, Camera, GraduationCap,
   Briefcase, Phone, Mail, CalendarDays, CheckCircle,
   AlertTriangle, Building2, User, Loader2, X, Save,
-  Users, Clock, BookOpen,
+  Users, Clock, BookOpen, IdCard, Copy, Check,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { updateProfile } from '../services/authService';
@@ -91,6 +91,15 @@ export const Dashboard = () => {
   const [editData,     setEditData]     = useState({});
   const [saving,       setSaving]       = useState(false);
   const [saveError,    setSaveError]    = useState('');
+  const [copied,       setCopied]       = useState(false);
+
+  const copyAlumniId = useCallback((id) => {
+    if (!id) return;
+    navigator.clipboard?.writeText(id).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }, []);
 
   if (userProfile && !userProfile.isOnboarded) return <Onboarding />;
 
@@ -182,6 +191,26 @@ export const Dashboard = () => {
                 <p className="mt-1 text-sm text-blue-600">
                   0 Connections &nbsp;•&nbsp; Alumni since {p.yearOfPassout || '—'}
                 </p>
+
+                {/* Alumni ID — assigned once an admin approves the account */}
+                {p.alumniId && (
+                  <div className="mt-2 inline-flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5">
+                    <IdCard size={15} className="shrink-0 text-blue-600" />
+                    <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                      Alumni ID
+                    </span>
+                    <span className="font-mono text-sm font-bold tracking-wide text-slate-800">
+                      {p.alumniId}
+                    </span>
+                    <button
+                      onClick={() => copyAlumniId(p.alumniId)}
+                      title={copied ? 'Copied!' : 'Copy Alumni ID'}
+                      className="rounded p-0.5 text-slate-400 transition hover:bg-blue-100 hover:text-blue-700"
+                    >
+                      {copied ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 

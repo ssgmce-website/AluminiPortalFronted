@@ -33,7 +33,6 @@ const BRANCHES = [
   'Electronics & Telecommunication',
   'Electrical Engineering',
   'Mechanical Engineering',
-  'Civil Engineering',
 ];
 
 export const Onboarding = () => {

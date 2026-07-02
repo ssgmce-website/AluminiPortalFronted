@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   Users, Clock, CheckCircle2, XCircle, RefreshCw, Loader2, Mail,
-  GraduationCap, AlertTriangle, LayoutGrid, ChevronDown, ChevronRight, Download,
+  GraduationCap, AlertTriangle, LayoutGrid, ChevronDown, ChevronRight, Download, IdCard,
 } from 'lucide-react';
 import { fetchRequests, approveRequest, rejectRequest } from '../../services/adminService';
 
@@ -43,6 +43,11 @@ const MemberCard = ({ u, onApprove, onReject, actingId }) => (
       <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-0.5 truncate">
         <Mail size={13} /> {u.email}
       </p>
+      {u.alumniId && (
+        <span className="inline-flex items-center gap-1.5 mt-1 rounded-md border border-emerald-100 bg-emerald-50 px-2 py-0.5 font-mono text-xs font-semibold tracking-wide text-emerald-700">
+          <IdCard size={13} /> {u.alumniId}
+        </span>
+      )}
       <div className="flex items-center gap-3 mt-1 text-xs text-gray-400 flex-wrap">
         <span className="flex items-center gap-1"><GraduationCap size={13} /> via {u.createdVia}</span>
         {u.course && <span>{u.course}</span>}
@@ -183,6 +188,9 @@ const DeptWiseView = ({ members }) => {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{u.name || 'Unnamed'}</p>
                       <p className="text-xs text-gray-400 truncate">{u.email}</p>
+                      {u.alumniId && (
+                        <p className="font-mono text-xs font-semibold text-emerald-700 truncate">{u.alumniId}</p>
+                      )}
                     </div>
                     {u.yearOfPassout && (
                       <span className="text-xs text-gray-400 shrink-0">Batch {u.yearOfPassout}</span>
