@@ -19,7 +19,7 @@ const executives = [
     name: "Ms. Alumni Secretary",
     designation: "Secretary",
     year: "2023-24",
-    department: "Civil Engineering",
+    department: "Mechanical Engineering",
     photo: null,
   },
 ];
