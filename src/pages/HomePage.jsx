@@ -11,6 +11,14 @@ import Newsroom from '../components/Newsroom';
 import contributions from '../data/contributions.json';
 import distinguishedAlumni from '../data/distinguishedAlumni';
 import { fetchNewlyRegisteredAlumni } from '../services/alumniService';
+import alumniImg1 from '../assets/alumni/img1.jpeg';
+import alumniImg2 from '../assets/alumni/img2.jpeg';
+import alumniImg3 from '../assets/alumni/img3.jpeg';
+import alumniImg4 from '../assets/alumni/img4.jpeg';
+import alumniImg5 from '../assets/alumni/img5.jpeg';
+import alumniImg6 from '../assets/alumni/img6.jpeg';
+import alumniImg7 from '../assets/alumni/img7.jpeg';
+import alumniImg8 from '../assets/alumni/img8.jpeg';
 import meetImg from '../assets/slide-meet.jpeg';
 import sessionImg from '../assets/slide-session.jpeg';
 import ceremonyImg from '../assets/slide-ceremony.jpeg';
@@ -119,14 +127,14 @@ const TABS = ['All', 'Guest Lecture', 'Mentoring', 'Scholarship', 'Internship Su
 // ─── STATIC DATA ──────────────────────────────────────────────────────────────
 // Shown until real registrations load, and as a fallback if the API call fails.
 const FALLBACK_ALUMNI = [
-  { name: 'Akash Mendhekar',   branch: 'Computer Science & Engineering', batch: '2024', company: 'Infosys, Pune',        photo: 'https://i.pravatar.cc/300?img=32' },
-  { name: 'Priyanka Sable',    branch: 'Information Technology',         batch: '2023', company: 'TCS, Mumbai',           photo: 'https://i.pravatar.cc/300?img=48' },
-  { name: 'Rohit Deshmukh',    branch: 'Electronics & Telecommunication',batch: '2024', company: 'Wipro Technologies',    photo: 'https://i.pravatar.cc/300?img=25' },
-  { name: 'Snehal Khandelwal', branch: 'Mechanical Engineering',         batch: '2022', company: 'Bajaj Auto, Pune',      photo: 'https://i.pravatar.cc/300?img=44' },
-  { name: 'Vishal Shirsat',    branch: 'Civil Engineering',              batch: '2023', company: 'L&T Construction',      photo: 'https://i.pravatar.cc/300?img=17' },
-  { name: 'Manasi Bawankar',   branch: 'Electrical Engineering',         batch: '2024', company: 'Siemens India, Nashik', photo: 'https://i.pravatar.cc/300?img=56' },
-  { name: 'Gaurav Wankhede',   branch: 'Computer Science & Engineering', batch: '2023', company: 'Persistent Systems',    photo: 'https://i.pravatar.cc/300?img=11' },
-  { name: 'Rutuja Thakare',    branch: 'Information Technology',         batch: '2024', company: 'Cognizant, Pune',       photo: 'https://i.pravatar.cc/300?img=60' },
+  { name: 'Akash Mendhekar',   branch: 'Computer Science & Engineering', batch: '2024', company: 'Infosys, Pune',        photo: alumniImg1 },
+  { name: 'Priyanka Sable',    branch: 'Information Technology',         batch: '2023', company: 'TCS, Mumbai',           photo: alumniImg2 },
+  { name: 'Rohit Deshmukh',    branch: 'Electronics & Telecommunication',batch: '2024', company: 'Wipro Technologies',    photo: alumniImg3 },
+  { name: 'Snehal Khandelwal', branch: 'Mechanical Engineering',         batch: '2022', company: 'Bajaj Auto, Pune',      photo: alumniImg4 },
+  { name: 'Vishal Shirsat',    branch: 'Civil Engineering',              batch: '2023', company: 'L&T Construction',      photo: alumniImg5 },
+  { name: 'Manasi Bawankar',   branch: 'Electrical Engineering',         batch: '2024', company: 'Siemens India, Nashik', photo: alumniImg6 },
+  { name: 'Gaurav Wankhede',   branch: 'Computer Science & Engineering', batch: '2023', company: 'Persistent Systems',    photo: alumniImg7 },
+  { name: 'Rutuja Thakare',    branch: 'Information Technology',         batch: '2024', company: 'Cognizant, Pune',       photo: alumniImg8 },
 ];
 
 const galleryRow1 = [
