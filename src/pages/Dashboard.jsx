@@ -194,34 +194,48 @@ export const Dashboard = () => {
 
             {/* Avatar + name */}
             <div className="flex items-end gap-4">
-              <div className="relative">
-                {p.profilePhoto ? (
-                  <img
-                    src={p.profilePhoto}
-                    alt={p.name}
-                    className="h-24 w-24 rounded-full object-cover ring-4 ring-white shadow-md"
+              <div className="flex flex-col items-center gap-1.5">
+                <div className="relative">
+                  {p.profilePhoto ? (
+                    <img
+                      src={p.profilePhoto}
+                      alt={p.name}
+                      className="h-24 w-24 rounded-full object-cover ring-4 ring-white shadow-md"
+                    />
+                  ) : (
+                    <div className="flex h-24 w-24 items-center justify-center rounded-full bg-slate-800 text-3xl font-extrabold text-white ring-4 ring-white shadow-md">
+                      {p.name?.[0]?.toUpperCase() || 'A'}
+                    </div>
+                  )}
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handlePhotoChange}
+                    className="hidden"
                   />
-                ) : (
-                  <div className="flex h-24 w-24 items-center justify-center rounded-full bg-slate-800 text-3xl font-extrabold text-white ring-4 ring-white shadow-md">
-                    {p.name?.[0]?.toUpperCase() || 'A'}
-                  </div>
+                  <button
+                    type="button"
+                    title={photoUploading ? 'Uploading…' : 'Change photo'}
+                    disabled={photoUploading}
+                    onClick={() => photoInputRef.current?.click()}
+                    className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-slate-700 text-white opacity-90 transition hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {photoUploading ? <Loader2 size={13} className="animate-spin" /> : <Camera size={13} />}
+                  </button>
+                </div>
+
+                {/* Extra-visible prompt until a photo is set */}
+                {!p.profilePhoto && (
+                  <button
+                    type="button"
+                    disabled={photoUploading}
+                    onClick={() => photoInputRef.current?.click()}
+                    className="flex items-center gap-1 text-[11px] font-semibold text-blue-600 transition hover:text-blue-800 disabled:opacity-60"
+                  >
+                    <Camera size={11} /> {photoUploading ? 'Uploading…' : 'Add photo'}
+                  </button>
                 )}
-                <input
-                  ref={photoInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={handlePhotoChange}
-                  className="hidden"
-                />
-                <button
-                  type="button"
-                  title={photoUploading ? 'Uploading…' : 'Change photo'}
-                  disabled={photoUploading}
-                  onClick={() => photoInputRef.current?.click()}
-                  className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-slate-700 text-white opacity-90 transition hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {photoUploading ? <Loader2 size={13} className="animate-spin" /> : <Camera size={13} />}
-                </button>
               </div>
 
               <div className="pb-1">
