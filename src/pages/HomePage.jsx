@@ -11,9 +11,13 @@ import Newsroom from '../components/Newsroom';
 import contributions from '../data/contributions.json';
 import distinguishedAlumni from '../data/distinguishedAlumni';
 import { fetchNewlyRegisteredAlumni } from '../services/alumniService';
-import meetImg from '../assets/slide-meet.jpeg';
-import sessionImg from '../assets/slide-session.jpeg';
-import ceremonyImg from '../assets/slide-ceremony.jpeg';
+import meet2026Guest from '../assets/gallery/AlumniMeet2026.jpeg';
+import meet2026Faculty from '../assets/gallery/AM2026.jpeg';
+import meet2026Library from '../assets/gallery/A_M2026.jpeg';
+import meet2026Auditorium from '../assets/gallery/_A_M2026.jpeg';
+import meet2026Group from '../assets/gallery/_Alumni_M2026.jpeg';
+import meet2026Inauguration from '../assets/gallery/_A-m2026.jpeg';
+import meet2026Session from '../assets/gallery/Alumni_Meet2026.jpeg';
 
 // ─── ANIMATION VARIANTS ───────────────────────────────────────────────────────
 const fadeUp = {
@@ -130,21 +134,16 @@ const FALLBACK_ALUMNI = [
 ];
 
 const galleryRow1 = [
-  { src: meetImg,     alt: 'Grand Alumni Meet 2024' },
-  { src: sessionImg,  alt: 'Faculty Interaction Session' },
-  { src: ceremonyImg, alt: 'Award Ceremony' },
-  { src: 'https://placehold.co/420x280/dbeafe/1e3a8f?text=Cultural+Evening',  alt: 'Cultural Evening' },
-  { src: 'https://placehold.co/420x280/dcfce7/14532d?text=Annual+Dinner',     alt: 'Annual Alumni Dinner' },
-  { src: 'https://placehold.co/420x280/fef9c3/713f12?text=Tech+Talk',         alt: 'Tech Talk by Alumni' },
+  { src: meet2026Group,        alt: 'Grand Alumni Meet 2026 Group Photo' },
+  { src: meet2026Guest,        alt: 'Guest Interaction Session — Alumni Meet 2026' },
+  { src: meet2026Library,      alt: 'Library Inauguration — Alumni Meet 2026' },
 ];
 
 const galleryRow2 = [
-  { src: 'https://placehold.co/420x280/f3e8ff/581c87?text=Campus+Walk',  alt: 'Campus Walk' },
-  { src: ceremonyImg,                                                       alt: 'Award Night' },
-  { src: 'https://placehold.co/420x280/fee2e2/7f1d1d?text=Sports+Meet',  alt: 'Sports Meet' },
-  { src: meetImg,                                                           alt: 'Group Photo' },
-  { src: 'https://placehold.co/420x280/d1fae5/065f46?text=Lab+Tour',     alt: 'Lab Tour' },
-  { src: sessionImg,                                                        alt: 'Workshop Session' },
+  { src: meet2026Faculty,      alt: 'Alumni Faculty Interaction — Alumni Meet 2026' },
+  { src: meet2026Auditorium,   alt: 'Alumni Meet Auditorium Session 2026' },
+  { src: meet2026Inauguration, alt: 'Inauguration Ceremony — Alumni Meet 2026' },
+  { src: meet2026Session,      alt: 'Student Interaction Session — Alumni Meet 2026' },
 ];
 
 // ─── HOME PAGE ────────────────────────────────────────────────────────────────
@@ -473,7 +472,7 @@ export default function HomePage() {
       {/* ── LAST MEET GALLERY — dual-row infinite marquee ────────────────────── */}
       <section className="mx-auto max-w-[1425px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="p-8 md:p-10">
-          <SectionHeader eyebrow="Memories" title="Last Meet Gallery" cta="Full Gallery" href="/gallery" />
+          <SectionHeader eyebrow="Memories" title="Alumni Meet 2026" cta="Full Gallery" href="/gallery" />
         </div>
         <div className="space-y-3 pb-8" aria-label="Alumni meet photo gallery">
           <div className="gallery-marquee-row">
