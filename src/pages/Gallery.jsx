@@ -1,26 +1,61 @@
 import { useState, useMemo, useRef, useCallback } from "react";
 import { X, ZoomIn } from "lucide-react";
 import PageShell from "../components/PageShell";
-import ceremonyImg from "../assets/slide-ceremony.jpeg";
-import sessionImg  from "../assets/slide-session.jpeg";
-import meetImg     from "../assets/slide-meet.jpeg";
+
+// ── 2023 ──────────────────────────────────────────────────────────────────────
+import alumniMeet2023A from "../assets/gallery/Alumni-Meet2023.jpeg";
+import alumniMeet2023B from "../assets/gallery/Alumni2023.jpeg";
+import alumniMeet2023C from "../assets/gallery/AlumniMeet2023.jpeg";
+import alumniMeet2023D from "../assets/gallery/Alumni_Meet2023.jpeg";
+import alumniMeet2023E from "../assets/gallery/AM2023.jpeg";
+import alumniMeet2023F from "../assets/gallery/A_M2023.jpeg";
+import alumniMeet2023G from "../assets/gallery/_Alumni-meet2023.jpeg";
+
+// ── 2024 ──────────────────────────────────────────────────────────────────────
+import alumniMeet2024A from "../assets/gallery/Alumni-meet2024.jpeg";
+import alumniMeet2024B from "../assets/gallery/AlumniMeet2024.jpeg";
+
+// ── 2025 ──────────────────────────────────────────────────────────────────────
+import alumniMeet2025A from "../assets/gallery/Alumni-Meet-2025.jpeg";
+import alumniMeet2025B from "../assets/gallery/AlumniMeet-2025.jpeg";
+import alumniMeet2025C from "../assets/gallery/AlumniMeet2025.jpeg";
+
+// ── 2026 ──────────────────────────────────────────────────────────────────────
+import alumniMeet2026A from "../assets/gallery/AlumniMeet2026.jpeg";
+import alumniMeet2026B from "../assets/gallery/AM2026.jpeg";
+import alumniMeet2026C from "../assets/gallery/A_M2026.jpeg";
+import alumniMeet2026D from "../assets/gallery/_A_M2026.jpeg";
+import alumniMeet2026E from "../assets/gallery/Alumni_Meet2026.jpeg";
+import alumniMeet2026F from "../assets/gallery/_A-m2026.jpeg";
+import alumniMeet2026G from "../assets/gallery/_Alumni_M2026.jpeg";
 
 const ALL_IMAGES = [
-  { id: 1,  url: ceremonyImg, title: "Alumni Award Ceremony",        category: "Ceremonies" },
-  { id: 2,  url: sessionImg,  title: "Faculty Interaction Session",   category: "Sessions"   },
-  { id: 3,  url: meetImg,     title: "Grand Alumni Meet 2024",        category: "Meets"      },
-  { id: 4,  url: ceremonyImg, title: "Felicitation Function",         category: "Ceremonies" },
-  { id: 5,  url: sessionImg,  title: "Career Guidance Lecture",       category: "Sessions"   },
-  { id: 6,  url: meetImg,     title: "Batch Reunion 2023",            category: "Meets"      },
-  { id: 7,  url: ceremonyImg, title: "Convocation 2023",              category: "Ceremonies" },
-  { id: 8,  url: sessionImg,  title: "Industry Expert Talk",          category: "Sessions"   },
-  { id: 9,  url: meetImg,     title: "Silver Jubilee Meet",           category: "Meets"      },
-  { id: 10, url: ceremonyImg, title: "Distinguished Alumni Honour",   category: "Ceremonies" },
-  { id: 11, url: sessionImg,  title: "Internship Drive Session",      category: "Sessions"   },
-  { id: 12, url: meetImg,     title: "Annual Alumni Gathering",       category: "Meets"      },
+  // 2023
+  { id: 1,  url: alumniMeet2023D, title: "Lamp Lighting Ceremony",              year: 2023 },
+  { id: 2,  url: alumniMeet2023B, title: "Grand Alumni Meet Newsletter",        year: 2023 },
+  { id: 3,  url: alumniMeet2023E, title: "Student Innovation Exhibition",       year: 2023 },
+  { id: 4,  url: alumniMeet2023G, title: "Student Project Exhibition",         year: 2023 },
+  { id: 5,  url: alumniMeet2023A, title: "Alumni Walkathon",                    year: 2023 },
+  { id: 6,  url: alumniMeet2023C, title: "Alumni Procession",                   year: 2023 },
+  { id: 7,  url: alumniMeet2023F, title: "Alumni Group Photo",                  year: 2023 },
+  // 2024
+  { id: 8,  url: alumniMeet2024B, title: "Balloon Release Celebration",         year: 2024 },
+  { id: 9,  url: alumniMeet2024A, title: "Cultural Gathering",                  year: 2024 },
+  // 2025
+  { id: 10, url: alumniMeet2025A, title: "MoU Signing Ceremony",                year: 2025 },
+  { id: 11, url: alumniMeet2025C, title: "Grand Alumni Meet Newsletter Launch", year: 2025 },
+  { id: 12, url: alumniMeet2025B, title: "Panel Discussion",                    year: 2025 },
+  // 2026
+  { id: 13, url: alumniMeet2026D, title: "Alumni Meet Auditorium Session",      year: 2026 },
+  { id: 14, url: alumniMeet2026C, title: "Library Inauguration",                year: 2026 },
+  { id: 15, url: alumniMeet2026A, title: "Guest Interaction Session",           year: 2026 },
+  { id: 16, url: alumniMeet2026B, title: "Alumni Faculty Interaction",          year: 2026 },
+  { id: 17, url: alumniMeet2026G, title: "Grand Alumni Meet 2026 Group Photo",  year: 2026 },
+  { id: 18, url: alumniMeet2026F, title: "Inauguration Ceremony",               year: 2026 },
+  { id: 19, url: alumniMeet2026E, title: "Student Interaction Session",         year: 2026 },
 ];
 
-const CATEGORIES = ["All", "Ceremonies", "Sessions", "Meets"];
+const YEARS = ["All", ...Array.from(new Set(ALL_IMAGES.map((img) => img.year))).sort((a, b) => b - a)];
 
 /* ── MarqueeRow ── */
 function MarqueeRow({ images, direction = "left", speed = 70, onImageClick }) {
@@ -104,7 +139,7 @@ function Lightbox({ image, onClose }) {
         />
         <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-slate-950/80 to-transparent px-6 py-5">
           <p className="text-white font-semibold text-base">{image.title}</p>
-          <p className="text-blue-200 text-sm">{image.category}</p>
+          <p className="text-blue-200 text-sm">{image.year}</p>
         </div>
         <button
           onClick={onClose}
@@ -120,17 +155,15 @@ function Lightbox({ image, onClose }) {
 
 /* ── Gallery page ── */
 function Gallery() {
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [lightboxImage, setLightboxImage]       = useState(null);
+  const [selectedYear, setSelectedYear]   = useState("All");
+  const [lightboxImage, setLightboxImage] = useState(null);
 
   const allImages = ALL_IMAGES;
 
   /* ── Filtered images ── */
   const filteredImages = useMemo(() =>
-    selectedCategory === "All"
-      ? allImages
-      : allImages.filter((img) => img.category === selectedCategory),
-    [selectedCategory, allImages]
+    allImages.filter((img) => selectedYear === "All" || img.year === selectedYear),
+    [selectedYear, allImages]
   );
 
   /* ── Split filtered images into 3 rows for the marquee ── */
@@ -152,23 +185,29 @@ function Gallery() {
     <>
       <PageShell eyebrow="Media" title="Gallery">
 
-        {/* Category filter */}
+        {/* Year filter */}
         <div className="mb-8 flex flex-wrap gap-2">
-          {CATEGORIES.map((cat) => (
+          {YEARS.map((year) => (
             <button
-              key={cat}
+              key={year}
               type="button"
-              onClick={() => setSelectedCategory(cat)}
+              onClick={() => setSelectedYear(year)}
               className={`rounded-full px-5 py-2 text-sm font-bold transition ${
-                selectedCategory === cat
+                selectedYear === year
                   ? "bg-blue-700 text-white shadow-sm"
                   : "border border-slate-200 bg-white text-slate-600 hover:bg-blue-50 hover:text-blue-700"
               }`}
             >
-              {cat}
+              {year}
             </button>
           ))}
         </div>
+
+        {/* Photo count */}
+        <p className="mb-6 text-sm text-slate-400">
+          {filteredImages.length} photo{filteredImages.length !== 1 ? "s" : ""}
+          {selectedYear !== "All" ? ` from ${selectedYear}` : ""}
+        </p>
 
         {/* Marquee rows */}
         <div className="flex flex-col gap-4 -mx-6 md:-mx-8 overflow-hidden">
