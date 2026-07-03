@@ -2,13 +2,15 @@ import { useState, useEffect, useRef, useMemo, memo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
 import {
-  GraduationCap, Users, Award, HeartHandshake,
+  GraduationCap, Users, Award,
   ArrowRight, Briefcase, BookOpen, Gift,
   Building2, MapPin, ChevronRight, CalendarDays, UserCheck,
 } from 'lucide-react';
 import HeroSlider from '../components/HeroSlider';
 import Newsroom from '../components/Newsroom';
 import contributions from '../data/contributions.json';
+import distinguishedAlumni from '../data/distinguishedAlumni';
+import { fetchNewlyRegisteredAlumni } from '../services/alumniService';
 import meetImg from '../assets/slide-meet.jpeg';
 import sessionImg from '../assets/slide-session.jpeg';
 import ceremonyImg from '../assets/slide-ceremony.jpeg';
@@ -114,15 +116,9 @@ const getBannerTitle = (url) => {
 
 const TABS = ['All', 'Guest Lecture', 'Mentoring', 'Scholarship', 'Internship Support'];
 
-// Accent bar colors that rotate per card (faculty-card style)
-const ACCENT_COLORS = [
-  'bg-blue-600', 'bg-rose-500', 'bg-amber-500',
-  'bg-emerald-500', 'bg-purple-500', 'bg-indigo-500',
-  'bg-orange-500', 'bg-teal-500',
-];
-
 // ─── STATIC DATA ──────────────────────────────────────────────────────────────
-const newAlumni = [
+// Shown until real registrations load, and as a fallback if the API call fails.
+const FALLBACK_ALUMNI = [
   {
     name: "Akash Mendhekar",
     branch: "Computer Science & Engineering",
@@ -181,33 +177,6 @@ const newAlumni = [
   },
 ];
 
-const distinguishedAlumni = [
-  {
-    name: 'Dr. Suresh Kulkarni', batch: 'Batch of 2005',
-    role: 'Chief Technology Officer', company: 'Tata Consultancy Services', location: 'Pune, MH',
-    achievement: 'Led digital transformation for 3 Fortune 500 clients. Holds 2 patents in distributed computing.',
-    photo: 'https://i.pravatar.cc/200?img=12',
-  },
-  {
-    name: 'Anita Bhosale', batch: 'Batch of 2008',
-    role: 'Deputy Collector', company: 'Govt. of Maharashtra', location: 'Nagpur, MH',
-    achievement: 'Revamped water distribution across 4 districts, impacting 2.5 million citizens.',
-    photo: 'https://i.pravatar.cc/200?img=47',
-  },
-  {
-    name: 'Nikhil Waghmare', batch: 'Batch of 2011',
-    role: 'Founder & CEO', company: 'NovaTech Solutions', location: 'Bengaluru, KA',
-    achievement: 'Built a 120-person SaaS company from Vidarbha. Forbes India 30 Under 30, 2021.',
-    photo: 'https://i.pravatar.cc/200?img=33',
-  },
-  {
-    name: 'Pallavi Meshram', batch: 'Batch of 2007',
-    role: 'Senior Principal Engineer', company: 'Intel Corporation', location: 'Bengaluru, KA',
-    achievement: "Contributed to Intel's 12th Gen Core processors. Active mentor for SSGMCE students.",
-    photo: 'https://i.pravatar.cc/200?img=45',
-  },
-];
-
 const galleryRow1 = [
   { src: meetImg,     alt: 'Grand Alumni Meet 2024' },
   { src: sessionImg,  alt: 'Faculty Interaction Session' },
@@ -229,6 +198,21 @@ const galleryRow2 = [
 // ─── HOME PAGE ────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState('All');
+  const [newAlumni, setNewAlumni] = useState(FALLBACK_ALUMNI);
+
+  // Pull the most recently approved registrations; keep the fallback list
+  // showing (rather than an empty section) if the API fails or is still empty.
+  useEffect(() => {
+    let cancelled = false;
+    fetchNewlyRegisteredAlumni(8)
+      .then((alumni) => {
+        if (!cancelled && alumni?.length) setNewAlumni(alumni);
+      })
+      .catch(() => {
+        // keep FALLBACK_ALUMNI on error
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   const filtered = useMemo(
     () => activeTab === 'All'
@@ -329,23 +313,20 @@ export default function HomePage() {
               variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }}
               className="flex gap-5"
             >
-              {newAlumni.map((a, i) => (
+              {newAlumni.map((a) => (
                 <motion.div
                   key={a.name}
                   variants={fadeUp}
                   className="group min-w-[200px] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-shadow hover:shadow-md"
                 >
                   {/* Portrait photo */}
-                  <div className="h-44 overflow-hidden bg-slate-100">
+                  <div className="aspect-[4/5] overflow-hidden bg-slate-100">
                     <Avatar
                       src={a.photo}
                       alt={a.name}
-                      className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                      className="h-full w-full object-cover object-top transition duration-300 group-hover:scale-105"
                     />
                   </div>
-
-                  {/* Colored accent bar — rotates per card */}
-                  <div className={`h-1 w-full ${ACCENT_COLORS[i % ACCENT_COLORS.length]}`} />
 
                   {/* Info */}
                   <div className="p-4">
@@ -472,11 +453,11 @@ export default function HomePage() {
           variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }}
           className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
         >
-          {distinguishedAlumni.map((person) => (
+          {distinguishedAlumni.slice(0, 8).map((person) => (
             <motion.div
               key={person.name}
               variants={fadeUp}
-              className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+              className="relative flex min-h-[220px] flex-col items-center overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 py-8 shadow-sm transition-shadow hover:shadow-md"
             >
               {/* Decorative large quote mark */}
               <span
@@ -491,14 +472,16 @@ export default function HomePage() {
                 <Avatar
                   src={person.photo}
                   alt={person.name}
-                  className="h-20 w-20 rounded-full object-cover ring-4 ring-white shadow-md"
+                  className="h-24 w-24 rounded-full object-cover ring-4 ring-white shadow-md"
                 />
               </div>
 
               {/* Company — small uppercase amber */}
-              <p className="text-center text-[10px] font-bold uppercase tracking-widest text-amber-500">
-                {person.company}
-              </p>
+              {person.company && (
+                <p className="text-center text-[10px] font-bold uppercase tracking-widest text-amber-500">
+                  {person.company}
+                </p>
+              )}
 
               {/* Name */}
               <h3 className="mt-1 text-center text-sm font-extrabold text-slate-800">
@@ -506,22 +489,30 @@ export default function HomePage() {
               </h3>
 
               {/* Role — amber */}
-              <p className="mt-0.5 text-center text-xs font-semibold text-amber-500">
-                {person.role}
-              </p>
+              {person.role && (
+                <p className="mt-0.5 text-center text-xs font-semibold text-amber-500">
+                  {person.role}
+                </p>
+              )}
 
               {/* Batch */}
-              <p className="mt-1 text-center text-xs text-slate-400">{person.batch}</p>
+              {person.batch && (
+                <p className="mt-1 text-center text-xs text-slate-400">{person.batch}</p>
+              )}
 
               {/* Achievement */}
-              <p className="mt-3 text-center text-xs leading-5 text-slate-500 line-clamp-3">
-                {person.achievement}
-              </p>
+              {person.achievement && (
+                <p className="mt-3 text-center text-xs leading-5 text-slate-500 line-clamp-3">
+                  {person.achievement}
+                </p>
+              )}
 
               {/* Location */}
-              <p className="mt-3 flex items-center justify-center gap-1 text-xs text-slate-400">
-                <MapPin size={11} /> {person.location}
-              </p>
+              {person.location && (
+                <p className="mt-3 flex items-center justify-center gap-1 text-xs text-slate-400">
+                  <MapPin size={11} /> {person.location}
+                </p>
+              )}
             </motion.div>
           ))}
         </motion.div>
