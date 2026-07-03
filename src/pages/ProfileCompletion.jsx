@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, ArrowRight, Check, Loader2, User, Briefcase,
   Heart, ClipboardList, Link2, Phone, MapPin, GraduationCap,
-  Building2, Lightbulb, Trophy, ChevronDown,
+  Building2, Lightbulb, Trophy, ChevronDown, Camera,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { updateProfile } from '../services/authService';
+import { uploadProfilePhoto } from '../services/uploadService';
 
 // ─── constants ────────────────────────────────────────────────────────────────
 const STEPS = [
@@ -127,8 +128,54 @@ function StepIndicator({ current }) {
   );
 }
 
+// ─── PHOTO UPLOADER ───────────────────────────────────────────────────────────
+function PhotoUploader({ photo, name, uploading, error, onUpload }) {
+  const inputRef = useRef(null);
+
+  const handleChange = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (file) onUpload(file);
+  };
+
+  return (
+    <div className="flex items-center gap-4">
+      <div className="relative shrink-0">
+        {photo ? (
+          <img src={photo} alt={name} className="h-16 w-16 rounded-full object-cover ring-2 ring-slate-100" />
+        ) : (
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-800 text-xl font-extrabold text-white">
+            {name?.[0]?.toUpperCase() || 'A'}
+          </div>
+        )}
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={handleChange}
+          className="hidden"
+        />
+        <button
+          type="button"
+          disabled={uploading}
+          onClick={() => inputRef.current?.click()}
+          title={uploading ? 'Uploading…' : 'Change photo'}
+          className="absolute bottom-0 right-0 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-slate-700 text-white transition hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {uploading ? <Loader2 size={11} className="animate-spin" /> : <Camera size={11} />}
+        </button>
+      </div>
+      <div>
+        <p className="text-sm font-semibold text-slate-700">Profile photo</p>
+        <p className="text-xs text-slate-400">JPG, PNG, or WEBP — up to 5 MB.</p>
+        {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      </div>
+    </div>
+  );
+}
+
 // ─── STEP 1 — Personal Details ────────────────────────────────────────────────
-function Step1({ form, set, onChange }) {
+function Step1({ form, onChange, profile, photoUploading, photoError, onPhotoUpload }) {
   return (
     <div className="space-y-5">
       <div>
@@ -136,6 +183,14 @@ function Step1({ form, set, onChange }) {
         <p className="mt-0.5 text-sm text-slate-500">Basic information about you.</p>
         <div className="mt-3 h-1 w-10 rounded-full bg-amber-400" />
       </div>
+
+      <PhotoUploader
+        photo={profile.profilePhoto}
+        name={profile.name}
+        uploading={photoUploading}
+        error={photoError}
+        onUpload={onPhotoUpload}
+      />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Gender">
@@ -489,6 +544,22 @@ export default function ProfileCompletion() {
   const [saving,  setSaving]  = useState(false);
   const [error,   setError]   = useState('');
   const [consent, setConsent] = useState(p.dataConsentGiven || false);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoError,     setPhotoError]     = useState('');
+
+  const handlePhotoUpload = async (file) => {
+    setPhotoError('');
+    setPhotoUploading(true);
+    try {
+      const url = await uploadProfilePhoto(file);
+      await updateProfile({ profilePhoto: url });
+      setUserProfile((prev) => ({ ...prev, profilePhoto: url }));
+    } catch (err) {
+      setPhotoError(err?.response?.data?.message || err.message || 'Could not upload photo.');
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
 
   const [form, setForm] = useState({
     // Personal
@@ -577,7 +648,13 @@ export default function ProfileCompletion() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
             >
-              {step === 1 && <Step1 form={form} set={set} onChange={onChange} />}
+              {step === 1 && (
+                <Step1
+                  form={form} set={set} onChange={onChange}
+                  profile={p} photoUploading={photoUploading} photoError={photoError}
+                  onPhotoUpload={handlePhotoUpload}
+                />
+              )}
               {step === 2 && <Step2 form={form} set={set} onChange={onChange} />}
               {step === 3 && <Step3 form={form} set={set} />}
               {step === 4 && <Step4 form={form} profile={p} consent={consent} setConsent={setConsent} />}

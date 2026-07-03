@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { updateProfile } from '../services/authService';
+import { uploadProfilePhoto } from '../services/uploadService';
 import { Onboarding } from '../components/Onboarding';
 
 // ─── constants ────────────────────────────────────────────────────────────────
@@ -92,6 +93,27 @@ export const Dashboard = () => {
   const [saving,       setSaving]       = useState(false);
   const [saveError,    setSaveError]    = useState('');
   const [copied,       setCopied]       = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoError,     setPhotoError]     = useState('');
+  const photoInputRef = useRef(null);
+
+  const handlePhotoChange = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file next time
+    if (!file) return;
+
+    setPhotoError('');
+    setPhotoUploading(true);
+    try {
+      const url = await uploadProfilePhoto(file);
+      await updateProfile({ profilePhoto: url });
+      setUserProfile((prev) => ({ ...prev, profilePhoto: url }));
+    } catch (err) {
+      setPhotoError(err?.response?.data?.message || err.message || 'Could not upload photo.');
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
 
   const copyAlumniId = useCallback((id) => {
     if (!id) return;
@@ -100,14 +122,6 @@ export const Dashboard = () => {
       setTimeout(() => setCopied(false), 1500);
     });
   }, []);
-
-  if (userProfile && !userProfile.isOnboarded) return <Onboarding />;
-
-  // ── profile completion ──────────────────────────────────────────────────────
-  const missingFields = COMPLETION_FIELDS.filter((f) => !userProfile?.[f.key]);
-  const completionPct = Math.round(
-    ((COMPLETION_FIELDS.length - missingFields.length) / COMPLETION_FIELDS.length) * 100,
-  );
 
   // ── edit helpers ────────────────────────────────────────────────────────────
   const startEdit = useCallback((section, fields) => {
@@ -121,6 +135,14 @@ export const Dashboard = () => {
     setEditData({});
     setSaveError('');
   }, []);
+
+  if (userProfile && !userProfile.isOnboarded) return <Onboarding />;
+
+  // ── profile completion ──────────────────────────────────────────────────────
+  const missingFields = COMPLETION_FIELDS.filter((f) => !userProfile?.[f.key]);
+  const completionPct = Math.round(
+    ((COMPLETION_FIELDS.length - missingFields.length) / COMPLETION_FIELDS.length) * 100,
+  );
 
   const handleChange = (e) =>
     setEditData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -155,6 +177,15 @@ export const Dashboard = () => {
         </div>
       )}
 
+      {photoError && (
+        <div className="bg-red-50 px-4 py-3">
+          <div className="mx-auto flex max-w-4xl items-start gap-2">
+            <AlertTriangle size={16} className="mt-0.5 shrink-0 text-red-500" />
+            <p className="text-xs text-red-700">{photoError}</p>
+          </div>
+        </div>
+      )}
+
       {/* ── PROFILE HEADER ──────────────────────────────────────────────────── */}
       <div className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-4xl px-4 pt-6 sm:px-6 lg:px-8">
@@ -175,11 +206,21 @@ export const Dashboard = () => {
                     {p.name?.[0]?.toUpperCase() || 'A'}
                   </div>
                 )}
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handlePhotoChange}
+                  className="hidden"
+                />
                 <button
-                  title="Change photo (coming soon)"
-                  className="absolute bottom-0 right-0 flex h-7 w-7 cursor-not-allowed items-center justify-center rounded-full border-2 border-white bg-slate-700 text-white opacity-80 transition hover:bg-slate-600"
+                  type="button"
+                  title={photoUploading ? 'Uploading…' : 'Change photo'}
+                  disabled={photoUploading}
+                  onClick={() => photoInputRef.current?.click()}
+                  className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-slate-700 text-white opacity-90 transition hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <Camera size={13} />
+                  {photoUploading ? <Loader2 size={13} className="animate-spin" /> : <Camera size={13} />}
                 </button>
               </div>
 
