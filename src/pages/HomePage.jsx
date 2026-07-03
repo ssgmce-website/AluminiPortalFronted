@@ -119,62 +119,14 @@ const TABS = ['All', 'Guest Lecture', 'Mentoring', 'Scholarship', 'Internship Su
 // ─── STATIC DATA ──────────────────────────────────────────────────────────────
 // Shown until real registrations load, and as a fallback if the API call fails.
 const FALLBACK_ALUMNI = [
-  {
-    name: "Akash Mendhekar",
-    branch: "Computer Science & Engineering",
-    batch: "2024",
-    company: "Infosys, Pune",
-    photo: "https://i.pravatar.cc/300?img=32",
-  },
-  {
-    name: "Priyanka Sable",
-    branch: "Information Technology",
-    batch: "2023",
-    company: "TCS, Mumbai",
-    photo: "https://i.pravatar.cc/300?img=48",
-  },
-  {
-    name: "Rohit Deshmukh",
-    branch: "Electronics & Telecommunication",
-    batch: "2024",
-    company: "Wipro Technologies",
-    photo: "https://i.pravatar.cc/300?img=25",
-  },
-  {
-    name: "Snehal Khandelwal",
-    branch: "Mechanical Engineering",
-    batch: "2022",
-    company: "Bajaj Auto, Pune",
-    photo: "https://i.pravatar.cc/300?img=44",
-  },
-  {
-    name: "Vishal Shirsat",
-    branch: "Information Technology",
-    batch: "2023",
-    company: "L&T Construction",
-    photo: "https://i.pravatar.cc/300?img=17",
-  },
-  {
-    name: "Manasi Bawankar",
-    branch: "Electrical Engineering",
-    batch: "2024",
-    company: "Siemens India, Nashik",
-    photo: "https://i.pravatar.cc/300?img=56",
-  },
-  {
-    name: "Gaurav Wankhede",
-    branch: "Computer Science & Engineering",
-    batch: "2023",
-    company: "Persistent Systems",
-    photo: "https://i.pravatar.cc/300?img=11",
-  },
-  {
-    name: "Rutuja Thakare",
-    branch: "Information Technology",
-    batch: "2024",
-    company: "Cognizant, Pune",
-    photo: "https://i.pravatar.cc/300?img=60",
-  },
+  { name: "Akash Mendhekar",   branch: "Computer Science & Engineering",  batch: "2024", company: "Infosys, Pune",        photo: "" },
+  { name: "Priyanka Sable",    branch: "Information Technology",          batch: "2023", company: "TCS, Mumbai",           photo: "" },
+  { name: "Rohit Deshmukh",    branch: "Electronics & Telecommunication", batch: "2024", company: "Wipro Technologies",    photo: "" },
+  { name: "Snehal Khandelwal", branch: "Mechanical Engineering",          batch: "2022", company: "Bajaj Auto, Pune",      photo: "" },
+  { name: "Vishal Shirsat",    branch: "Information Technology",          batch: "2023", company: "L&T Construction",      photo: "" },
+  { name: "Manasi Bawankar",   branch: "Electrical Engineering",          batch: "2024", company: "Siemens India, Nashik", photo: "" },
+  { name: "Gaurav Wankhede",   branch: "Computer Science & Engineering",  batch: "2023", company: "Persistent Systems",    photo: "" },
+  { name: "Rutuja Thakare",    branch: "Information Technology",          batch: "2024", company: "Cognizant, Pune",       photo: "" },
 ];
 
 const galleryRow1 = [
