@@ -22,6 +22,26 @@ export const uploadProfilePhoto = async (file) => {
   const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
   const photoRef = ref(storage, `profile-photos/${uid}.${ext}`);
 
-  await uploadBytes(photoRef, file, { contentType: file.type });
-  return getDownloadURL(photoRef);
+  try {
+    await uploadBytes(photoRef, file, { contentType: file.type });
+    return await getDownloadURL(photoRef);
+  } catch (err) {
+    // Firebase Storage errors carry a `code` (e.g. storage/unauthorized) that's
+    // far more useful for diagnosis than the generic message alone.
+    console.error('[uploadProfilePhoto] Firebase Storage error:', err.code, err.message, err);
+    if (err.code === 'storage/unauthorized') {
+      throw new Error(
+        'Upload blocked by Firebase Storage security rules. The rules must allow ' +
+        'signed-in users to write to profile-photos/. Ask an admin to check the ' +
+        'Storage rules in the Firebase console.'
+      );
+    }
+    if (err.code === 'storage/unknown' || err.code === 'storage/retry-limit-exceeded') {
+      throw new Error(
+        'Could not reach Firebase Storage. This can happen if Storage hasn’t been ' +
+        'enabled for this project yet, or due to a network/CORS issue.'
+      );
+    }
+    throw err;
+  }
 };
