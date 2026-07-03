@@ -451,6 +451,11 @@ export default function HomePage() {
                 <p className="mt-1 text-center text-xs text-slate-400">{person.batch}</p>
               )}
 
+              {/* Branch */}
+              {person.branch && (
+                <p className="mt-1 text-center text-xs text-slate-400">{person.branch}</p>
+              )}
+
               {/* Achievement */}
               {person.achievement && (
                 <p className="mt-3 text-center text-xs leading-5 text-slate-500 line-clamp-3">
