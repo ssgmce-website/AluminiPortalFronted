@@ -18,6 +18,14 @@ import meet2026Auditorium from '../assets/gallery/_A_M2026.jpeg';
 import meet2026Group from '../assets/gallery/_Alumni_M2026.jpeg';
 import meet2026Inauguration from '../assets/gallery/_A-m2026.jpeg';
 import meet2026Session from '../assets/gallery/Alumni_Meet2026.jpeg';
+import ankushGawandeImg from '../assets/newly-registered-alumni/ankush-gawande.jpg';
+import chetanAmbalkarImg from '../assets/newly-registered-alumni/chetan-ambalkar.jpg';
+import dnyaneshwariChatarkarImg from '../assets/newly-registered-alumni/dnyaneshwari-chatarkar.jpg';
+import kalyaniRautImg from '../assets/newly-registered-alumni/kalyani-raut.jpg';
+import nayanChandankhedeImg from '../assets/newly-registered-alumni/nayan-chandankhede.jpg';
+import riyaDangraImg from '../assets/newly-registered-alumni/riya-dangra.jpg';
+import sakshiSondkarImg from '../assets/newly-registered-alumni/sakshi-sondkar.jpg';
+import surabhiLahotiImg from '../assets/newly-registered-alumni/surabhi-lahoti.jpg';
 
 // ─── ANIMATION VARIANTS ───────────────────────────────────────────────────────
 const fadeUp = {
@@ -123,14 +131,14 @@ const TABS = ['All', 'Guest Lecture', 'Mentoring', 'Scholarship', 'Internship Su
 // ─── STATIC DATA ──────────────────────────────────────────────────────────────
 // Shown until real registrations load, and as a fallback if the API call fails.
 const FALLBACK_ALUMNI = [
-  { name: "Akash Mendhekar",   branch: "Computer Science & Engineering",  batch: "2024", company: "Infosys, Pune",        photo: "" },
-  { name: "Priyanka Sable",    branch: "Information Technology",          batch: "2023", company: "TCS, Mumbai",           photo: "" },
-  { name: "Rohit Deshmukh",    branch: "Electronics & Telecommunication", batch: "2024", company: "Wipro Technologies",    photo: "" },
-  { name: "Snehal Khandelwal", branch: "Mechanical Engineering",          batch: "2022", company: "Bajaj Auto, Pune",      photo: "" },
-  { name: "Vishal Shirsat",    branch: "Information Technology",          batch: "2023", company: "L&T Construction",      photo: "" },
-  { name: "Manasi Bawankar",   branch: "Electrical Engineering",          batch: "2024", company: "Siemens India, Nashik", photo: "" },
-  { name: "Gaurav Wankhede",   branch: "Computer Science & Engineering",  batch: "2023", company: "Persistent Systems",    photo: "" },
-  { name: "Rutuja Thakare",    branch: "Information Technology",          batch: "2024", company: "Cognizant, Pune",       photo: "" },
+  { name: "Ankush Gawande",         branch: "Computer Science & Engineering",  batch: "2024", company: "Infosys, Pune",         photo: ankushGawandeImg },
+  { name: "Chetan Ambalkar",        branch: "Information Technology",          batch: "2023", company: "TCS, Mumbai",            photo: chetanAmbalkarImg },
+  { name: "Dnyaneshwari Chatarkar", branch: "Electronics & Telecommunication", batch: "2024", company: "Wipro Technologies",     photo: dnyaneshwariChatarkarImg },
+  { name: "Kalyani Raut",           branch: "Computer Science & Engineering",  batch: "2023", company: "Persistent Systems",     photo: kalyaniRautImg },
+  { name: "Nayan Chandankhede",     branch: "Mechanical Engineering",          batch: "2022", company: "Bajaj Auto, Pune",       photo: nayanChandankhedeImg },
+  { name: "Riya Dangra",            branch: "Information Technology",          batch: "2024", company: "Cognizant, Pune",        photo: riyaDangraImg },
+  { name: "Sakshi Sondkar",         branch: "Electrical Engineering",          batch: "2024", company: "Siemens India, Nashik",  photo: sakshiSondkarImg },
+  { name: "Surabhi Lahoti",         branch: "Computer Science & Engineering",  batch: "2023", company: "L&T Construction",       photo: surabhiLahotiImg },
 ];
 
 const galleryRow1 = [
@@ -282,14 +290,20 @@ export default function HomePage() {
                   {/* Info */}
                   <div className="p-4">
                     <p className="font-bold text-slate-800">{a.name}</p>
-                    <p className="mt-0.5 text-[11px] font-bold uppercase tracking-widest text-slate-400">
-                      Batch {a.batch}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-500">{a.branch}</p>
-                    <p className="mt-2 flex items-center gap-1 text-xs text-slate-400">
-                      <Building2 size={11} className="shrink-0" />
-                      <span className="truncate">{a.company}</span>
-                    </p>
+                    {a.batch && (
+                      <p className="mt-0.5 text-[11px] font-bold uppercase tracking-widest text-slate-400">
+                        Batch {a.batch}
+                      </p>
+                    )}
+                    {a.branch && (
+                      <p className="mt-1 text-xs text-slate-500">{a.branch}</p>
+                    )}
+                    {a.company && (
+                      <p className="mt-2 flex items-center gap-1 text-xs text-slate-400">
+                        <Building2 size={11} className="shrink-0" />
+                        <span className="truncate">{a.company}</span>
+                      </p>
+                    )}
                   </div>
                 </motion.div>
               ))}
