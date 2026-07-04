@@ -1,14 +1,11 @@
-import { useState, useEffect, useRef, useMemo, memo } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
 import {
-  GraduationCap, Users, Award,
-  ArrowRight, Briefcase, BookOpen, Gift,
-  Building2, MapPin, ChevronRight, CalendarDays, UserCheck,
+  ArrowRight, Building2, Users, MapPin, ChevronRight, CalendarDays, UserCheck,
 } from 'lucide-react';
 import HeroSlider from '../components/HeroSlider';
 import Newsroom from '../components/Newsroom';
-import contributions from '../data/contributions.json';
 import distinguishedAlumni from '../data/distinguishedAlumni';
 import { fetchNewlyRegisteredAlumni } from '../services/alumniService';
 import meet2026Guest from '../assets/gallery/AlumniMeet2026.jpeg';
@@ -112,21 +109,13 @@ const SectionHeader = memo(function SectionHeader({ eyebrow, title, cta, href })
   );
 });
 
-// ─── CONTRIBUTION TYPE CONFIG ─────────────────────────────────────────────────
-const typeConfig = {
-  'Guest Lecture':      { badge: 'bg-emerald-100 text-emerald-700', icon: BookOpen,  banner: 'bg-green-100',   bannerText: 'text-green-700'  },
-  'Mentoring':          { badge: 'bg-blue-100    text-blue-700',    icon: Users,     banner: 'bg-blue-100',    bannerText: 'text-blue-700'   },
-  'Scholarship':        { badge: 'bg-purple-100  text-purple-700',  icon: Gift,      banner: 'bg-purple-100',  bannerText: 'text-purple-700' },
-  'Internship Support': { badge: 'bg-amber-100   text-amber-700',   icon: Briefcase, banner: 'bg-amber-50',    bannerText: 'text-amber-700'  },
-};
-
-// Extract readable title from placehold.co URL text param
-const getBannerTitle = (url) => {
-  try { return new URL(url).searchParams.get('text')?.replace(/\+/g, ' ') ?? ''; }
-  catch { return ''; }
-};
-
-const TABS = ['All', 'Guest Lecture', 'Mentoring', 'Scholarship', 'Internship Support'];
+// ─── ALUMNI CONTRIBUTIONS DATA ────────────────────────────────────────────────
+const ALUMNI_CONTRIBUTIONS = [
+  { fund: 'Scholarship Fund',   donor: 'Rahul Sharma',     amount: '₹50,000'   },
+  { fund: 'Labs Development',   donor: 'Priya Khandelwal', amount: '₹25,000'   },
+  { fund: 'Library Support',    donor: 'Sandeep Darade',   amount: '₹1,00,000' },
+  { fund: 'Campus Development', donor: 'Jay Patil',        amount: '₹75,000'   },
+];
 
 // ─── STATIC DATA ──────────────────────────────────────────────────────────────
 // Shown until real registrations load, and as a fallback if the API call fails.
@@ -156,7 +145,6 @@ const galleryRow2 = [
 
 // ─── HOME PAGE ────────────────────────────────────────────────────────────────
 export default function HomePage() {
-  const [activeTab, setActiveTab] = useState('All');
   const [newAlumni, setNewAlumni] = useState(FALLBACK_ALUMNI);
 
   // Pull the most recently approved registrations; keep the fallback list
@@ -172,13 +160,6 @@ export default function HomePage() {
       });
     return () => { cancelled = true; };
   }, []);
-
-  const filtered = useMemo(
-    () => activeTab === 'All'
-      ? contributions
-      : contributions.filter((c) => c.type === activeTab),
-    [activeTab],
-  );
 
   return (
     <div className="space-y-14 pb-14">
@@ -312,102 +293,51 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── LATEST CONTRIBUTIONS — Best-Labs card style ──────────────────────── */}
+      {/* ── ALUMNI CONTRIBUTIONS ─────────────────────────────────────────────── */}
       <section className="mx-auto max-w-[1425px] rounded-2xl border border-slate-200 bg-white p-8 shadow-sm md:p-10">
-        <SectionHeader eyebrow="Alumni in Action" title="Latest Contributions" cta="View All" href="/contribution" />
-
-        {/* Tab filter */}
-        <div className="mb-7 flex flex-wrap gap-2">
-          {TABS.map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setActiveTab(tab)}
-              className={`rounded-full px-4 py-1.5 text-sm font-semibold transition-all ${
-                activeTab === tab
-                  ? 'bg-blue-700 text-white shadow-sm'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+        {/* Header */}
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-2xl font-extrabold text-slate-900">Alumni Contributions</h2>
+          <Link
+            to="/contribution"
+            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+          >
+            View All
+          </Link>
         </div>
 
-        {/* Cards — real-estate style: image + overlay badge + stats + button */}
-        <motion.div
-          key={activeTab}
-          variants={stagger}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: false, margin: '-40px' }}
-          className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
-        >
-          {filtered.slice(0, 6).map((c) => {
-            const cfg   = typeConfig[c.type] ?? { badge: 'bg-slate-100 text-slate-600', icon: Award, banner: 'bg-slate-100', bannerText: 'text-slate-700' };
-            const Icon  = cfg.icon;
-            const title = getBannerTitle(c.donationImage);
-            return (
-              <motion.div
-                key={c.id}
-                variants={fadeUp}
-                className="overflow-hidden rounded-2xl bg-white border border-slate-100 shadow-sm transition-shadow hover:shadow-lg"
-              >
-                {/* Image with type badge overlay */}
-                <div className="relative h-52 overflow-hidden">
-                  <img
-                    src={c.donationImage}
-                    alt={title}
-                    className="h-full w-full object-cover transition duration-300 hover:scale-105"
-                    loading="lazy"
-                  />
-                  <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur-sm">
-                    <Icon size={10} /> {c.type}
-                  </span>
-                </div>
+        {/* Two-column layout */}
+        <div className="flex flex-col gap-5 sm:flex-row">
+          {/* Summary card */}
+          <div className="flex min-w-[190px] flex-col gap-4 rounded-xl border border-amber-200 bg-amber-50 p-5">
+            <div>
+              <p className="text-xs font-semibold text-amber-700">Total Contributions</p>
+              <p className="mt-0.5 text-2xl font-extrabold text-amber-600">₹12,50,000</p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-500">Total Donors</p>
+              <p className="mt-0.5 text-xl font-extrabold text-slate-800">245</p>
+            </div>
+            <Link
+              to="/donation"
+              className="mt-auto rounded-lg bg-blue-700 px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-blue-800"
+            >
+              Contribute Now
+            </Link>
+          </div>
 
-                {/* Content */}
-                <div className="p-4">
-                  {/* Branch as "location" */}
-                  <p className="flex items-center gap-1 text-xs text-slate-400">
-                    <MapPin size={11} className="shrink-0" />
-                    {c.branch}
-                  </p>
-
-                  {/* Title */}
-                  <h3 className="mt-1 text-base font-extrabold text-slate-800 leading-snug">
-                    {title}
-                  </h3>
-
-                  {/* Stats row */}
-                  <div className="mt-3 flex items-center gap-4 border-b border-slate-100 pb-3 text-xs text-slate-500">
-                    <span className="flex items-center gap-1">
-                      <Users size={12} className="shrink-0 text-slate-400" />
-                      {c.name}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <GraduationCap size={12} className="shrink-0 text-slate-400" />
-                      Batch {c.batch}
-                    </span>
-                  </div>
-
-                  {/* Footer: description + CTA */}
-                  <div className="mt-3 flex items-center justify-between gap-3">
-                    <p className="text-xs text-slate-400 line-clamp-1 flex-1">
-                      {c.description}
-                    </p>
-                    <button
-                      type="button"
-                      className="flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-700 px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-emerald-800"
-                    >
-                      Explore <ArrowRight size={12} />
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </motion.div>
+          {/* Contribution list */}
+          <div className="flex-1 divide-y divide-blue-50 rounded-xl border border-dashed border-blue-200">
+            {ALUMNI_CONTRIBUTIONS.map((c) => (
+              <div key={c.fund} className="flex items-center justify-between px-5 py-3.5">
+                <span className="text-sm text-slate-700">
+                  <span className="font-semibold">{c.fund}</span> : Donated by {c.donor}
+                </span>
+                <span className="ml-4 shrink-0 text-sm font-bold text-blue-700">{c.amount}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* ── DISTINGUISHED ALUMNI — Prestigious-Alumni quote style ───────────── */}
