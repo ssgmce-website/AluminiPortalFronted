@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, memo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
 import {
-  ArrowRight, Building2, Users, MapPin, ChevronRight, CalendarDays, UserCheck,
+  Users,
+  ArrowRight, Building2, MapPin, ChevronRight, CalendarDays, UserCheck,
 } from 'lucide-react';
 import HeroSlider from '../components/HeroSlider';
 import Newsroom from '../components/Newsroom';
@@ -23,6 +24,8 @@ import nayanChandankhedeImg from '../assets/newly-registered-alumni/nayan-chanda
 import riyaDangraImg from '../assets/newly-registered-alumni/riya-dangra.jpg';
 import sakshiSondkarImg from '../assets/newly-registered-alumni/sakshi-sondkar.jpg';
 import surabhiLahotiImg from '../assets/newly-registered-alumni/surabhi-lahoti.jpg';
+import AlumniContributions from '../components/AlumniContributions';
+
 
 // ─── ANIMATION VARIANTS ───────────────────────────────────────────────────────
 const fadeUp = {
@@ -108,14 +111,6 @@ const SectionHeader = memo(function SectionHeader({ eyebrow, title, cta, href })
     </div>
   );
 });
-
-// ─── ALUMNI CONTRIBUTIONS DATA ────────────────────────────────────────────────
-const ALUMNI_CONTRIBUTIONS = [
-  { fund: 'Scholarship Fund',   donor: 'Rahul Sharma',     amount: '₹50,000'   },
-  { fund: 'Labs Development',   donor: 'Priya Khandelwal', amount: '₹25,000'   },
-  { fund: 'Library Support',    donor: 'Sandeep Darade',   amount: '₹1,00,000' },
-  { fund: 'Campus Development', donor: 'Jay Patil',        amount: '₹75,000'   },
-];
 
 // ─── STATIC DATA ──────────────────────────────────────────────────────────────
 // Shown until real registrations load, and as a fallback if the API call fails.
@@ -293,52 +288,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── ALUMNI CONTRIBUTIONS ─────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-[1425px] rounded-2xl border border-slate-200 bg-white p-8 shadow-sm md:p-10">
-        {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-2xl font-extrabold text-slate-900">Alumni Contributions</h2>
-          <Link
-            to="/contribution"
-            className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
-          >
-            View All
-          </Link>
-        </div>
-
-        {/* Two-column layout */}
-        <div className="flex flex-col gap-5 sm:flex-row">
-          {/* Summary card */}
-          <div className="flex min-w-[190px] flex-col gap-4 rounded-xl border border-amber-200 bg-amber-50 p-5">
-            <div>
-              <p className="text-xs font-semibold text-amber-700">Total Contributions</p>
-              <p className="mt-0.5 text-2xl font-extrabold text-amber-600">₹12,50,000</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-slate-500">Total Donors</p>
-              <p className="mt-0.5 text-xl font-extrabold text-slate-800">245</p>
-            </div>
-            <Link
-              to="/donation"
-              className="mt-auto rounded-lg bg-blue-700 px-4 py-2 text-center text-sm font-semibold text-white transition hover:bg-blue-800"
-            >
-              Contribute Now
-            </Link>
-          </div>
-
-          {/* Contribution list */}
-          <div className="flex-1 divide-y divide-blue-50 rounded-xl border border-dashed border-blue-200">
-            {ALUMNI_CONTRIBUTIONS.map((c) => (
-              <div key={c.fund} className="flex items-center justify-between px-5 py-3.5">
-                <span className="text-sm text-slate-700">
-                  <span className="font-semibold">{c.fund}</span> : Donated by {c.donor}
-                </span>
-                <span className="ml-4 shrink-0 text-sm font-bold text-blue-700">{c.amount}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ── ALUMNI CONTRIBUTIONS — donation stats + recent donors ────────────── */}
+      <AlumniContributions />
 
       {/* ── DISTINGUISHED ALUMNI — Prestigious-Alumni quote style ───────────── */}
       <section className="mx-auto max-w-[1425px] rounded-2xl border border-slate-200 bg-white p-8 shadow-sm md:p-10">

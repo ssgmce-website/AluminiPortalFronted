@@ -1,102 +1,72 @@
 [
   {
     "id": 1,
-    "name": "Rahul Sharma",
-    "batch": "2015",
-    "branch": "Computer Science",
-    "type": "Mentoring",
-    "photo": "https://i.pravatar.cc/150?img=11",
-    "description": "Mentored 12 final-year students for campus placements",
-    "donationImage": "https://placehold.co/600x300/ffffff/94a3b8?text=Mentoring+Session"
+    "type": "Guest Lecture",
+    "name": "Ankush Gawande",
+    "batch": "2024",
+    "branch": "Computer Science & Engineering",
+    "description": "Delivered a guest lecture on cloud infrastructure and DevOps practices for final-year students.",
+    "donationImage": "https://placehold.co/600x400/1d4ed8/ffffff?text=Guest+Lecture",
+    "photo": "https://placehold.co/200x200/1d4ed8/ffffff?text=AG"
   },
   {
     "id": 2,
-    "name": "Priya Desai",
-    "batch": "2012",
-    "branch": "Mechanical Engineering",
-    "type": "Guest Lecture",
-    "photo": "https://i.pravatar.cc/150?img=47",
-    "description": "Delivered a guest lecture on sustainable manufacturing",
-    "donationImage": "https://placehold.co/600x300/ffffff/94a3b8?text=Guest+Lecture"
+    "type": "Mentoring",
+    "name": "Kalyani Raut",
+    "batch": "2023",
+    "branch": "Computer Science & Engineering",
+    "description": "Mentors a group of pre-final-year students on placement preparation and resume building.",
+    "donationImage": "https://placehold.co/600x400/2563eb/ffffff?text=Mentoring",
+    "photo": "https://placehold.co/200x200/2563eb/ffffff?text=KR"
   },
   {
     "id": 3,
-    "name": "Amit Kulkarni",
-    "batch": "2018",
-    "branch": "Electronics",
-    "type": "Internship Support",
-    "photo": "https://i.pravatar.cc/150?img=15",
-    "description": "Arranged 8 internship slots at his company for 3rd-year students",
-    "donationImage": "https://placehold.co/600x300/ffffff/94a3b8?text=Internship+Drive"
+    "type": "Scholarship",
+    "name": "Nayan Chandankhede",
+    "batch": "2022",
+    "branch": "Mechanical Engineering",
+    "description": "Sponsors an annual merit scholarship for meritorious students from economically weaker sections.",
+    "donationImage": "https://placehold.co/600x400/7c3aed/ffffff?text=Scholarship",
+    "photo": "https://placehold.co/200x200/7c3aed/ffffff?text=NC"
   },
   {
     "id": 4,
-    "name": "Sneha Patil",
-    "batch": "2010",
+    "type": "Internship Support",
+    "name": "Riya Dangra",
+    "batch": "2024",
     "branch": "Information Technology",
-    "type": "Scholarship",
-    "photo": "https://i.pravatar.cc/150?img=44",
-    "description": "Donated ₹5 Lakh for merit scholarships to underprivileged students",
-    "donationImage": "https://placehold.co/600x300/ffffff/94a3b8?text=5+Lakh+Donation"
+    "description": "Helped place 5 students into internships at her company through direct referrals.",
+    "donationImage": "https://placehold.co/600x400/d97706/ffffff?text=Internship+Support",
+    "photo": "https://placehold.co/200x200/d97706/ffffff?text=RD"
   },
   {
     "id": 5,
-    "name": "Vikram Joshi",
-    "batch": "2016",
-    "branch": "Information Technology",
-    "type": "Mentoring",
-    "photo": "https://i.pravatar.cc/150?img=18",
-    "description": "Conducts monthly mock interviews for pre-final year students",
-    "donationImage": "https://placehold.co/600x300/ffffff/94a3b8?text=Mock+Interviews"
+    "type": "Guest Lecture",
+    "name": "Sakshi Sondkar",
+    "batch": "2024",
+    "branch": "Electrical Engineering",
+    "description": "Conducted a workshop on industrial automation and control systems.",
+    "donationImage": "https://placehold.co/600x400/1d4ed8/ffffff?text=Guest+Lecture",
+    "photo": "https://placehold.co/200x200/1d4ed8/ffffff?text=SS"
   },
   {
     "id": 6,
-    "name": "Neha Wankhede",
-    "batch": "2013",
-    "branch": "Computer Science",
-    "type": "Guest Lecture",
-    "photo": "https://i.pravatar.cc/150?img=49",
-    "description": "Hosted a workshop on AI & machine learning trends in industry",
-    "donationImage": "https://placehold.co/600x300/ffffff/94a3b8?text=AI+Workshop"
+    "type": "Mentoring",
+    "name": "Surabhi Lahoti",
+    "batch": "2023",
+    "branch": "Computer Science & Engineering",
+    "description": "Runs monthly mentoring sessions for students preparing for higher studies abroad.",
+    "donationImage": "https://placehold.co/600x400/2563eb/ffffff?text=Mentoring",
+    "photo": "https://placehold.co/200x200/2563eb/ffffff?text=SL"
   },
   {
     "id": 7,
-    "name": "Rohan Bhagwat",
-    "batch": "2019",
-    "branch": "Electrical Engineering",
-    "type": "Internship Support",
-    "photo": "https://i.pravatar.cc/150?img=22",
-    "description": "Provided summer internship opportunities at his startup",
-    "donationImage": "https://placehold.co/600x300/ffffff/94a3b8?text=Startup+Internship"
-  },
-  {
-    "id": 8,
-    "name": "Anjali Meshram",
-    "batch": "2011",
-    "branch": "Mechanical Engineering",
-    "type": "Scholarship",
-    "photo": "https://i.pravatar.cc/150?img=56",
-    "description": "Donated an ambulance to the college campus for student safety",
-    "donationImage": "https://placehold.co/600x300/ffffff/94a3b8?text=Ambulance+Donated"
-  },
-  {
-    "id": 9,
-    "name": "Karan Thakare",
-    "batch": "2017",
-    "branch": "Electronics",
-    "type": "Mentoring",
-    "photo": "https://i.pravatar.cc/150?img=33",
-    "description": "Guides students on competitive exams and higher education abroad",
-    "donationImage": "https://placehold.co/600x300/ffffff/94a3b8?text=Abroad+Guidance"
-  },
-  {
-    "id": 10,
-    "name": "Pooja Gawande",
-    "batch": "2014",
-    "branch": "Information Technology",
-    "type": "Guest Lecture",
-    "photo": "https://i.pravatar.cc/150?img=45",
-    "description": "Conducted a seminar on green building and infrastructure trends",
-    "donationImage": "https://placehold.co/600x300/ffffff/94a3b8?text=Infrastructure+Seminar"
+    "type": "Session",
+    "name": "Nilesh Thakare",
+    "batch": "—",
+    "branch": "—",
+    "description": "Conducted a session through CSESA (Computer Science Engineering Students' Association).",
+    "donationImage": "https://placehold.co/600x400/0f766e/ffffff?text=CSESA+Session",
+    "photo": "https://placehold.co/200x200/0f766e/ffffff?text=NT"
   }
 ]

@@ -1,21 +1,52 @@
 import { useState } from "react";
-import { X, MapPin, Users, GraduationCap, ArrowRight, BookOpen, HeartHandshake, Briefcase, Award } from "lucide-react";
+import { X, MapPin, Users, GraduationCap, ArrowRight, BookOpen, HeartHandshake, Briefcase, Award, Gift, Megaphone } from "lucide-react";
 import PageShell from "../components/PageShell";
 import contributions from "../data/contributions.json";
+import donations from "../data/donations";
 
 const TYPE_LABELS = {
   "Mentoring":          "Mentoring",
   "Guest Lecture":      "Guest Lecture",
   "Internship Support": "Internship Support",
   "Scholarship":        "Scholarship",
+  "Session":            "Session",
+  "Donation":           "Donation",
 };
 
 const typeConfig = {
-  "Mentoring":          { badge: "bg-blue-100 text-blue-700",   icon: HeartHandshake },
-  "Guest Lecture":      { badge: "bg-green-100 text-green-700", icon: BookOpen       },
-  "Scholarship":        { badge: "bg-purple-100 text-purple-700", icon: Award        },
-  "Internship Support": { badge: "bg-amber-100 text-amber-700", icon: Briefcase      },
+  "Mentoring":          { badge: "bg-blue-100 text-blue-700",     icon: HeartHandshake },
+  "Guest Lecture":      { badge: "bg-green-100 text-green-700",   icon: BookOpen       },
+  "Scholarship":        { badge: "bg-purple-100 text-purple-700", icon: Award          },
+  "Internship Support": { badge: "bg-amber-100 text-amber-700",   icon: Briefcase      },
+  "Session":            { badge: "bg-teal-100 text-teal-700",     icon: Megaphone      },
+  "Donation":           { badge: "bg-orange-100 text-orange-700", icon: Gift           },
 };
+
+const fmtINR = (n) => `₹${n.toLocaleString("en-IN")}`;
+
+const getInitials = (name) =>
+  name.replace(/^Late\.\s*/i, "").trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+
+// placehold.co uses form-encoding for its ?text= param — '+' renders as a space.
+const bannerText = (text) => encodeURIComponent(text).replace(/%20/g, "+");
+
+// One card per ledger entry — keeps the donor list in sync with data/donations.js.
+// Entries with a `purpose` (named fund/project) show that as the card's banner
+// title instead of the generic "Donation" label.
+const donationCards = donations.map((d) => ({
+  id: `donation-${d.srNo}`,
+  type: "Donation",
+  name: d.name,
+  amount: d.amount,
+  branch: "Alumni Contribution",
+  description: d.purpose
+    ? `Contributed ${fmtINR(d.amount)} towards ${d.purpose}.`
+    : `Contributed ${fmtINR(d.amount)} towards the alumni development fund.`,
+  donationImage: `https://placehold.co/600x400/b45309/ffffff?text=${bannerText(d.purpose || "Donation")}`,
+  photo: `https://placehold.co/200x200/b45309/ffffff?text=${getInitials(d.name)}`,
+}));
+
+const allContributions = [...contributions, ...donationCards];
 
 function getBannerTitle(url) {
   try {
@@ -79,7 +110,7 @@ function Modal({ c, onClose }) {
           <div>
             <p className="text-slate-900 text-2xl font-extrabold leading-tight">{c.name}</p>
             <p className="text-slate-500 text-sm mt-1">
-              Batch {c.batch}&nbsp;·&nbsp;{c.branch}
+              {c.type === "Donation" ? fmtINR(c.amount) : <>Batch {c.batch}&nbsp;·&nbsp;{c.branch}</>}
             </p>
           </div>
           <div className="border-t border-slate-200" />
@@ -128,15 +159,21 @@ function ContributionCard({ c, onClick }) {
           {title}
         </h3>
 
-        {/* Stats row */}
+        {/* Stats row — donor name below the card, amount or batch alongside */}
         <div className="mt-3 flex items-center gap-4 border-b border-slate-100 pb-3 text-xs text-slate-500">
-          <span className="flex items-center gap-1">
-            <Users size={12} className="shrink-0 text-slate-400" />
+          <span className="flex items-center gap-1 text-base font-bold text-slate-800">
+            <Users size={14} className="shrink-0 text-slate-400" />
             {c.name}
           </span>
           <span className="flex items-center gap-1">
-            <GraduationCap size={12} className="shrink-0 text-slate-400" />
-            Batch {c.batch}
+            {c.type === "Donation" ? (
+              <span className="text-lg font-extrabold text-amber-500">{fmtINR(c.amount)}</span>
+            ) : (
+              <>
+                <GraduationCap size={12} className="shrink-0 text-slate-400" />
+                Batch {c.batch}
+              </>
+            )}
           </span>
         </div>
 
@@ -178,9 +215,9 @@ function Contribution() {
   return (
     <>
       <PageShell eyebrow="Alumni Support" title="Contribution">
-        <SummaryBar data={contributions} />
+        <SummaryBar data={allContributions} />
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {contributions.map((c) => (
+          {allContributions.map((c) => (
             <ContributionCard
               key={c.id}
               c={c}
