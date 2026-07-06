@@ -7,7 +7,6 @@ import axios from 'axios';
 // AuthContext — an admin never registers and has no Firebase/MongoDB account.
 
 const TOKEN_KEY = 'adminToken';
-const INFO_KEY  = 'adminInfo';
 
 const API_BASE = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/v1`;
 
@@ -15,18 +14,13 @@ export const getAdminToken = () => {
   try { return window.localStorage.getItem(TOKEN_KEY); } catch { return null; }
 };
 
-export const getAdminInfo = () => {
-  try { return JSON.parse(window.localStorage.getItem(INFO_KEY) || 'null'); } catch { return null; }
-};
-
 export const isAdminAuthed = () => !!getAdminToken();
 
-// POST the credentials; on success persist the token + admin info.
+// POST the credentials; on success persist the session token.
 export const adminLogin = async (email, password) => {
   const { data } = await axios.post(`${API_BASE}/auth/admin/login`, { email, password });
   try {
     window.localStorage.setItem(TOKEN_KEY, data.token);
-    window.localStorage.setItem(INFO_KEY, JSON.stringify(data.admin || null));
   } catch { /* storage unavailable — token just won't persist */ }
   return data;
 };
@@ -34,6 +28,5 @@ export const adminLogin = async (email, password) => {
 export const adminLogout = () => {
   try {
     window.localStorage.removeItem(TOKEN_KEY);
-    window.localStorage.removeItem(INFO_KEY);
   } catch { /* ignore */ }
 };

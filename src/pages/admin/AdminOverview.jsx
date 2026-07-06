@@ -6,7 +6,6 @@ import {
   Mail, GraduationCap, ArrowRight, TrendingUp,
 } from 'lucide-react';
 import { fetchRequests } from '../../services/adminService';
-import { getAdminInfo } from '../../services/adminAuth';
 
 function StatCard({ label, value, icon: Icon, iconBg, iconColor, sub, to }) {
   const card = (
@@ -47,7 +46,6 @@ function MiniBar({ label, value, max, color }) {
 }
 
 export const AdminOverview = () => {
-  const adminInfo = getAdminInfo();
   const [counts, setCounts]           = useState({ pending: 0, approved: 0, rejected: 0 });
   const [recentPending, setRecent]    = useState([]);
   const [loading, setLoading]         = useState(true);
@@ -63,7 +61,7 @@ export const AdminOverview = () => {
     })();
   }, []);
 
-  const firstName = adminInfo?.name?.split(' ')[0] || 'Admin';
+  const firstName = 'Admin';
   const total     = counts.approved + counts.pending + counts.rejected;
 
   return (
