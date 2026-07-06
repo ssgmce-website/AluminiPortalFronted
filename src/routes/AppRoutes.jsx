@@ -25,6 +25,9 @@ const PendingApproval = lazy(() => import('../pages/PendingApproval').then(m => 
 const Dashboard         = lazy(() => import('../pages/Dashboard').then(m => ({ default: m.Dashboard })));
 const ProfileCompletion = lazy(() => import('../pages/ProfileCompletion'));
 
+// Admin (standalone auth — email + password, separate from Firebase)
+const AdminLogin    = lazy(() => import('../pages/AdminLogin').then(m => ({ default: m.AdminLogin })));
+
 // Admin panels
 const AdminOverview = lazy(() => import('../pages/admin/AdminOverview').then(m => ({ default: m.AdminOverview })));
 const MembersPanel  = lazy(() => import('../pages/admin/MembersPanel').then(m => ({ default: m.MembersPanel })));
@@ -144,6 +147,9 @@ export const AppRoutes = () => {
           <Route index element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
           <Route path="profile" element={<Suspense fallback={<PageLoader />}><ProfileCompletion /></Suspense>} />
         </Route>
+
+        {/* ── Admin login (standalone email + password, no site chrome) ──── */}
+        <Route path="/admin/login" element={<Suspense fallback={<PageLoader />}><AdminLogin /></Suspense>} />
 
         {/* ── Admin portal ──────────────────────────────────────────────── */}
         <Route

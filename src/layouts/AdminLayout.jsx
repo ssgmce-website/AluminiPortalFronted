@@ -5,8 +5,7 @@ import {
   Heart, TrendingUp, Navigation, Hotel, Briefcase, Activity,
   GraduationCap, LayoutDashboard, Search, Bell, Sun, Moon, User,
 } from 'lucide-react';
-import { logout } from '../services/authService';
-import { useAuth } from '../contexts/AuthContext';
+import { getAdminInfo, adminLogout } from '../services/adminAuth';
 import { fetchRequests } from '../services/adminService';
 import logo from '../assets/logo.jpeg';
 import '../styles/admin-dark.css';
@@ -59,7 +58,7 @@ const NAV_SECTIONS = [
 ];
 
 export const AdminLayout = () => {
-  const { userProfile } = useAuth();
+  const adminInfo = getAdminInfo();
   const navigate = useNavigate();
 
   // ── Theme ─────────────────────────────────────────────────────────────────
@@ -148,12 +147,12 @@ export const AdminLayout = () => {
   }, [showUser]);
 
   // ── Logout ────────────────────────────────────────────────────────────────
-  const handleLogout = async () => {
-    await logout();
-    navigate('/sign-in');
+  const handleLogout = () => {
+    adminLogout();
+    navigate('/admin/login', { replace: true });
   };
 
-  const initials = userProfile?.name
+  const initials = adminInfo?.name
     ?.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase() || 'A';
 
   return (
@@ -302,7 +301,7 @@ export const AdminLayout = () => {
                 {initials}
               </div>
               <div className="hidden sm:block leading-tight text-left">
-                <p className="text-sm font-semibold text-gray-800 leading-none">{userProfile?.name || 'Admin'}</p>
+                <p className="text-sm font-semibold text-gray-800 leading-none">{adminInfo?.name || 'Admin'}</p>
                 <p className="text-[11px] text-gray-400 mt-0.5">Super Admin</p>
               </div>
             </button>
@@ -311,7 +310,7 @@ export const AdminLayout = () => {
               <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl border border-gray-200 shadow-xl z-50 overflow-hidden py-1">
                 {/* Identity */}
                 <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="text-sm font-bold text-gray-900">{userProfile?.name || 'Admin'}</p>
+                  <p className="text-sm font-bold text-gray-900">{adminInfo?.name || 'Admin'}</p>
                   <p className="text-xs text-gray-400 mt-0.5">Super Admin</p>
                 </div>
                 {/* Sign out */}

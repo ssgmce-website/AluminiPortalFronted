@@ -1,16 +1,10 @@
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { isAdminAuthed } from '../services/adminAuth';
 
-// Guards the admin portal: requires a signed-in user with the 'admin' role.
-// Non-admins are sent to their normal landing page.
+// Guards the admin portal. Admin auth is standalone (email + password → signed
+// token in localStorage), completely separate from the alumni Firebase session.
+// No valid admin token → send to the admin login page.
 export const AdminRoute = ({ children }) => {
-  const { currentUser, userProfile } = useAuth();
-
-  if (!currentUser) return <Navigate to="/sign-in" replace />;
-  // Wait for the profile to resolve before deciding.
-  if (!userProfile) return null;
-  if (userProfile.role !== 'admin') {
-    return <Navigate to={userProfile.status === 'approved' ? '/dashboard' : '/pending'} replace />;
-  }
+  if (!isAdminAuthed()) return <Navigate to="/admin/login" replace />;
   return children;
 };
