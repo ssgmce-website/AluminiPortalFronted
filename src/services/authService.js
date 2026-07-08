@@ -10,8 +10,8 @@ import { auth, googleProvider } from '../firebase/firebase';
 import api from './api';
 
 const EMAIL_FOR_SIGNIN_KEY = 'emailForSignIn';
-const INTENT_KEY           = 'authIntent';        // 'login' | 'register'
-const REG_DETAILS_KEY      = 'registrationDetails';
+const INTENT_KEY = 'authIntent';        // 'login' | 'register'
+const REG_DETAILS_KEY = 'registrationDetails';
 
 // ── Intent + registration details (survive OAuth/email-link round trips) ─────────
 // Google popup completes in-page, but LinkedIn and email-link leave the page, so
@@ -70,7 +70,7 @@ const actionCodeSettings = () => ({
  * when the user returns via the link.
  */
 export const requestEmailOtp = async (email) => {
-  const { data } = await api.post('/auth/otp/request', { email });
+  const { data } = await api.post('/auth/send-passwordless-email-link', { email });
   await sendSignInLinkToEmail(auth, email, actionCodeSettings());
   window.localStorage.setItem(EMAIL_FOR_SIGNIN_KEY, email);
   return data; // { success, remaining }
