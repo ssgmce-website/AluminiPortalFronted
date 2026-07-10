@@ -17,7 +17,6 @@ import {
 import { friendlyAuthError } from '../utils/authErrors';
 import { routeForProfile } from '../utils/authRoutes';
 import { useAuth } from '../contexts/AuthContext';
-import loginBg from '../assets/Downloads/loginbg.png';
 
 const NOT_REGISTERED_MSG = 'This email is not registered. Please register first.';
 
