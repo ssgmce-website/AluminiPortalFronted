@@ -26,9 +26,6 @@ function Header() {
           </Link>
 
           <div>
-            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.22em] text-blue-500">
-              Alumni Association
-            </p>
             <h1 className="text-xl font-extrabold leading-tight text-blue-800 sm:text-2xl md:text-[32px]">
               SSGMCE Alumni Connect
             </h1>

@@ -23,7 +23,7 @@ import resisterBg from '../assets/REGISITER.png';
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const currentYear = new Date().getFullYear();
 
-const COURSES  = ['B.E', 'M.E', 'MBA', 'PhD','BCA'];
+const COURSES = ['B.E', 'M.E', 'MBA', 'PhD', 'BCA'];
 const BRANCHES = [
   'Computer Science & Engineering',
   'Information Technology',
@@ -81,9 +81,9 @@ function useResendTimer(initialSeconds = 60) {
 // ─── CONFIRMATION SCREEN (isolated component — owns its own timer state) ─────
 function ConfirmationScreen({ email, onBack }) {
   const { seconds, canResend, reset } = useResendTimer(60);
-  const [resendBusy,  setResendBusy]  = useState(false);
+  const [resendBusy, setResendBusy] = useState(false);
   const [resendError, setResendError] = useState('');
-  const [resendDone,  setResendDone]  = useState(false);
+  const [resendDone, setResendDone] = useState(false);
 
   const handleResend = async () => {
     setResendBusy(true);
@@ -209,13 +209,11 @@ function FieldError({ message }) {
 }
 
 const inputCls = (hasError) =>
-  `w-full rounded-lg border px-4 py-2.5 text-sm transition outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-    hasError ? 'border-red-400 bg-red-50' : 'border-gray-300'
+  `w-full rounded-lg border px-4 py-2.5 text-sm transition outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${hasError ? 'border-red-400 bg-red-50' : 'border-gray-300'
   }`;
 
 const selectCls = (hasError) =>
-  `w-full rounded-lg border px-4 py-2.5 text-sm bg-white transition outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-    hasError ? 'border-red-400 bg-red-50' : 'border-gray-300'
+  `w-full rounded-lg border px-4 py-2.5 text-sm bg-white transition outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${hasError ? 'border-red-400 bg-red-50' : 'border-gray-300'
   }`;
 
 // ─── REGISTER ────────────────────────────────────────────────────────────────
@@ -224,9 +222,9 @@ export const Register = () => {
   const [searchParams] = useSearchParams();
   const { setUserProfile } = useAuth();
 
-  const [error,    setError]    = useState('');
-  const [busy,     setBusy]     = useState(''); // 'google' | 'linkedin' | 'email' | ''
-  const [otpSent,  setOtpSent]  = useState(''); // email address the link was sent to
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(''); // 'google' | 'linkedin' | 'email' | ''
+  const [otpSent, setOtpSent] = useState(''); // email address the link was sent to
 
   const {
     register,
@@ -237,9 +235,9 @@ export const Register = () => {
     resolver: zodResolver(schema),
     defaultValues: {
       yearOfAdmission: '',
-      yearOfPassout:   '',
-      contactNumber:   '',
-      termsAccepted:   false,
+      yearOfPassout: '',
+      contactNumber: '',
+      termsAccepted: false,
     },
   });
 
@@ -256,12 +254,12 @@ export const Register = () => {
     if (!ok) return null;
     const v = getValues();
     return {
-      name:            v.name.trim(),
-      contactNumber:   v.contactNumber?.trim() || '',
-      course:          v.course,
-      branch:          v.branch,
+      name: v.name.trim(),
+      contactNumber: v.contactNumber?.trim() || '',
+      course: v.course,
+      branch: v.branch,
       yearOfAdmission: Number(v.yearOfAdmission),
-      yearOfPassout:   Number(v.yearOfPassout),
+      yearOfPassout: Number(v.yearOfPassout),
     };
   };
 
@@ -428,23 +426,6 @@ export const Register = () => {
                     </select>
                   </div>
                   <FieldError message={errors.course?.message} />
-                </div>
-
-                {/* Branch */}
-                <div>
-                  <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
-                    <span className="w-42 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                      Branch/Department<span className="text-red-500 ml-0.5">*</span>
-                    </span>
-                    <select
-                      {...register('branch')}
-                      className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent appearance-none cursor-pointer"
-                    >
-                      <option value="">Select your branch</option>
-                      {BRANCHES.map((b) => <option key={b} value={b}>{b}</option>)}
-                    </select>
-                  </div>
-                  <FieldError message={errors.branch?.message} />
                 </div>
 
                 {/* Branch */}
