@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 /* Tailwind v4 reads theme tokens from CSS (not tailwind.config.js). Re-register
@@ -137,5 +138,5 @@ body {
   min-width: 320px;
   background: #f7f2eb;
   color: #1f2937;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }

@@ -106,24 +106,22 @@ export const AppRoutes = () => {
         </Route>
 
         {/* ── Auth (no site chrome) ─────────────────────────────────────── */}
-        <Route element={<AuthLayout />}>
-          <Route
-            path="/sign-in"
-            element={
-              alreadyIn
-                ? <Navigate to={routeForProfile(userProfile)} replace />
-                : <Suspense fallback={<PageLoader />}><SignIn /></Suspense>
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              alreadyIn
-                ? <Navigate to={routeForProfile(userProfile)} replace />
-                : <Suspense fallback={<PageLoader />}><Register /></Suspense>
-            }
-          />
-        </Route>
+        <Route
+          path="/sign-in"
+          element={
+            alreadyIn
+              ? <Navigate to={routeForProfile(userProfile)} replace />
+              : <Suspense fallback={<PageLoader />}><SignIn /></Suspense>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            alreadyIn
+              ? <Navigate to={routeForProfile(userProfile)} replace />
+              : <Suspense fallback={<PageLoader />}><Register /></Suspense>
+          }
+        />
 
         {/* ── Redirect aliases ──────────────────────────────────────────── */}
         <Route path="/signin"   element={<Navigate to="/sign-in" replace />} />
