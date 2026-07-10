@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import {
   Users, Clock, CheckCircle2, XCircle, RefreshCw, Loader2, Mail,
   GraduationCap, AlertTriangle, LayoutGrid, ChevronDown, ChevronRight, Download, IdCard,
+  Briefcase, User as UserIcon, Heart, Link2,
 } from 'lucide-react';
 import { fetchRequests, approveRequest, rejectRequest } from '../../services/adminService';
 
@@ -19,73 +20,212 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const MemberCard = ({ u, onApprove, onReject, actingId }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 8 }}
-    animate={{ opacity: 1, y: 0 }}
-    className="bg-white rounded-lg border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center gap-4"
-  >
-    {u.profilePhoto ? (
-      <img src={u.profilePhoto} alt="" className="w-11 h-11 rounded-full object-cover shrink-0" />
-    ) : (
-      <div className="w-11 h-11 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-semibold shrink-0">
-        {u.name?.[0]?.toUpperCase() || u.email?.[0]?.toUpperCase() || '?'}
-      </div>
-    )}
-    <div className="flex-1 min-w-0">
-      <div className="flex items-center gap-2 flex-wrap">
-        <p className="font-semibold text-gray-900 truncate">{u.name || 'Unnamed'}</p>
-        <StatusBadge status={u.status} />
-        {u.role === 'admin' && (
-          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">admin</span>
-        )}
-      </div>
-      <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-0.5 truncate">
-        <Mail size={13} /> {u.email}
-      </p>
-      {u.alumniId && (
-        <span className="inline-flex items-center gap-1.5 mt-1 rounded-md border border-emerald-100 bg-emerald-50 px-2 py-0.5 font-mono text-xs font-semibold tracking-wide text-emerald-700">
-          <IdCard size={13} /> {u.alumniId}
-        </span>
-      )}
-      <div className="flex items-center gap-3 mt-1 text-xs text-gray-400 flex-wrap">
-        <span className="flex items-center gap-1"><GraduationCap size={13} /> via {u.createdVia}</span>
-        {u.course && <span>{u.course}</span>}
-        {u.branch && <span>{u.branch}</span>}
-        {u.yearOfAdmission && u.yearOfPassout
-          ? <span>{u.yearOfAdmission}–{u.yearOfPassout}</span>
-          : u.yearOfPassout && <span>Batch {u.yearOfPassout}</span>}
-        <span>{new Date(u.createdAt).toLocaleDateString('en-IN')}</span>
-      </div>
-      {u.status === 'rejected' && u.rejectionReason && (
-        <p className="text-xs text-red-600 mt-1">Reason: {u.rejectionReason}</p>
-      )}
-    </div>
-    {u.role !== 'admin' && (
-      <div className="flex items-center gap-2 shrink-0">
-        {u.status !== 'approved' && (
-          <button
-            onClick={() => onApprove(u.id)}
-            disabled={actingId === u.id}
-            className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors"
-          >
-            {actingId === u.id ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />}
-            Approve
-          </button>
-        )}
-        {u.status !== 'rejected' && (
-          <button
-            onClick={() => onReject(u.id)}
-            disabled={actingId === u.id}
-            className="flex items-center gap-1.5 border border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-60 text-sm font-medium px-3 py-2 rounded-lg transition-colors"
-          >
-            <XCircle size={15} /> Reject
-          </button>
-        )}
-      </div>
-    )}
-  </motion.div>
+const DetailItem = ({ label, value }) => (
+  <div>
+    <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">{label}</span>
+    <span className="text-sm font-semibold text-gray-700 break-all">{value || '—'}</span>
+  </div>
 );
+
+const DetailCheckbox = ({ label, checked }) => (
+  <div className="flex items-center gap-2 text-sm">
+    {checked ? (
+      <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+    ) : (
+      <XCircle size={16} className="text-gray-300 shrink-0" />
+    )}
+    <span className={checked ? 'text-gray-700 font-semibold' : 'text-gray-400 font-medium'}>{label}</span>
+  </div>
+);
+
+const MemberCard = ({ u, onApprove, onReject, actingId }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition flex flex-col gap-4"
+    >
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4 min-w-0">
+          {u.profilePhoto ? (
+            <img src={u.profilePhoto} alt="" className="w-14 h-14 rounded-full object-cover ring-2 ring-slate-100 shrink-0" />
+          ) : (
+            <div className="w-14 h-14 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-lg ring-2 ring-slate-100 shrink-0">
+              {u.name?.[0]?.toUpperCase() || u.email?.[0]?.toUpperCase() || '?'}
+            </div>
+          )}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-bold text-gray-900 text-base truncate">{u.name || 'Unnamed'}</h3>
+              <StatusBadge status={u.status} />
+              {u.role === 'admin' && (
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">admin</span>
+              )}
+            </div>
+            <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-0.5 truncate">
+              <Mail size={13} className="text-gray-400" /> {u.email}
+            </p>
+            <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-400 flex-wrap">
+              <span className="flex items-center gap-1"><GraduationCap size={13} /> {u.course} ({u.branch})</span>
+              {u.yearOfAdmission && u.yearOfPassout && (
+                <span>{u.yearOfAdmission}–{u.yearOfPassout}</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Buttons / Actions */}
+        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="flex items-center gap-1 text-sm font-semibold text-blue-700 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-lg transition shrink-0"
+          >
+            {expanded ? 'Hide Details' : 'View Details'}
+            <ChevronDown size={16} className={`transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
+          </button>
+          
+          {u.role !== 'admin' && (
+            <>
+              {u.status !== 'approved' && (
+                <button
+                  onClick={() => onApprove(u.id)}
+                  disabled={actingId === u.id}
+                  className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-sm font-semibold px-3 py-2 rounded-lg shadow-sm transition"
+                >
+                  {actingId === u.id ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />}
+                  Approve
+                </button>
+              )}
+              {u.status !== 'rejected' && (
+                <button
+                  onClick={() => onReject(u.id)}
+                  disabled={actingId === u.id}
+                  className="flex items-center gap-1.5 border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-60 text-sm font-semibold px-3 py-2 rounded-lg transition"
+                >
+                  <XCircle size={15} /> Reject
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      {u.alumniId && (
+        <div className="self-start">
+          <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-100 bg-emerald-50 px-2.5 py-0.5 font-mono text-xs font-semibold tracking-wide text-emerald-700">
+            <IdCard size={13} /> {u.alumniId}
+          </span>
+        </div>
+      )}
+
+      {u.status === 'rejected' && u.rejectionReason && (
+        <div className="bg-red-50 text-red-700 text-xs rounded-lg px-3 py-2 border border-red-100">
+          <strong>Rejection Reason:</strong> {u.rejectionReason}
+        </div>
+      )}
+
+      {/* Expanded details view */}
+      {expanded && (
+        <div className="border-t border-slate-100 pt-4 mt-2 grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50/50 p-4 rounded-xl">
+          {/* Column 1: Personal Profile */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-1.5">
+              <UserIcon size={16} className="text-blue-700" />
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Personal Info</h4>
+            </div>
+            <div className="grid grid-cols-1 gap-3">
+              <DetailItem label="Gender" value={u.gender} />
+              <DetailItem label="Date of Birth" value={u.dob ? new Date(u.dob).toLocaleDateString('en-IN') : '—'} />
+              <DetailItem label="Contact Number" value={u.contactNumber ? `+91 ${u.contactNumber}` : '—'} />
+              <DetailItem label="WhatsApp Number" value={u.whatsappNo ? `+91 ${u.whatsappNo}` : '—'} />
+              <DetailItem label="Location" value={[u.address, u.city, u.state, u.country, u.pinCode].filter(Boolean).join(', ') || '—'} />
+            </div>
+          </div>
+
+          {/* Column 2: Professional Profile */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-1.5">
+              <Briefcase size={16} className="text-blue-700" />
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Professional Info</h4>
+            </div>
+            <div className="grid grid-cols-1 gap-3">
+              <DetailItem label="Employment Status" value={u.employmentStatus} />
+              
+              {/* Employed conditional info */}
+              {['Employed', 'Government Service', 'Self-Employed'].includes(u.employmentStatus) && (
+                <>
+                  <DetailItem label="Company / Organisation" value={u.companyName} />
+                  <DetailItem label="Work Email" value={u.workEmail} />
+                  <DetailItem label="Office Address" value={[u.officeAddress, u.officeCity, u.officeState, u.officeCountry, u.officePinCode].filter(Boolean).join(', ') || '—'} />
+                  <DetailItem label="Designation / Role" value={u.designation} />
+                  <DetailItem label="Industry" value={u.industry} />
+                  <DetailItem label="Experience" value={u.workExperience ? `${u.workExperience} years` : '—'} />
+                </>
+              )}
+
+              {/* Entrepreneur conditional info */}
+              {u.employmentStatus === 'Entrepreneur' && (
+                <>
+                  <DetailItem label="Startup Name" value={u.startupName} />
+                  <DetailItem
+                    label="Startup Website"
+                    value={
+                      u.startupWebsite ? (
+                        <a href={u.startupWebsite} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                          {u.startupWebsite}
+                        </a>
+                      ) : '—'
+                    }
+                  />
+                  <DetailItem label="Startup Description" value={u.startupDescription} />
+                </>
+              )}
+
+              {/* Higher Studies conditional info */}
+              {u.employmentStatus === 'Higher Studies' && (
+                <>
+                  <DetailItem label="University / College" value={u.universityName} />
+                  <DetailItem label="Course / Programme" value={u.higherStudiesCourse} />
+                  <DetailItem label="Country" value={u.higherStudiesCountry} />
+                </>
+              )}
+
+              <DetailItem label="Key Skills" value={u.skills} />
+              
+              <DetailItem
+                label="LinkedIn Profile"
+                value={
+                  u.linkedinUrl ? (
+                    <a href={u.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline inline-flex items-center gap-1">
+                      <Link2 size={12} className="text-blue-600" /> View Profile
+                    </a>
+                  ) : '—'
+                }
+              />
+            </div>
+          </div>
+
+          {/* Column 3: Engagement Profile */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-1.5">
+              <Heart size={16} className="text-blue-700" />
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Alumni Engagement</h4>
+            </div>
+            <div className="space-y-3 pt-1">
+              <DetailCheckbox label="Mentoring Students" checked={u.interestedInMentoring} />
+              <DetailCheckbox label="Campus Recruitment" checked={u.interestedInRecruitment} />
+              <DetailCheckbox label="Guest Lectures / Webinars" checked={u.interestedInGuestLectures} />
+              <DetailCheckbox label="Donations / Sponsorships" checked={u.interestedInDonations} />
+            </div>
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
+};
 
 const DeptWiseView = ({ members }) => {
   const [expanded, setExpanded] = useState({});

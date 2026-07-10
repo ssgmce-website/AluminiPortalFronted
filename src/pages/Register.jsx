@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, CheckCircle2, RefreshCw, AlertCircle, Mail } from 'lucide-react';
+import { Loader2, CheckCircle2, RefreshCw, AlertCircle, Mail, ChevronRight, ChevronLeft, Award, Briefcase, GraduationCap, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   googleAuth,
@@ -23,7 +23,7 @@ import resisterBg from '../assets/REGISITER.png';
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const currentYear = new Date().getFullYear();
 
-const COURSES = ['B.E', 'M.E', 'MBA', 'PhD', 'BCA'];
+const COURSES = ['B.E', 'M.E', 'MBA', 'PhD', 'MCA'];
 const BRANCHES = [
   'Computer Science & Engineering',
   'Information Technology',
@@ -32,15 +32,40 @@ const BRANCHES = [
   'Mechanical Engineering',
 ];
 
+const EMPLOYMENT_STATUSES = [
+  'Employed',
+  'Entrepreneur',
+  'Higher Studies',
+  'Government Service',
+  'Self-Employed',
+  'Looking for Opportunities',
+];
+
 // ─── VALIDATION SCHEMA ───────────────────────────────────────────────────────
 const schema = z
   .object({
+    // Step 0: Personal
     name: z.string().min(2, 'Enter your full name (at least 2 characters)'),
     email: z.string().email('Enter a valid email address'),
     contactNumber: z
       .string()
       .optional()
       .refine((v) => !v || /^\d{10}$/.test(v), { message: 'Enter a valid 10-digit mobile number' }),
+    whatsappNo: z
+      .string()
+      .optional()
+      .refine((v) => !v || /^\d{10}$/.test(v), { message: 'Enter a valid 10-digit mobile number' }),
+    profilePhoto: z.string().optional(),
+    dob: z.string().optional(),
+    gender: z.string().optional(),
+    address: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
+    country: z.string().optional(),
+    pinCode: z.string().optional(),
+    linkedinUrl: z.string().optional(),
+
+    // Step 1: Academic
     course: z.string().min(1, 'Please select your course'),
     branch: z.string().min(1, 'Please select your branch'),
     yearOfAdmission: z
@@ -53,6 +78,42 @@ const schema = z
       .int()
       .min(1990, 'Year must be 1990 or later')
       .max(currentYear + 6, 'Year seems too far in the future'),
+
+    // Step 2: Professional
+    employmentStatus: z.string().optional(),
+    companyName: z.string().optional(),
+    designation: z.string().optional(),
+    industry: z.string().optional(),
+    workExperience: z
+      .number()
+      .optional()
+      .or(z.literal(''))
+      .or(z.nan()),
+    officeLocation: z.string().optional(),
+    officeAddress: z.string().optional(),
+    officeCity: z.string().optional(),
+    officeState: z.string().optional(),
+    officeCountry: z.string().optional(),
+    officePinCode: z.string().optional(),
+    annualPackage: z.string().optional(),
+    companyWebsite: z.string().optional(),
+    workEmail: z.string().email('Invalid work email address').optional().or(z.literal('')),
+    startupName: z.string().optional(),
+    startupWebsite: z.string().optional(),
+    startupDescription: z.string().optional(),
+    universityName: z.string().optional(),
+    higherStudiesCourse: z.string().optional(),
+    higherStudiesCountry: z.string().optional(),
+    skills: z.string().optional(),
+
+    // Step 3: Other / Engagement
+    interestedInMentoring: z.boolean().default(false),
+    interestedInRecruitment: z.boolean().default(false),
+    interestedInGuestLectures: z.boolean().default(false),
+    interestedInDonations: z.boolean().default(false),
+    dataConsentGiven: z.boolean().refine((v) => v === true, {
+      message: 'You must consent to data storage to continue',
+    }),
     termsAccepted: z.boolean().refine((v) => v === true, {
       message: 'You must accept the Terms & Privacy Policy to continue',
     }),
@@ -63,7 +124,6 @@ const schema = z
   });
 
 // ─── RESEND COUNTDOWN HOOK ───────────────────────────────────────────────────
-// Uses setTimeout chain instead of setInterval — cleaner cleanup, no drift.
 function useResendTimer(initialSeconds = 60) {
   const [seconds, setSeconds] = useState(initialSeconds);
 
@@ -78,7 +138,7 @@ function useResendTimer(initialSeconds = 60) {
   return { seconds, canResend: seconds === 0, reset };
 }
 
-// ─── CONFIRMATION SCREEN (isolated component — owns its own timer state) ─────
+// ─── CONFIRMATION SCREEN ─────────────────────────────────────────────────────
 function ConfirmationScreen({ email, onBack }) {
   const { seconds, canResend, reset } = useResendTimer(60);
   const [resendBusy, setResendBusy] = useState(false);
@@ -107,14 +167,12 @@ function ConfirmationScreen({ email, onBack }) {
       exit={{ opacity: 0, y: -10 }}
       className="bg-[#eef2f6]/95 backdrop-blur-md border border-[#cbd5e1]/60 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] w-full max-w-[450px] p-8 text-center space-y-5 my-8"
     >
-      {/* Icon */}
       <div className="flex justify-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 shadow-inner">
           <CheckCircle2 size={32} className="text-green-600" />
         </div>
       </div>
 
-      {/* Heading */}
       <div>
         <h2 className="text-2xl font-bold text-gray-900">Check your inbox</h2>
         <p className="mt-1 text-sm text-gray-500 font-medium">We sent a verification link to</p>
@@ -128,7 +186,6 @@ function ConfirmationScreen({ email, onBack }) {
         </p>
       </div>
 
-      {/* Resend section */}
       <div className="border-t border-gray-200 pt-5 text-center">
         {resendError && (
           <p className="mb-3 flex items-center justify-center gap-1.5 text-xs text-red-600 font-semibold">
@@ -208,14 +265,6 @@ function FieldError({ message }) {
   );
 }
 
-const inputCls = (hasError) =>
-  `w-full rounded-lg border px-4 py-2.5 text-sm transition outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${hasError ? 'border-red-400 bg-red-50' : 'border-gray-300'
-  }`;
-
-const selectCls = (hasError) =>
-  `w-full rounded-lg border px-4 py-2.5 text-sm bg-white transition outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${hasError ? 'border-red-400 bg-red-50' : 'border-gray-300'
-  }`;
-
 // ─── REGISTER ────────────────────────────────────────────────────────────────
 export const Register = () => {
   const navigate = useNavigate();
@@ -225,21 +274,70 @@ export const Register = () => {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(''); // 'google' | 'linkedin' | 'email' | ''
   const [otpSent, setOtpSent] = useState(''); // email address the link was sent to
+  const [step, setStep] = useState(0);
 
   const {
     register,
     trigger,
     getValues,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
+      name: '',
+      email: '',
+      contactNumber: '',
+      whatsappNo: '',
+      profilePhoto: '',
+      dob: '',
+      gender: '',
+      address: '',
+      city: '',
+      state: '',
+      country: 'India',
+      pinCode: '',
+      linkedinUrl: '',
+      course: '',
+      branch: '',
       yearOfAdmission: '',
       yearOfPassout: '',
-      contactNumber: '',
+      employmentStatus: '',
+      companyName: '',
+      designation: '',
+      industry: '',
+      workExperience: '',
+      officeLocation: '',
+      officeAddress: '',
+      officeCity: '',
+      officeState: '',
+      officeCountry: 'India',
+      officePinCode: '',
+      annualPackage: '',
+      companyWebsite: '',
+      workEmail: '',
+      startupName: '',
+      startupWebsite: '',
+      startupDescription: '',
+      universityName: '',
+      higherStudiesCourse: '',
+      higherStudiesCountry: '',
+      skills: '',
+      interestedInMentoring: false,
+      interestedInRecruitment: false,
+      interestedInGuestLectures: false,
+      interestedInDonations: false,
+      dataConsentGiven: false,
       termsAccepted: false,
     },
   });
+
+  const employmentStatus = watch('employmentStatus');
+  const isEntrepreneur = employmentStatus === 'Entrepreneur';
+  const isHigherStudies = employmentStatus === 'Higher Studies';
+  const isLooking = employmentStatus === 'Looking for Opportunities';
+  const showCompanyFields = !isHigherStudies && !isLooking && !!employmentStatus;
 
   // Surface errors bounced back via URL (e.g. LinkedIn cancel / no-email)
   useEffect(() => {
@@ -251,15 +349,62 @@ export const Register = () => {
   const collectDetails = async () => {
     setError('');
     const ok = await trigger();
-    if (!ok) return null;
+    if (!ok) {
+      setError('Please fix all the validation errors on the form before submitting.');
+      return null;
+    }
     const v = getValues();
     return {
+      // Core fields
       name: v.name.trim(),
-      contactNumber: v.contactNumber?.trim() || '',
+      email: v.email.trim(),
       course: v.course,
       branch: v.branch,
       yearOfAdmission: Number(v.yearOfAdmission),
       yearOfPassout: Number(v.yearOfPassout),
+
+      // Personal
+      contactNumber: v.contactNumber?.trim() || undefined,
+      whatsappNo: v.whatsappNo?.trim() || undefined,
+      profilePhoto: v.profilePhoto || undefined,
+      dob: v.dob || undefined,
+      gender: v.gender || undefined,
+      address: v.address?.trim() || undefined,
+      city: v.city?.trim() || undefined,
+      state: v.state?.trim() || undefined,
+      country: v.country?.trim() || undefined,
+      pinCode: v.pinCode?.trim() || undefined,
+      linkedinUrl: v.linkedinUrl?.trim() || undefined,
+
+      // Professional
+      employmentStatus: v.employmentStatus || undefined,
+      companyName: showCompanyFields ? (v.companyName?.trim() || undefined) : undefined,
+      designation: showCompanyFields ? (v.designation?.trim() || undefined) : undefined,
+      industry: showCompanyFields ? (v.industry?.trim() || undefined) : undefined,
+      workExperience: showCompanyFields && v.workExperience ? Number(v.workExperience) : undefined,
+      officeLocation: showCompanyFields ? (v.officeLocation?.trim() || undefined) : undefined,
+      officeAddress: showCompanyFields ? (v.officeAddress?.trim() || undefined) : undefined,
+      officeCity: showCompanyFields ? (v.officeCity?.trim() || undefined) : undefined,
+      officeState: showCompanyFields ? (v.officeState?.trim() || undefined) : undefined,
+      officeCountry: showCompanyFields ? (v.officeCountry?.trim() || undefined) : undefined,
+      officePinCode: showCompanyFields ? (v.officePinCode?.trim() || undefined) : undefined,
+      annualPackage: showCompanyFields ? (v.annualPackage?.trim() || undefined) : undefined,
+      companyWebsite: showCompanyFields ? (v.companyWebsite?.trim() || undefined) : undefined,
+      workEmail: showCompanyFields ? (v.workEmail?.trim() || undefined) : undefined,
+      skills: v.skills?.trim() || undefined,
+      startupName: isEntrepreneur ? (v.startupName?.trim() || undefined) : undefined,
+      startupWebsite: isEntrepreneur ? (v.startupWebsite?.trim() || undefined) : undefined,
+      startupDescription: isEntrepreneur ? (v.startupDescription?.trim() || undefined) : undefined,
+      universityName: isHigherStudies ? (v.universityName?.trim() || undefined) : undefined,
+      higherStudiesCourse: isHigherStudies ? (v.higherStudiesCourse?.trim() || undefined) : undefined,
+      higherStudiesCountry: isHigherStudies ? (v.higherStudiesCountry?.trim() || undefined) : undefined,
+
+      // Engagement
+      interestedInMentoring: v.interestedInMentoring,
+      interestedInRecruitment: v.interestedInRecruitment,
+      interestedInGuestLectures: v.interestedInGuestLectures,
+      interestedInDonations: v.interestedInDonations,
+      dataConsentGiven: v.dataConsentGiven,
     };
   };
 
@@ -319,13 +464,48 @@ export const Register = () => {
     }
   };
 
+  const validateAndGoNext = async () => {
+    setError('');
+    let ok = false;
+    if (step === 0) {
+      ok = await trigger([
+        'name',
+        'email',
+        'contactNumber',
+        'whatsappNo',
+        'profilePhoto',
+        'dob',
+        'gender',
+        'address',
+        'city',
+        'state',
+        'country',
+      ]);
+    } else if (step === 1) {
+      ok = await trigger(['course', 'branch', 'yearOfAdmission', 'yearOfPassout']);
+    } else if (step === 2) {
+      ok = await trigger(['linkedinUrl']);
+    }
+    if (ok) {
+      setStep((s) => s + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      setError('Please resolve the errors in the current step before proceeding.');
+    }
+  };
+
+  const goBack = () => {
+    setError('');
+    setStep((s) => Math.max(0, s - 1));
+  };
+
   // ── Confirmation screen or Registration form ──────────────────────────────
   return (
     <div
       className="min-h-screen w-full flex items-center justify-center lg:justify-start bg-cover bg-center p-4 sm:p-6 md:p-8 lg:pl-[6%] xl:pl-[8%] font-sans overflow-y-auto"
       style={{ backgroundImage: `url(${resisterBg})` }}
     >
-      <div className="w-full max-w-[460px] my-8">
+      <div className={`w-full ${otpSent ? 'max-w-[450px]' : 'max-w-3xl'} my-8 transition-all duration-300`}>
         <AnimatePresence mode="wait">
           {otpSent ? (
             <ConfirmationScreen key="confirm" email={otpSent} onBack={() => setOtpSent('')} />
@@ -338,12 +518,51 @@ export const Register = () => {
               className="bg-[#eef2f6]/95 backdrop-blur-md border border-[#cbd5e1]/60 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] p-6 md:p-8"
             >
               {/* Header */}
-              <div className=" text-center">
-                <img src={logo} alt="SSGMCE Logo" className="mx-auto h-30 w-35 object-cover" />
-                <h1 className="text-3xl font-extrabold text-[#1a3a75] tracking-tight">Register</h1>
+              <div className="text-center mb-6">
+                <img src={logo} alt="SSGMCE Logo" className="mx-auto h-20 w-24 object-contain" />
+                <h1 className="text-2xl font-extrabold text-[#1a3a75] tracking-tight">Register</h1>
                 <p className="mt-1 text-sm text-gray-500 font-semibold">
                   Join our alumni community
                 </p>
+              </div>
+
+              {/* Progress Indicator */}
+              <div className="mb-8">
+                <div className="flex items-center justify-between">
+                  {['Personal', 'Academic', 'Professional', 'Verification'].map((label, i) => (
+                    <div key={label} className="flex-1 flex flex-col items-center relative">
+                      {i < 3 && (
+                        <div
+                          className={`absolute top-4 left-1/2 w-full h-0.5 z-0 ${i < step ? 'bg-[#1a3a75]' : 'bg-gray-200'
+                            }`}
+                        />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (i < step) setStep(i);
+                        }}
+                        className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold border-2 transition-all ${i < step
+                            ? 'bg-[#1a3a75] border-[#1a3a75] text-white cursor-pointer hover:bg-[#153470]'
+                            : i === step
+                              ? 'border-[#1a3a75] text-[#1a3a75] bg-white cursor-default shadow-sm ring-2 ring-[#1a3a75]/20'
+                              : 'border-gray-300 text-gray-400 bg-white cursor-not-allowed'
+                          }`}
+                      >
+                        {i < step ? '✓' : i + 1}
+                      </button>
+                      <p
+                        className={`mt-2 text-[10px] md:text-xs font-bold text-center leading-tight ${i === step ? 'text-[#1a3a75]' : i < step ? 'text-gray-500 cursor-pointer' : 'text-gray-400'
+                          }`}
+                        onClick={() => {
+                          if (i < step) setStep(i);
+                        }}
+                      >
+                        {label}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Global error banner */}
@@ -355,198 +574,804 @@ export const Register = () => {
               )}
 
               <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                {/* ── Step 0: Personal Information ── */}
+                {step === 0 && (
+                  <div className="space-y-4">
+                    <p className="text-[11px] font-bold tracking-wider text-gray-400 uppercase mb-2 px-1">Personal Information</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Name */}
+                      <div>
+                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                          <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                            Name<span className="text-red-500 ml-0.5">*</span>
+                          </span>
+                          <input
+                            {...register('name')}
+                            type="text"
+                            placeholder="Enter full name"
+                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                          />
+                        </div>
+                        <FieldError message={errors.name?.message} />
+                      </div>
 
-                {/* ── Personal Info ─────────────────────────────────────────────── */}
-                <p className="text-[11px] font-bold tracking-wider text-gray-400 uppercase mt-4 mb-2 px-1">Personal Information</p>
+                      {/* Email */}
+                      <div>
+                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                          <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                            Email<span className="text-red-500 ml-0.5">*</span>
+                          </span>
+                          <input
+                            {...register('email')}
+                            type="email"
+                            placeholder="Enter email address"
+                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                          />
+                        </div>
+                        <FieldError message={errors.email?.message} />
+                      </div>
 
-                {/* Full Name */}
-                <div>
-                  <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
-                    <span className="w-32 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-sm font-bold text-gray-500 py-3.5">
-                      Full Name<span className="text-red-500 ml-0.5">*</span>
-                    </span>
-                    <input
-                      {...register('name')}
-                      type="text"
-                      placeholder="Enter your name"
-                      className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
-                    />
-                  </div>
-                  <FieldError message={errors.name?.message} />
-                </div>
+                      {/* Primary Contact */}
+                      <div>
+                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                          <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                            Mobile
+                          </span>
+                          <input
+                            {...register('contactNumber')}
+                            type="tel"
+                            placeholder="10-digit number"
+                            maxLength={10}
+                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                          />
+                        </div>
+                        <FieldError message={errors.contactNumber?.message} />
+                      </div>
 
-                {/* Email */}
-                <div>
-                  <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
-                    <span className="w-32 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-sm font-bold text-gray-500 py-3.5">
-                      Email<span className="text-red-500 ml-0.5">*</span>
-                    </span>
-                    <input
-                      {...register('email')}
-                      type="email"
-                      placeholder="Enter your email"
-                      className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
-                    />
-                  </div>
-                  <FieldError message={errors.email?.message} />
-                </div>
+                      {/* WhatsApp Contact */}
+                      <div>
+                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                          <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                            WhatsApp
+                          </span>
+                          <input
+                            {...register('whatsappNo')}
+                            type="tel"
+                            placeholder="10-digit number"
+                            maxLength={10}
+                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                          />
+                        </div>
+                        <FieldError message={errors.whatsappNo?.message} />
+                      </div>
 
-                {/* Mobile Number */}
-                <div>
-                  <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
-                    <span className="w-32 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-sm font-bold text-gray-500 py-3.5">
-                      Mobile number
-                    </span>
-                    <input
-                      {...register('contactNumber')}
-                      type="tel"
-                      placeholder="+91 xxxxxxxxxx"
-                      maxLength={15}
-                      className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
-                    />
-                  </div>
-                  <FieldError message={errors.contactNumber?.message} />
-                </div>
 
-                {/* ── Academic Info ─────────────────────────────────────────────── */}
-                <p className="text-[11px] font-bold tracking-wider text-gray-400 uppercase mt-5 mb-2 px-1">Academic Information</p>
 
-                {/* Course */}
-                <div>
-                  <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
-                    <span className="w-32 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-sm font-bold text-gray-500 py-3.5">
-                      Course<span className="text-red-500 ml-0.5">*</span>
-                    </span>
-                    <select
-                      {...register('course')}
-                      className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent appearance-none cursor-pointer"
-                    >
-                      <option value="">Select your course</option>
-                      {COURSES.map((c) => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                  </div>
-                  <FieldError message={errors.course?.message} />
-                </div>
+                      {/* Date of Birth */}
+                      <div>
+                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                          <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                            DOB
+                          </span>
+                          <input
+                            {...register('dob')}
+                            type="date"
+                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                          />
+                        </div>
+                        <FieldError message={errors.dob?.message} />
+                      </div>
 
-                {/* Branch */}
-                <div>
-                  <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
-                    <span className="w-42 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                      Branch/Department<span className="text-red-500 ml-0.5">*</span>
-                    </span>
-                    <select
-                      {...register('branch')}
-                      className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent appearance-none cursor-pointer"
-                    >
-                      <option value="">Select your branch</option>
-                      {BRANCHES.map((b) => <option key={b} value={b}>{b}</option>)}
-                    </select>
-                  </div>
-                  <FieldError message={errors.branch?.message} />
-                </div>
+                      {/* Gender */}
+                      <div>
+                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                          <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                            Gender
+                          </span>
+                          <select
+                            {...register('gender')}
+                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent appearance-none cursor-pointer"
+                          >
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                          </select>
+                        </div>
+                        <FieldError message={errors.gender?.message} />
+                      </div>
 
-                {/* Admission + Passout Year */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <div className="flex items-center bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
-                      <span className="shrink-0 flex items-center justify-center whitespace-nowrap px-3 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs font-bold text-gray-500 self-stretch">
-                        Admission Year<span className="text-red-500 ml-0.5">*</span>
-                      </span>
-                      <input
-                        {...register('yearOfAdmission', { valueAsNumber: true })}
-                        type="number"
-                        placeholder="e.g. 2019"
-                        min="1990"
-                        max={currentYear}
-                        className="flex-1 min-w-0 px-2 md:px-3 py-3 text-xs md:text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
-                      />
+
+
+                      {/* Address */}
+                      <div className="md:col-span-2">
+                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                          <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                            Address
+                          </span>
+                          <input
+                            {...register('address')}
+                            type="text"
+                            placeholder="Street, locality etc."
+                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                          />
+                        </div>
+                        <FieldError message={errors.address?.message} />
+                      </div>
+
+                      {/* City */}
+                      <div>
+                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                          <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                            City
+                          </span>
+                          <input
+                            {...register('city')}
+                            type="text"
+                            placeholder="Enter city"
+                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                          />
+                        </div>
+                        <FieldError message={errors.city?.message} />
+                      </div>
+
+                      {/* State */}
+                      <div>
+                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                          <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                            State
+                          </span>
+                          <input
+                            {...register('state')}
+                            type="text"
+                            placeholder="Enter state"
+                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                          />
+                        </div>
+                        <FieldError message={errors.state?.message} />
+                      </div>
+
+                      {/* Country */}
+                      <div>
+                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                          <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                            Country
+                          </span>
+                          <input
+                            {...register('country')}
+                            type="text"
+                            placeholder="Enter country"
+                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                          />
+                        </div>
+                        <FieldError message={errors.country?.message} />
+                      </div>
+
+                      {/* Pin Code */}
+                      <div>
+                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                          <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                            Pin Code
+                          </span>
+                          <input
+                            {...register('pinCode')}
+                            type="text"
+                            placeholder="Enter pin code"
+                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                          />
+                        </div>
+                        <FieldError message={errors.pinCode?.message} />
+                      </div>
+
+
+                      {/* Profile Photo Upload */}
+                      <div className="md:col-span-2 flex flex-col items-center gap-3 bg-white/50 border border-[#cbd5e1]/80 rounded-2xl p-4 shadow-sm">
+                        <div className="relative group">
+                          <div className="h-24 w-24 overflow-hidden rounded-full border-2 border-[#1a3a75]/20 bg-gray-50 flex items-center justify-center shadow-inner">
+                            {watch('profilePhoto') ? (
+                              <img src={watch('profilePhoto')} alt="Profile Preview" className="h-full w-full object-cover" />
+                            ) : (
+                              <User size={40} className="text-gray-400" />
+                            )}
+                          </div>
+                          <label className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-[#1a3a75] hover:bg-[#153470] border-2 border-white flex items-center justify-center cursor-pointer shadow transition text-white">
+                            <span className="text-xs font-bold">+</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (file) {
+                                  if (file.size > 2 * 1024 * 1024) {
+                                    setError('Profile photo must be smaller than 2MB.');
+                                    return;
+                                  }
+                                  const reader = new FileReader();
+                                  reader.onloadend = () => {
+                                    setValue('profilePhoto', reader.result);
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs font-bold text-[#1a3a75]">Profile Photo</p>
+                          <p className="text-[10px] text-gray-400">JPG, PNG or WEBP · Max 2MB</p>
+                        </div>
+                      </div>
                     </div>
-                    <FieldError message={errors.yearOfAdmission?.message} />
                   </div>
-                  <div>
-                    <div className="flex items-center bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
-                      <span className="shrink-0 flex items-center justify-center whitespace-nowrap px-3 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs font-bold text-gray-500 self-stretch">
-                        Passout Year<span className="text-red-500 ml-0.5">*</span>
-                      </span>
-                      <input
-                        {...register('yearOfPassout', { valueAsNumber: true })}
-                        type="number"
-                        placeholder="e.g. 2019"
-                        min="1990"
-                        max={currentYear + 6}
-                        className="flex-1 min-w-0 px-2 md:px-3 py-3 text-xs md:text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
-                      />
+                )}
+
+                {/* ── Step 1: Academic Information ── */}
+                {step === 1 && (
+                  <div className="space-y-4">
+                    <p className="text-[11px] font-bold tracking-wider text-gray-400 uppercase mb-2 px-1">Academic Information</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Course */}
+                      <div>
+                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                          <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                            Course<span className="text-red-500 ml-0.5">*</span>
+                          </span>
+                          <select
+                            {...register('course')}
+                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent appearance-none cursor-pointer"
+                          >
+                            <option value="">Select Course</option>
+                            {COURSES.map((c) => <option key={c} value={c}>{c}</option>)}
+                          </select>
+                        </div>
+                        <FieldError message={errors.course?.message} />
+                      </div>
+
+                      {/* Branch */}
+                      <div>
+                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                          <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                            Branch/Dept<span className="text-red-500 ml-0.5">*</span>
+                          </span>
+                          <select
+                            {...register('branch')}
+                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent appearance-none cursor-pointer"
+                          >
+                            <option value="">Select Branch</option>
+                            {BRANCHES.map((b) => <option key={b} value={b}>{b}</option>)}
+                          </select>
+                        </div>
+                        <FieldError message={errors.branch?.message} />
+                      </div>
+
+                      {/* Admission Year */}
+                      <div>
+                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                          <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                            Admission Year<span className="text-red-500 ml-0.5">*</span>
+                          </span>
+                          <input
+                            {...register('yearOfAdmission', { valueAsNumber: true })}
+                            type="number"
+                            placeholder="e.g. 2019"
+                            min="1990"
+                            max={currentYear}
+                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                          />
+                        </div>
+                        <FieldError message={errors.yearOfAdmission?.message} />
+                      </div>
+
+                      {/* Passout Year */}
+                      <div>
+                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                          <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                            Passout Year<span className="text-red-500 ml-0.5">*</span>
+                          </span>
+                          <input
+                            {...register('yearOfPassout', { valueAsNumber: true })}
+                            type="number"
+                            placeholder="e.g. 2023"
+                            min="1990"
+                            max={currentYear + 6}
+                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                          />
+                        </div>
+                        <FieldError message={errors.yearOfPassout?.message} />
+                      </div>
                     </div>
-                    <FieldError message={errors.yearOfPassout?.message} />
                   </div>
-                </div>
+                )}
 
-                {/* Terms & Privacy */}
-                <div className="flex items-start gap-2.5 px-1 py-1">
-                  <input
-                    {...register('termsAccepted')}
-                    id="terms"
-                    type="checkbox"
-                    className="mt-1 h-4.5 w-4.5 rounded border-gray-300 text-[#1d4289] focus:ring-[#1d4289] cursor-pointer"
-                  />
-                  <label htmlFor="terms" className="cursor-pointer text-xs leading-normal text-gray-500 font-semibold select-none">
-                    I confirm that the information provided is accurate and i agree to the{' '}
-                    <span className="text-[#2563eb] hover:text-[#1d4ed8] font-bold hover:underline">Terms & Service</span>
-                    {' '}and{' '}
-                    <span className="text-[#2563eb] hover:text-[#1d4ed8] font-bold hover:underline">Privacy Policy</span>
-                    {' '}of SSGMCE Alumni Connect.
-                  </label>
-                </div>
-                <FieldError message={errors.termsAccepted?.message} />
+                {/* ── Step 2: Professional Information ── */}
+                {step === 2 && (
+                  <div className="space-y-4">
+                    <p className="text-[11px] font-bold tracking-wider text-gray-400 uppercase mb-2 px-1">Professional Information</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Employment Status */}
+                      <div className="md:col-span-2">
+                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                          <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                            Employment Status
+                          </span>
+                          <select
+                            {...register('employmentStatus')}
+                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent appearance-none cursor-pointer"
+                          >
+                            <option value="">Select Status</option>
+                            {EMPLOYMENT_STATUSES.map((status) => (
+                              <option key={status} value={status}>{status}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
 
+                      {/* Company Fields */}
+                      {showCompanyFields && (
+                        <>
+                          <div>
+                            <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                              <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                                Company Name
+                              </span>
+                              <input
+                                {...register('companyName')}
+                                type="text"
+                                placeholder="Company / Org Name"
+                                className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                              <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                                Designation
+                              </span>
+                              <input
+                                {...register('designation')}
+                                type="text"
+                                placeholder="e.g. Software Engineer"
+                                className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                              <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                                Industry
+                              </span>
+                              <input
+                                {...register('industry')}
+                                type="text"
+                                placeholder="e.g. IT, Finance"
+                                className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                              <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                                Experience (Years)
+                              </span>
+                              <input
+                                {...register('workExperience', { valueAsNumber: true })}
+                                type="number"
+                                placeholder="e.g. 3"
+                                className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                              <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                                Office Address
+                              </span>
+                              <input
+                                {...register('officeAddress')}
+                                type="text"
+                                placeholder="Street, building etc."
+                                className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                              />
+                            </div>
+                            <FieldError message={errors.officeAddress?.message} />
+                          </div>
+
+                          <div>
+                            <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                              <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                                Office City
+                              </span>
+                              <input
+                                {...register('officeCity')}
+                                type="text"
+                                placeholder="Enter city"
+                                className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                              />
+                            </div>
+                            <FieldError message={errors.officeCity?.message} />
+                          </div>
+
+                          <div>
+                            <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                              <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                                Office State
+                              </span>
+                              <input
+                                {...register('officeState')}
+                                type="text"
+                                placeholder="Enter state"
+                                className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                              />
+                            </div>
+                            <FieldError message={errors.officeState?.message} />
+                          </div>
+
+                          <div>
+                            <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                              <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                                Office Country
+                              </span>
+                              <input
+                                {...register('officeCountry')}
+                                type="text"
+                                placeholder="Enter country"
+                                className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                              />
+                            </div>
+                            <FieldError message={errors.officeCountry?.message} />
+                          </div>
+
+                          <div>
+                            <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                              <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                                Office Pin Code
+                              </span>
+                              <input
+                                {...register('officePinCode')}
+                                type="text"
+                                placeholder="Enter pin code"
+                                className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                              />
+                            </div>
+                            <FieldError message={errors.officePinCode?.message} />
+                          </div>
+
+                          <div>
+                            <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                              <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                                Annual Package
+                              </span>
+                              <input
+                                {...register('annualPackage')}
+                                type="text"
+                                placeholder="e.g. 10 LPA"
+                                className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                              <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                                Company Website
+                              </span>
+                              <input
+                                {...register('companyWebsite')}
+                                type="url"
+                                placeholder="https://example.com"
+                                className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                              <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                                Work Email
+                              </span>
+                              <input
+                                {...register('workEmail')}
+                                type="text"
+                                placeholder="name@company.com"
+                                className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                              />
+                            </div>
+                            {errors.workEmail && (
+                              <p className="mt-1 text-xs text-red-500 pl-4">{errors.workEmail.message}</p>
+                            )}
+                          </div>
+                        </>
+                      )}
+
+                      {/* Entrepreneur Fields */}
+                      {isEntrepreneur && (
+                        <>
+                          <div>
+                            <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                              <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                                Startup Name
+                              </span>
+                              <input
+                                {...register('startupName')}
+                                type="text"
+                                placeholder="Startup / Venture Name"
+                                className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                              <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                                Startup Website
+                              </span>
+                              <input
+                                {...register('startupWebsite')}
+                                type="url"
+                                placeholder="https://example.com"
+                                className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                              <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                                Description
+                              </span>
+                              <textarea
+                                {...register('startupDescription')}
+                                placeholder="Describe your startup venture..."
+                                rows={3}
+                                className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent resize-none"
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Higher Studies Fields */}
+                      {isHigherStudies && (
+                        <>
+                          <div>
+                            <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                              <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                                University Name
+                              </span>
+                              <input
+                                {...register('universityName')}
+                                type="text"
+                                placeholder="University / College Name"
+                                className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                              <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                                Course Name
+                              </span>
+                              <input
+                                {...register('higherStudiesCourse')}
+                                type="text"
+                                placeholder="e.g. M.Tech, MBA, MS"
+                                className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                              <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                                Country
+                              </span>
+                              <input
+                                {...register('higherStudiesCountry')}
+                                type="text"
+                                placeholder="Country of University"
+                                className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Skills */}
+                      <div className="md:col-span-2">
+                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                          <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                            Key Skills
+                          </span>
+                          <input
+                            {...register('skills')}
+                            type="text"
+                            placeholder="e.g. React, Node.js, Project Management (comma separated)"
+                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                          />
+                        </div>
+                      </div>
+
+                      {/* LinkedIn URL */}
+                      <div className="md:col-span-2">
+                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                          <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                            LinkedIn URL
+                          </span>
+                          <input
+                            {...register('linkedinUrl')}
+                            type="url"
+                            placeholder="https://linkedin.com/in/..."
+                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                          />
+                        </div>
+                        <FieldError message={errors.linkedinUrl?.message} />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Step 3: Other / Engagement & Verification ── */}
+                {step === 3 && (
+                  <div className="space-y-4 animate-fadeIn">
+                    <p className="text-[11px] font-bold tracking-wider text-gray-400 uppercase mb-2 px-1">Engagement & Consent</p>
+
+                    {/* Engagement checkboxes */}
+                    <div className="bg-white border border-[#cbd5e1] rounded-2xl p-4 space-y-3 shadow-sm">
+                      <p className="text-xs font-bold text-gray-600 mb-2">How would you like to contribute to the alumni community?</p>
+
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          {...register('interestedInMentoring')}
+                          className="h-4.5 w-4.5 rounded border-gray-300 text-[#1d4289] focus:ring-[#1d4289]"
+                        />
+                        <span className="text-xs font-medium text-gray-700">Interested in Mentoring Students</span>
+                      </label>
+
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          {...register('interestedInRecruitment')}
+                          className="h-4.5 w-4.5 rounded border-gray-300 text-[#1d4289] focus:ring-[#1d4289]"
+                        />
+                        <span className="text-xs font-medium text-gray-700">Interested in Campus Recruitment</span>
+                      </label>
+
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          {...register('interestedInGuestLectures')}
+                          className="h-4.5 w-4.5 rounded border-gray-300 text-[#1d4289] focus:ring-[#1d4289]"
+                        />
+                        <span className="text-xs font-medium text-gray-700">Interested in Guest Lectures</span>
+                      </label>
+
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          {...register('interestedInDonations')}
+                          className="h-4.5 w-4.5 rounded border-gray-300 text-[#1d4289] focus:ring-[#1d4289]"
+                        />
+                        <span className="text-xs font-medium text-gray-700">Interested in Donations / Sponsorships</span>
+                      </label>
+                    </div>
+
+
+
+                    {/* Consents */}
+                    <div className="space-y-3 rounded-xl border border-gray-200 bg-white/70 p-4">
+                      <div className="flex items-start gap-2.5">
+                        <input
+                          id="dataConsentGiven"
+                          type="checkbox"
+                          {...register('dataConsentGiven')}
+                          className="mt-1 h-4.5 w-4.5 rounded border-gray-300 text-[#1d4289] focus:ring-[#1d4289] cursor-pointer"
+                        />
+                        <label htmlFor="dataConsentGiven" className="cursor-pointer text-xs leading-normal text-gray-500 font-semibold select-none">
+                          I consent to the storage and use of my personal data by SSGMCE Alumni Cell for engagement purposes.<span className="text-red-500">*</span>
+                        </label>
+                      </div>
+                      <FieldError message={errors.dataConsentGiven?.message} />
+
+                      <div className="flex items-start gap-2.5">
+                        <input
+                          id="termsAccepted"
+                          type="checkbox"
+                          {...register('termsAccepted')}
+                          className="mt-1 h-4.5 w-4.5 rounded border-gray-300 text-[#1d4289] focus:ring-[#1d4289] cursor-pointer"
+                        />
+                        <label htmlFor="termsAccepted" className="cursor-pointer text-xs leading-normal text-gray-500 font-semibold select-none">
+                          I confirm that the information provided is accurate and I agree to the{' '}
+                          <span className="text-[#2563eb] hover:text-[#1d4ed8] font-bold hover:underline">Terms of Service</span>
+                          {' '}and{' '}
+                          <span className="text-[#2563eb] hover:text-[#1d4ed8] font-bold hover:underline">Privacy Policy</span>
+                          .<span className="text-red-500">*</span>
+                        </label>
+                      </div>
+                      <FieldError message={errors.termsAccepted?.message} />
+                    </div>
+
+                    {/* Verification Method Divider */}
+                    <div className="relative my-5">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-gray-200" />
+                      </div>
+                      <div className="relative flex justify-center">
+                        <span className="bg-[#eef2f6] px-3 text-xs text-gray-400 font-semibold">Choose verification method</span>
+                      </div>
+                    </div>
+
+                    {/* Auth buttons */}
+                    <div className="space-y-4">
+                      <button
+                        type="button"
+                        onClick={handleEmailLink}
+                        disabled={!!busy}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#1d4289] hover:bg-[#153470] py-3.5 text-sm font-bold text-white shadow-md transition-all duration-200 cursor-pointer disabled:opacity-60"
+                      >
+                        {busy === 'email' ? <Loader2 size={16} className="animate-spin" /> : null}
+                        {busy === 'email' ? 'Sending link…' : 'Verify with email link'}
+                      </button>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          type="button"
+                          onClick={handleLinkedIn}
+                          disabled={!!busy}
+                          className="flex items-center justify-center gap-2 rounded-xl bg-[#0a66c2] hover:bg-[#004182] py-3 text-sm font-bold text-white shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-60"
+                        >
+                          <LinkedInIcon />
+                          Linkedin
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleGoogle}
+                          disabled={!!busy}
+                          className="flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 py-3 text-sm font-bold text-gray-700 shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-60"
+                        >
+                          {busy === 'google' ? <Loader2 size={16} className="animate-spin" /> : <GoogleIcon />}
+                          Google
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </form>
 
-              {/* Divider */}
-              <div className="relative my-5">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200" />
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-[#eef2f6] px-3 text-xs text-gray-400 font-medium">Choose verification method</span>
-                </div>
-              </div>
-
-              {/* Auth buttons */}
-              <div className="space-y-4">
-                <button
-                  type="button"
-                  onClick={handleEmailLink}
-                  disabled={!!busy}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#1d4289] hover:bg-[#153470] py-3.5 text-sm font-bold text-white shadow-md transition-all duration-200 cursor-pointer disabled:opacity-60"
-                >
-                  {busy === 'email' ? <Loader2 size={16} className="animate-spin" /> : null}
-                  {busy === 'email' ? 'Sending link…' : 'Verify with email link'}
-                </button>
-
-                <div className="grid grid-cols-2 gap-3">
+              {/* Navigation controls */}
+              <div className="mt-8 flex items-center justify-between border-t border-gray-200/50 pt-5">
+                {step > 0 ? (
                   <button
                     type="button"
-                    onClick={handleLinkedIn}
-                    disabled={!!busy}
-                    className="flex items-center justify-center gap-2 rounded-xl bg-[#0a66c2] hover:bg-[#004182] py-3 text-sm font-bold text-white shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-60"
+                    onClick={goBack}
+                    className="flex items-center gap-1.5 rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-bold text-gray-700 hover:bg-gray-50 transition shadow-sm cursor-pointer"
                   >
-                    <LinkedInIcon />
-                    Linkedin
+                    <ChevronLeft size={16} /> Back
                   </button>
+                ) : (
+                  <div />
+                )}
+
+                {step < 3 ? (
                   <button
                     type="button"
-                    onClick={handleGoogle}
-                    disabled={!!busy}
-                    className="flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 py-3 text-sm font-bold text-gray-700 shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-60"
+                    onClick={validateAndGoNext}
+                    className="flex items-center gap-1.5 rounded-xl bg-[#1a3a75] hover:bg-[#153470] px-6 py-2.5 text-sm font-bold text-white shadow transition cursor-pointer"
                   >
-                    {busy === 'google' ? <Loader2 size={16} className="animate-spin" /> : <GoogleIcon />}
-                    Google
+                    Next <ChevronRight size={16} />
                   </button>
-                </div>
+                ) : (
+                  <div />
+                )}
               </div>
 
               <p className="text-center text-xs text-gray-400 mt-6 font-medium">
-                Already have an account ?{" "}
+                Already have an account?{" "}
                 <Link to="/sign-in" className="text-[#1a3a75] font-bold hover:underline">
                   Login
                 </Link>

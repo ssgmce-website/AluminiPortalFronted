@@ -199,7 +199,6 @@ function Step1({ form, onChange, profile, photoUploading, photoError, onPhotoUpl
               <option value="">Select gender</option>
               <option>Male</option>
               <option>Female</option>
-              <option>Prefer not to say</option>
             </select>
           </SelectWrap>
         </Field>
@@ -224,21 +223,11 @@ function Step1({ form, onChange, profile, photoUploading, photoError, onPhotoUpl
         <Field label="Country">
           <input name="country" value={form.country} onChange={onChange} placeholder="India" className={inputCls} />
         </Field>
-
-        <Field label="Alternate Contact Number">
-          <div className="flex overflow-hidden rounded-lg border border-slate-200 transition focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
-            <span className="flex items-center border-r border-slate-200 bg-slate-50 px-3 text-sm text-slate-500">+91</span>
-            <input
-              name="alternateContact"
-              type="tel"
-              value={form.alternateContact}
-              onChange={onChange}
-              placeholder="10-digit number"
-              maxLength={10}
-              className="flex-1 bg-transparent px-3 py-2.5 text-sm outline-none"
-            />
-          </div>
+        <Field label="Pin Code">
+          <input name="pinCode" value={form.pinCode} onChange={onChange} placeholder="e.g. 443201" className={inputCls} />
         </Field>
+
+
 
         <Field label="LinkedIn Profile URL">
           <div className="flex overflow-hidden rounded-lg border border-slate-200 transition focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
@@ -331,6 +320,35 @@ function Step2({ form, set, onChange }) {
               <input name="skills" value={form.skills} onChange={onChange} placeholder="e.g. React, Java, AutoCAD, Python (comma separated)" className={inputCls} />
             </Field>
           </div>
+          <div className="sm:col-span-2">
+            <Field label="Work Email">
+              <input name="workEmail" type="email" value={form.workEmail} onChange={onChange} placeholder="name@company.com" className={inputCls} />
+            </Field>
+          </div>
+          <div className="sm:col-span-2 grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <Field label="Office Address">
+                <input name="officeAddress" value={form.officeAddress} onChange={onChange} placeholder="Street, building etc." className={inputCls} />
+              </Field>
+            </div>
+            <Field label="Office City">
+              <input name="officeCity" value={form.officeCity} onChange={onChange} placeholder="Enter city" className={inputCls} />
+            </Field>
+            <Field label="Office State">
+              <SelectWrap>
+                <select name="officeState" value={form.officeState} onChange={onChange} className={selectCls}>
+                  <option value="">Select state</option>
+                  {INDIA_STATES.map((s) => <option key={s}>{s}</option>)}
+                </select>
+              </SelectWrap>
+            </Field>
+            <Field label="Office Country">
+              <input name="officeCountry" value={form.officeCountry} onChange={onChange} placeholder="India" className={inputCls} />
+            </Field>
+            <Field label="Office Pin Code">
+              <input name="officePinCode" value={form.officePinCode} onChange={onChange} placeholder="e.g. 443201" className={inputCls} />
+            </Field>
+          </div>
         </div>
       )}
 
@@ -376,11 +394,6 @@ function Step2({ form, set, onChange }) {
               <input name="skills" value={form.skills} onChange={onChange} placeholder="e.g. React, Java, Machine Learning" className={inputCls} />
             </Field>
           </div>
-          <div className="sm:col-span-2">
-            <Field label="Areas of Interest">
-              <input name="areasOfExpertise" value={form.areasOfExpertise} onChange={onChange} placeholder="e.g. Full Stack Development, Data Science" className={inputCls} />
-            </Field>
-          </div>
         </div>
       )}
     </div>
@@ -416,32 +429,7 @@ function Step3({ form, set }) {
         ))}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Areas of Expertise">
-          <input
-            name="areasOfExpertise"
-            value={form.areasOfExpertise}
-            onChange={(e) => set('areasOfExpertise', e.target.value)}
-            placeholder="e.g. Cloud Computing, Civil Design, Finance"
-            className={inputCls}
-          />
-        </Field>
-        <div className="sm:col-span-1" />
-        <div className="sm:col-span-2">
-          <Field label="Achievements / Awards">
-            <textarea
-              name="achievements"
-              value={form.achievements}
-              onChange={(e) => set('achievements', e.target.value)}
-              rows={3}
-              maxLength={1000}
-              placeholder="Any awards, patents, publications, or notable achievements…"
-              className={inputCls}
-            />
-            <p className="mt-1 text-right text-xs text-slate-400">{(form.achievements || '').length}/1000</p>
-          </Field>
-        </div>
-      </div>
+
     </div>
   );
 }
@@ -481,8 +469,8 @@ function Step4({ form, profile, consent, setConsent }) {
         <ReviewRow label="Gender"            value={form.gender} />
         <ReviewRow label="Date of Birth"     value={form.dob ? new Date(form.dob).toLocaleDateString('en-IN') : ''} />
         <ReviewRow label="Contact"           value={profile.contactNumber ? `+91 ${profile.contactNumber}` : ''} />
-        <ReviewRow label="Alternate Contact" value={form.alternateContact ? `+91 ${form.alternateContact}` : ''} />
-        <ReviewRow label="City / State"      value={[form.city, form.state, form.country].filter(Boolean).join(', ')} />
+
+        <ReviewRow label="City / State"      value={[form.city, form.state, form.country, form.pinCode].filter(Boolean).join(', ')} />
         <ReviewRow label="LinkedIn"          value={form.linkedinUrl} />
         <ReviewRow label="About"             value={form.about} />
       </ReviewSection>
@@ -497,6 +485,8 @@ function Step4({ form, profile, consent, setConsent }) {
       <ReviewSection title="Professional">
         <ReviewRow label="Status"      value={form.employmentStatus} />
         <ReviewRow label="Company"     value={form.companyName} />
+        <ReviewRow label="Work Email"  value={form.workEmail} />
+        <ReviewRow label="Office Address" value={[form.officeAddress, form.officeCity, form.officeState, form.officeCountry, form.officePinCode].filter(Boolean).join(', ')} />
         <ReviewRow label="Designation" value={form.designation} />
         <ReviewRow label="Industry"    value={form.industry} />
         <ReviewRow label="Experience"  value={form.workExperience ? `${form.workExperience} years` : ''} />
@@ -511,8 +501,7 @@ function Step4({ form, profile, consent, setConsent }) {
         <ReviewRow label="Campus Recruit"  value={form.interestedInRecruitment} />
         <ReviewRow label="Guest Lectures"  value={form.interestedInGuestLectures} />
         <ReviewRow label="Donations"       value={form.interestedInDonations} />
-        <ReviewRow label="Expertise"       value={form.areasOfExpertise} />
-        <ReviewRow label="Achievements"    value={form.achievements} />
+
       </ReviewSection>
 
       {/* Consent */}
@@ -569,8 +558,9 @@ export default function ProfileCompletion() {
     city:             p.city             || '',
     state:            p.state            || '',
     country:          p.country          || 'India',
+    pinCode:          p.pinCode          || '',
     linkedinUrl:      p.linkedinUrl      || '',
-    alternateContact: p.alternateContact || '',
+
     // Professional
     employmentStatus:     p.employmentStatus     || '',
     companyName:          p.companyName          || '',
@@ -578,6 +568,12 @@ export default function ProfileCompletion() {
     industry:             p.industry             || '',
     workExperience:       p.workExperience       || '',
     skills:               p.skills               || '',
+    workEmail:            p.workEmail            || '',
+    officeAddress:        p.officeAddress        || '',
+    officeCity:           p.officeCity           || '',
+    officeState:          p.officeState          || '',
+    officeCountry:        p.officeCountry        || 'India',
+    officePinCode:        p.officePinCode        || '',
     startupName:          p.startupName          || '',
     startupWebsite:       p.startupWebsite       || '',
     startupDescription:   p.startupDescription   || '',
@@ -589,8 +585,7 @@ export default function ProfileCompletion() {
     interestedInRecruitment:   p.interestedInRecruitment   || false,
     interestedInGuestLectures: p.interestedInGuestLectures || false,
     interestedInDonations:     p.interestedInDonations     || false,
-    areasOfExpertise: p.areasOfExpertise || '',
-    achievements:     p.achievements     || '',
+
   });
 
   const set        = (key, val) => setForm((prev) => ({ ...prev, [key]: val }));
