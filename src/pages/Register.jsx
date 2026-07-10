@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { GraduationCap, Loader2, Mail, CheckCircle2, Phone, RefreshCw, AlertCircle } from 'lucide-react';
+import { Loader2, CheckCircle2, RefreshCw, AlertCircle, Mail } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   googleAuth,
@@ -17,6 +17,8 @@ import {
 import { friendlyAuthError } from '../utils/authErrors';
 import { routeForProfile } from '../utils/authRoutes';
 import { useAuth } from '../contexts/AuthContext';
+import logo from '../assets/logo.png';
+import resisterBg from '../assets/REGISITER.png';
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const currentYear = new Date().getFullYear();
@@ -103,38 +105,38 @@ function ConfirmationScreen({ email, onBack }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl"
+      className="bg-[#eef2f6]/95 backdrop-blur-md border border-[#cbd5e1]/60 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] w-full max-w-[450px] p-8 text-center space-y-5 my-8"
     >
       {/* Icon */}
-      <div className="mb-5 flex justify-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+      <div className="flex justify-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 shadow-inner">
           <CheckCircle2 size={32} className="text-green-600" />
         </div>
       </div>
 
       {/* Heading */}
-      <div className="text-center">
-        <h2 className="text-xl font-bold text-gray-900">Check your inbox</h2>
-        <p className="mt-1 text-sm text-gray-500">We sent a verification link to</p>
-        <div className="mt-3 flex items-center justify-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-4 py-2.5">
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900">Check your inbox</h2>
+        <p className="mt-1 text-sm text-gray-500 font-medium">We sent a verification link to</p>
+        <div className="mt-3 flex items-center justify-center gap-2 rounded-xl border border-blue-100 bg-white px-4 py-2.5 shadow-sm">
           <Mail size={15} className="shrink-0 text-blue-600" />
-          <span className="text-sm font-semibold text-blue-800">{email}</span>
+          <span className="text-sm font-bold text-blue-800">{email}</span>
         </div>
-        <p className="mt-4 text-sm leading-6 text-gray-500">
+        <p className="mt-4 text-xs leading-relaxed text-gray-500">
           Open the link <strong>on this device</strong> to complete registration.
           Your account will then be sent to the admin for approval.
         </p>
       </div>
 
       {/* Resend section */}
-      <div className="mt-6 border-t border-gray-100 pt-5 text-center">
+      <div className="border-t border-gray-200 pt-5 text-center">
         {resendError && (
-          <p className="mb-3 flex items-center justify-center gap-1.5 text-xs text-red-600">
+          <p className="mb-3 flex items-center justify-center gap-1.5 text-xs text-red-600 font-semibold">
             <AlertCircle size={13} /> {resendError}
           </p>
         )}
         {resendDone && !resendError && (
-          <p className="mb-3 text-xs font-medium text-green-600">Link resent successfully!</p>
+          <p className="mb-3 text-xs font-semibold text-green-600">Link resent successfully!</p>
         )}
 
         <AnimatePresence mode="wait">
@@ -146,7 +148,7 @@ function ConfirmationScreen({ email, onBack }) {
               type="button"
               onClick={handleResend}
               disabled={resendBusy}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-300 bg-blue-50 py-2.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-100 disabled:opacity-60"
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-blue-300 bg-blue-50 py-3 text-sm font-bold text-blue-700 transition hover:bg-blue-100 disabled:opacity-60 cursor-pointer"
             >
               {resendBusy
                 ? <><Loader2 size={15} className="animate-spin" /> Resending…</>
@@ -158,10 +160,10 @@ function ConfirmationScreen({ email, onBack }) {
               key="countdown"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-sm text-gray-400"
+              className="text-sm text-gray-400 font-medium"
             >
               Resend available in{' '}
-              <span className="font-semibold tabular-nums text-gray-600">
+              <span className="font-bold tabular-nums text-gray-600">
                 0:{String(seconds).padStart(2, '0')}
               </span>
             </motion.p>
@@ -172,7 +174,7 @@ function ConfirmationScreen({ email, onBack }) {
       <button
         type="button"
         onClick={onBack}
-        className="mt-4 w-full text-center text-xs text-gray-400 hover:text-gray-600 hover:underline"
+        className="text-xs text-gray-400 font-semibold hover:text-gray-600 hover:underline cursor-pointer block w-full text-center"
       >
         ← Use different email or details
       </button>
@@ -319,226 +321,259 @@ export const Register = () => {
     }
   };
 
-  // ── Confirmation screen ────────────────────────────────────────────────────
-  if (otpSent) {
-    return (
-      <AnimatePresence>
-        <ConfirmationScreen email={otpSent} onBack={() => setOtpSent('')} />
-      </AnimatePresence>
-    );
-  }
-
-  // ── Registration form ──────────────────────────────────────────────────────
+  // ── Confirmation screen or Registration form ──────────────────────────────
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl"
+    <div
+      className="min-h-screen w-full flex items-center justify-center lg:justify-start bg-cover bg-center p-4 sm:p-6 md:p-8 lg:pl-[6%] xl:pl-[8%] font-sans overflow-y-auto"
+      style={{ backgroundImage: `url(${resisterBg})` }}
     >
-      {/* Header */}
-      <div className="mb-7 text-center">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-700">
-          <GraduationCap size={28} className="text-white" />
-        </div>
-        <h1 className="text-2xl font-bold text-gray-900">Register as Alumni</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Your request is reviewed by an admin before activation.
-        </p>
+      <div className="w-full max-w-[460px] my-8">
+        <AnimatePresence mode="wait">
+          {otpSent ? (
+            <ConfirmationScreen key="confirm" email={otpSent} onBack={() => setOtpSent('')} />
+          ) : (
+            <motion.div
+              key="register-form"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="bg-[#eef2f6]/95 backdrop-blur-md border border-[#cbd5e1]/60 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] p-6 md:p-8"
+            >
+              {/* Header */}
+              <div className=" text-center">
+                <img src={logo} alt="SSGMCE Logo" className="mx-auto h-30 w-35 object-cover" />
+                <h1 className="text-3xl font-extrabold text-[#1a3a75] tracking-tight">Register</h1>
+                <p className="mt-1 text-sm text-gray-500 font-semibold">
+                  Join our alumni community
+                </p>
+              </div>
+
+              {/* Global error banner */}
+              {error && (
+                <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium">
+                  <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                  {error}
+                </div>
+              )}
+
+              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+
+                {/* ── Personal Info ─────────────────────────────────────────────── */}
+                <p className="text-[11px] font-bold tracking-wider text-gray-400 uppercase mt-4 mb-2 px-1">Personal Information</p>
+
+                {/* Full Name */}
+                <div>
+                  <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                    <span className="w-32 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-sm font-bold text-gray-500 py-3.5">
+                      Full Name<span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                    <input
+                      {...register('name')}
+                      type="text"
+                      placeholder="Enter your name"
+                      className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                    />
+                  </div>
+                  <FieldError message={errors.name?.message} />
+                </div>
+
+                {/* Email */}
+                <div>
+                  <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                    <span className="w-32 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-sm font-bold text-gray-500 py-3.5">
+                      Email<span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                    <input
+                      {...register('email')}
+                      type="email"
+                      placeholder="Enter your email"
+                      className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                    />
+                  </div>
+                  <FieldError message={errors.email?.message} />
+                </div>
+
+                {/* Mobile Number */}
+                <div>
+                  <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                    <span className="w-32 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-sm font-bold text-gray-500 py-3.5">
+                      Mobile number
+                    </span>
+                    <input
+                      {...register('contactNumber')}
+                      type="tel"
+                      placeholder="+91 xxxxxxxxxx"
+                      maxLength={15}
+                      className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                    />
+                  </div>
+                  <FieldError message={errors.contactNumber?.message} />
+                </div>
+
+                {/* ── Academic Info ─────────────────────────────────────────────── */}
+                <p className="text-[11px] font-bold tracking-wider text-gray-400 uppercase mt-5 mb-2 px-1">Academic Information</p>
+
+                {/* Course */}
+                <div>
+                  <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                    <span className="w-32 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-sm font-bold text-gray-500 py-3.5">
+                      Course<span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                    <select
+                      {...register('course')}
+                      className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent appearance-none cursor-pointer"
+                    >
+                      <option value="">Select your course</option>
+                      {COURSES.map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <FieldError message={errors.course?.message} />
+                </div>
+
+                {/* Branch */}
+                <div>
+                  <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                    <span className="w-42 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                      Branch/Department<span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                    <select
+                      {...register('branch')}
+                      className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent appearance-none cursor-pointer"
+                    >
+                      <option value="">Select your branch</option>
+                      {BRANCHES.map((b) => <option key={b} value={b}>{b}</option>)}
+                    </select>
+                  </div>
+                  <FieldError message={errors.branch?.message} />
+                </div>
+
+                {/* Branch */}
+                <div>
+                  <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                    <span className="w-42 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                      Branch/Department<span className="text-red-500 ml-0.5">*</span>
+                    </span>
+                    <select
+                      {...register('branch')}
+                      className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent appearance-none cursor-pointer"
+                    >
+                      <option value="">Select your branch</option>
+                      {BRANCHES.map((b) => <option key={b} value={b}>{b}</option>)}
+                    </select>
+                  </div>
+                  <FieldError message={errors.branch?.message} />
+                </div>
+
+                {/* Admission + Passout Year */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <div className="flex items-center bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                      <span className="shrink-0 flex items-center justify-center whitespace-nowrap px-3 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs font-bold text-gray-500 self-stretch">
+                        Admission Year<span className="text-red-500 ml-0.5">*</span>
+                      </span>
+                      <input
+                        {...register('yearOfAdmission', { valueAsNumber: true })}
+                        type="number"
+                        placeholder="e.g. 2019"
+                        min="1990"
+                        max={currentYear}
+                        className="flex-1 min-w-0 px-2 md:px-3 py-3 text-xs md:text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                      />
+                    </div>
+                    <FieldError message={errors.yearOfAdmission?.message} />
+                  </div>
+                  <div>
+                    <div className="flex items-center bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                      <span className="shrink-0 flex items-center justify-center whitespace-nowrap px-3 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs font-bold text-gray-500 self-stretch">
+                        Passout Year<span className="text-red-500 ml-0.5">*</span>
+                      </span>
+                      <input
+                        {...register('yearOfPassout', { valueAsNumber: true })}
+                        type="number"
+                        placeholder="e.g. 2019"
+                        min="1990"
+                        max={currentYear + 6}
+                        className="flex-1 min-w-0 px-2 md:px-3 py-3 text-xs md:text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                      />
+                    </div>
+                    <FieldError message={errors.yearOfPassout?.message} />
+                  </div>
+                </div>
+
+                {/* Terms & Privacy */}
+                <div className="flex items-start gap-2.5 px-1 py-1">
+                  <input
+                    {...register('termsAccepted')}
+                    id="terms"
+                    type="checkbox"
+                    className="mt-1 h-4.5 w-4.5 rounded border-gray-300 text-[#1d4289] focus:ring-[#1d4289] cursor-pointer"
+                  />
+                  <label htmlFor="terms" className="cursor-pointer text-xs leading-normal text-gray-500 font-semibold select-none">
+                    I confirm that the information provided is accurate and i agree to the{' '}
+                    <span className="text-[#2563eb] hover:text-[#1d4ed8] font-bold hover:underline">Terms & Service</span>
+                    {' '}and{' '}
+                    <span className="text-[#2563eb] hover:text-[#1d4ed8] font-bold hover:underline">Privacy Policy</span>
+                    {' '}of SSGMCE Alumni Connect.
+                  </label>
+                </div>
+                <FieldError message={errors.termsAccepted?.message} />
+
+              </form>
+
+              {/* Divider */}
+              <div className="relative my-5">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200" />
+                </div>
+                <div className="relative flex justify-center">
+                  <span className="bg-[#eef2f6] px-3 text-xs text-gray-400 font-medium">Choose verification method</span>
+                </div>
+              </div>
+
+              {/* Auth buttons */}
+              <div className="space-y-4">
+                <button
+                  type="button"
+                  onClick={handleEmailLink}
+                  disabled={!!busy}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#1d4289] hover:bg-[#153470] py-3.5 text-sm font-bold text-white shadow-md transition-all duration-200 cursor-pointer disabled:opacity-60"
+                >
+                  {busy === 'email' ? <Loader2 size={16} className="animate-spin" /> : null}
+                  {busy === 'email' ? 'Sending link…' : 'Verify with email link'}
+                </button>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={handleLinkedIn}
+                    disabled={!!busy}
+                    className="flex items-center justify-center gap-2 rounded-xl bg-[#0a66c2] hover:bg-[#004182] py-3 text-sm font-bold text-white shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-60"
+                  >
+                    <LinkedInIcon />
+                    Linkedin
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleGoogle}
+                    disabled={!!busy}
+                    className="flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 py-3 text-sm font-bold text-gray-700 shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-60"
+                  >
+                    {busy === 'google' ? <Loader2 size={16} className="animate-spin" /> : <GoogleIcon />}
+                    Google
+                  </button>
+                </div>
+              </div>
+
+              <p className="text-center text-xs text-gray-400 mt-6 font-medium">
+                Already have an account ?{" "}
+                <Link to="/sign-in" className="text-[#1a3a75] font-bold hover:underline">
+                  Login
+                </Link>
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-
-      {/* Global error banner */}
-      {error && (
-        <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          <AlertCircle size={16} className="mt-0.5 shrink-0" />
-          {error}
-        </div>
-      )}
-
-      <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-
-        {/* ── Personal Info ─────────────────────────────────────────────── */}
-        <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400">Personal Information</p>
-
-        {/* Full Name */}
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
-            Full Name <span className="text-red-500">*</span>
-          </label>
-          <input
-            {...register('name')}
-            type="text"
-            placeholder="As per college records"
-            className={inputCls(!!errors.name)}
-          />
-          <FieldError message={errors.name?.message} />
-        </div>
-
-        {/* Email */}
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
-            Email Address <span className="text-red-500">*</span>
-          </label>
-          <input
-            {...register('email')}
-            type="email"
-            placeholder="you@example.com"
-            className={inputCls(!!errors.email)}
-          />
-          <FieldError message={errors.email?.message} />
-          <p className="mt-1 text-xs text-gray-400">
-            Use the same email as your Google / LinkedIn account if verifying that way.
-          </p>
-        </div>
-
-        {/* Phone Number */}
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
-            Mobile Number <span className="text-xs font-normal text-gray-400">(optional)</span>
-          </label>
-          <div className={`flex overflow-hidden rounded-lg border transition focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent ${errors.contactNumber ? 'border-red-400 bg-red-50' : 'border-gray-300'}`}>
-            <span className="flex items-center gap-1.5 border-r border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 select-none">
-              <Phone size={13} /> +91
-            </span>
-            <input
-              {...register('contactNumber')}
-              type="tel"
-              placeholder="10-digit mobile number"
-              maxLength={10}
-              className="flex-1 bg-transparent px-3 py-2.5 text-sm outline-none"
-            />
-          </div>
-          <FieldError message={errors.contactNumber?.message} />
-        </div>
-
-        {/* ── Academic Info ─────────────────────────────────────────────── */}
-        <p className="pt-1 text-[11px] font-bold uppercase tracking-widest text-gray-400">Academic Information</p>
-
-        {/* Course */}
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
-            Course <span className="text-red-500">*</span>
-          </label>
-          <select {...register('course')} className={selectCls(!!errors.course)}>
-            <option value="">Select your course</option>
-            {COURSES.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-          <FieldError message={errors.course?.message} />
-        </div>
-
-        {/* Branch */}
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
-            Branch / Department <span className="text-red-500">*</span>
-          </label>
-          <select {...register('branch')} className={selectCls(!!errors.branch)}>
-            <option value="">Select your branch</option>
-            {BRANCHES.map((b) => <option key={b} value={b}>{b}</option>)}
-          </select>
-          <FieldError message={errors.branch?.message} />
-        </div>
-
-        {/* Admission + Passout Year */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Admission Year <span className="text-red-500">*</span>
-            </label>
-            <input
-              {...register('yearOfAdmission', { valueAsNumber: true })}
-              type="number"
-              placeholder="e.g. 2019"
-              min="1990"
-              max={currentYear}
-              className={inputCls(!!errors.yearOfAdmission)}
-            />
-            <FieldError message={errors.yearOfAdmission?.message} />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              Passout Year <span className="text-red-500">*</span>
-            </label>
-            <input
-              {...register('yearOfPassout', { valueAsNumber: true })}
-              type="number"
-              placeholder="e.g. 2023"
-              min="1990"
-              max={currentYear + 6}
-              className={inputCls(!!errors.yearOfPassout)}
-            />
-            <FieldError message={errors.yearOfPassout?.message} />
-          </div>
-        </div>
-
-        {/* Terms & Privacy */}
-        <div className={`flex items-start gap-2.5 rounded-lg border p-3 ${errors.termsAccepted ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-gray-50'}`}>
-          <input
-            {...register('termsAccepted')}
-            id="terms"
-            type="checkbox"
-            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary-700 focus:ring-primary-500 cursor-pointer"
-          />
-          <label htmlFor="terms" className="cursor-pointer text-xs leading-5 text-gray-600">
-            I confirm that the information provided is accurate and I agree to the{' '}
-            <span className="font-semibold text-primary-700">Terms of Service</span>
-            {' '}and{' '}
-            <span className="font-semibold text-primary-700">Privacy Policy</span>
-            {' '}of SSGMCE Alumni Connect.
-          </label>
-        </div>
-        <FieldError message={errors.termsAccepted?.message} />
-
-      </form>
-
-      {/* Divider */}
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-200" />
-        </div>
-        <div className="relative flex justify-center">
-          <span className="bg-white px-3 text-xs text-gray-400">Choose verification method</span>
-        </div>
-      </div>
-
-      {/* Auth buttons */}
-      <div className="space-y-3">
-        <button
-          type="button"
-          onClick={handleEmailLink}
-          disabled={!!busy}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-700 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800 disabled:opacity-60"
-        >
-          {busy === 'email' ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
-          {busy === 'email' ? 'Sending link…' : 'Verify with email link'}
-        </button>
-
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={handleGoogle}
-            disabled={!!busy}
-            className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-60"
-          >
-            {busy === 'google' ? <Loader2 size={16} className="animate-spin" /> : <GoogleIcon />}
-            Google
-          </button>
-          <button
-            type="button"
-            onClick={handleLinkedIn}
-            disabled={!!busy}
-            className="flex items-center justify-center gap-2 rounded-lg bg-[#0A66C2] py-2.5 text-sm font-medium text-white transition hover:bg-[#004182] disabled:opacity-60"
-          >
-            <LinkedInIcon />
-            LinkedIn
-          </button>
-        </div>
-      </div>
-
-      <p className="mt-6 text-center text-xs text-gray-400">
-        Already registered?{' '}
-        <Link to="/sign-in" className="font-medium text-primary-700 hover:underline">
-          Sign in
-        </Link>
-      </p>
-    </motion.div>
+    </div>
   );
 };

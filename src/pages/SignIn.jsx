@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { GraduationCap, Loader2, Mail, CheckCircle2 } from 'lucide-react';
+import { Loader2, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import {
   googleAuth,
@@ -45,6 +45,7 @@ export const SignIn = () => {
   const { setUserProfile } = useAuth();
   const [error, setError] = useState('');
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   // Email-link (OTP) state
   const [otpSent, setOtpSent] = useState('');   // the email a link was sent to
@@ -58,6 +59,15 @@ export const SignIn = () => {
     const urlError = searchParams.get('error');
     if (urlError) setError(friendlyAuthError(urlError));
   }, [searchParams]);
+
+  // Load remembered email if present
+  useEffect(() => {
+    const rememberedEmail = window.localStorage.getItem('rememberedEmail');
+    if (rememberedEmail) {
+      otpForm.setValue('email', rememberedEmail);
+      setRememberMe(true);
+    }
+  }, [otpForm]);
 
   // Resend cooldown countdown.
   useEffect(() => {
@@ -80,6 +90,13 @@ export const SignIn = () => {
       setOtpSent(email);
       setCooldown(RESEND_COOLDOWN);
       if (remaining === 0) setLockedOut(true); // that was the last allowed request
+
+      // Persist email if remember me is checked
+      if (rememberMe) {
+        window.localStorage.setItem('rememberedEmail', email);
+      } else {
+        window.localStorage.removeItem('rememberedEmail');
+      }
     } catch (err) {
       if (err?.response?.status === 429) setLockedOut(true);
       setError(friendlyAuthError(err));
@@ -118,151 +135,186 @@ export const SignIn = () => {
   const resetOtp = () => { setOtpSent(''); setLockedOut(false); setCooldown(0); setError(''); };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8"
+    <div
+      className="min-h-screen w-full flex items-center justify-center lg:justify-start bg-cover bg-center p-4 sm:p-6 md:p-10 lg:pl-[6%] xl:pl-[8%] font-sans"
+      style={{ backgroundImage: `url(${loginBg})` }}
     >
-      <div className="text-center mb-8">
-        <div className="w-14 h-14 bg-primary-700 rounded-2xl mx-auto mb-4 flex items-center justify-center">
-          <GraduationCap size={28} className="text-white" />
-        </div>
-        <h1 className="text-2xl font-bold text-gray-900">Welcome</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Sign in to SSGMCE Alumni Portal
-        </p>
-      </div>
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-5 text-sm">
-          {error}
-        </div>
-      )}
-
-      {/* Email sign-in link (passwordless) */}
-      {otpSent ? (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-5 text-center space-y-3">
-          <CheckCircle2 size={32} className="text-green-600 mx-auto" />
-          <p className="text-sm font-semibold text-green-800">
-            Check your inbox
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-[#eef2f6]/95 backdrop-blur-md border border-[#cbd5e1]/60 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] w-full max-w-[450px] p-8 md:p-10"
+      >
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-extrabold text-[#1a3a75] tracking-tight">Welcome Back !</h1>
+          <p className="text-gray-500 font-medium text-sm mt-1">
+            Login to your account
           </p>
-          <p className="text-xs text-green-700">
-            We sent a one-time sign-in link to <strong>{otpSent}</strong>. Open
-            it on this device to finish signing in.
-          </p>
+        </div>
 
-          <button
-            onClick={() => sendLink(otpSent)}
-            disabled={cooldown > 0 || lockedOut}
-            className="w-full bg-green-100 border border-green-300 text-green-800 text-sm font-medium py-2 rounded-lg  disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-          >
-            {lockedOut
-              ? "Resend limit reached"
-              : cooldown > 0
-                ? `Resend link in ${cooldown}s`
-                : "Didn’t get it? Resend link"}
-          </button>
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-5 text-sm font-medium">
+            {error}
+          </div>
+        )}
 
-          {lockedOut && (
-            <p className="text-xs text-red-600">
-              You’ve reached the maximum of 3 link requests per hour. Please try
-              again later or use Google / LinkedIn.
+        {/* Email sign-in link (passwordless) */}
+        {otpSent ? (
+          <div className="bg-green-50/80 border border-green-200 rounded-2xl p-6 text-center space-y-4">
+            <CheckCircle2 size={36} className="text-green-600 mx-auto" />
+            <p className="text-base font-bold text-green-900">
+              Check your inbox
             </p>
-          )}
+            <p className="text-xs text-green-700 leading-relaxed">
+              We sent a one-time sign-in link to <strong className="font-semibold text-green-950">{otpSent}</strong>. Open
+              it on this device to finish signing in.
+            </p>
 
-          <button
-            onClick={resetOtp}
-            className="text-xs text-primary-700 font-medium hover:underline"
-          >
-            Use a different email
-          </button>
-        </div>
-      ) : (
-        <form
-          onSubmit={otpForm.handleSubmit(({ email }) => sendLink(email))}
-          className="space-y-4"
-        >
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              {...otpForm.register("email")}
-              type="email"
-              placeholder="you@example.com"
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
-            />
-            {otpForm.formState.errors.email && (
-              <p className="text-red-500 text-xs mt-1">
-                {otpForm.formState.errors.email.message}
+            <button
+              onClick={() => sendLink(otpSent)}
+              disabled={cooldown > 0 || lockedOut}
+              className="w-full bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-3 rounded-xl disabled:opacity-60 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            >
+              {lockedOut
+                ? "Resend limit reached"
+                : cooldown > 0
+                  ? `Resend link in ${cooldown}s`
+                  : "Didn’t get it? Resend link"}
+            </button>
+
+            {lockedOut && (
+              <p className="text-[11px] text-red-600 font-medium">
+                You’ve reached the maximum of 3 link requests per hour. Please try
+                again later or use Google / LinkedIn.
               </p>
             )}
+
+            <button
+              onClick={resetOtp}
+              className="text-xs text-[#1a3a75] font-bold hover:underline block mx-auto cursor-pointer"
+            >
+              Use a different email
+            </button>
           </div>
-          <button
-            type="submit"
-            disabled={otpForm.formState.isSubmitting}
-            className="w-full bg-blue-700 hover:bg-blue-800 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
+        ) : (
+          <form
+            onSubmit={otpForm.handleSubmit(({ email }) => sendLink(email))}
+            className="space-y-5"
           >
-            {otpForm.formState.isSubmitting ? (
+            {/* Email Field */}
+            <div className="flex flex-col">
+              <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                <span className="w-24 shrink-0 flex items-center justify-center font-bold text-gray-500 text-sm bg-[#fafafa] border-r border-[#cbd5e1] select-none py-3.5">
+                  Email
+                </span>
+                <input
+                  {...otpForm.register("email")}
+                  type="email"
+                  placeholder="Enter your email"
+                  className="flex-1 px-4 py-3.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                />
+              </div>
+              {otpForm.formState.errors.email && (
+                <p className="text-red-500 text-xs mt-1.5 ml-2 font-medium">
+                  {otpForm.formState.errors.email.message}
+                </p>
+              )}
+            </div>
+
+            {/* Password Field (Visual match) */}
+            <div className="flex flex-col">
+              <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                <span className="w-24 shrink-0 flex items-center justify-center font-bold text-gray-500 text-sm bg-[#fafafa] border-r border-[#cbd5e1] select-none py-3.5">
+                  Password
+                </span>
+                <input
+                  type="password"
+                  placeholder="Enter your password"
+                  className="flex-1 px-4 py-3.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Remember Me & Forgot Password */}
+            <div className="flex items-center justify-between text-xs font-semibold text-gray-500 px-1 pt-1">
+              <label className="flex items-center gap-2 cursor-pointer hover:text-gray-700 select-none">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="h-4.5 w-4.5 rounded border-gray-300 text-[#1a3a75] focus:ring-[#1a3a75] cursor-pointer"
+                />
+                Remember Me
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  alert("This portal uses secure, passwordless authentication. Just enter your email and click Login — we'll email you a secure link to sign in!");
+                }}
+                className="text-[#2563eb] hover:text-[#1d4ed8] hover:underline"
+              >
+                Forgot Password ?
+              </button>
+            </div>
+
+            {/* Login Button */}
+            <button
+              type="submit"
+              disabled={otpForm.formState.isSubmitting}
+              className="w-full bg-[#1d4289] hover:bg-[#153470] disabled:opacity-60 text-white font-bold py-3.5 rounded-xl transition-all shadow-md flex items-center justify-center gap-2 mt-6 cursor-pointer"
+            >
+              {otpForm.formState.isSubmitting ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : null}
+              {otpForm.formState.isSubmitting ? "Logging in..." : "Login"}
+            </button>
+          </form>
+        )}
+
+        {/* Divider */}
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200" />
+          </div>
+          <div className="relative flex justify-center">
+            <span className="bg-[#eef2f6] px-3 text-xs text-gray-400 font-medium">
+              Or continue with
+            </span>
+          </div>
+        </div>
+
+        {/* OAuth Buttons */}
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={handleGoogle}
+            disabled={googleLoading}
+            className="flex items-center justify-center gap-2 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl py-3 text-sm font-bold text-gray-700 shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-60"
+          >
+            {googleLoading ? (
               <Loader2 size={16} className="animate-spin" />
             ) : (
-              <Mail size={16} />
+              <GoogleIcon />
             )}
-            {otpForm.formState.isSubmitting
-              ? "Sending…"
-              : "Email me a sign-in link"}
+            Google
           </button>
-          <p className="text-xs text-gray-400 text-center">
-            No password needed — we&apos;ll email you a secure link.
-          </p>
-        </form>
-      )}
-
-      {/* Divider */}
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-200" />
+          <button
+            onClick={handleLinkedIn}
+            className="flex items-center justify-center gap-2 bg-[#0A66C2] hover:bg-[#004182] rounded-xl py-3 text-sm font-bold text-white shadow-sm transition-all duration-200 cursor-pointer"
+          >
+            <LinkedInIcon />
+            LinkedIn
+          </button>
         </div>
-        <div className="relative flex justify-center">
-          <span className="bg-white px-3 text-xs text-gray-400">
-            Or continue with
-          </span>
-        </div>
-      </div>
 
-      {/* OAuth Buttons */}
-      <div className="grid grid-cols-2 gap-3">
-        <button
-          onClick={handleGoogle}
-          disabled={googleLoading}
-          className="flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60 transition-colors"
-        >
-          {googleLoading ? (
-            <Loader2 size={16} className="animate-spin" />
-          ) : (
-            <GoogleIcon />
-          )}
-          Google
-        </button>
-        <button
-          onClick={handleLinkedIn}
-          className="flex items-center justify-center gap-2 bg-[#0A66C2] hover:bg-[#004182] rounded-lg py-2.5 text-sm font-medium text-white transition-colors"
-        >
-          <LinkedInIcon />
-          LinkedIn
-        </button>
-      </div>
-
-      <p className="text-center text-xs text-gray-400 mt-6">
-        New here?{" "}
-        <Link
-          to="/register"
-          className="text-primary-700 font-medium hover:underline"
-        >
-          Register as alumni
-        </Link>{" "}
-        — your account needs admin approval before you can sign in.
-      </p>
-    </motion.div>
+        <p className="text-center text-xs text-gray-400 mt-6 font-medium">
+          New here?{" "}
+          <Link
+            to="/register"
+            className="text-[#1a3a75] font-bold hover:underline"
+          >
+            Register as alumni
+          </Link>
+        </p>
+      </motion.div>
+    </div>
   );
 };
