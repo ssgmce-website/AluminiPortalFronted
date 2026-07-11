@@ -105,7 +105,7 @@ function Navbar() {
   const location = useLocation();
 
   const aboutItems = [
-    { label: "SSGMCE ALUMNI CELL", path: "/about/alumni-cell" },
+    { label: "ALUMNI CELL", path: "/about/alumni-cell" },
     { label: "Executive Team", path: "/about/executive-team" },
     { label: "Activity Organized", path: "/about/activity-organized" },
     { label: "Distinguished Alumni", path: "/about/distinguished-alumni" },
