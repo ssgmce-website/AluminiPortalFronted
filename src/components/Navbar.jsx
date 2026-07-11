@@ -112,11 +112,6 @@ function Navbar() {
     { label: "Annual Report", path: "/about/annual-report" },
   ];
 
-  const membershipItems = [
-    { label: "Nomination", path: "/membership/nomination" },
-    { label: "Withdrawal Form", path: "/membership/withdrawal-form" },
-  ];
-
   const eventItems = [
     { label: "Event Registration", path: "/event/registration" },
     { label: "Gallery", path: "/event/gallery" },
@@ -171,17 +166,6 @@ function Navbar() {
             >
               Gallery
             </NavLink>
-
-            <MobileDropdown
-              name="membership"
-              label="Membership"
-              mainPath="/membership/nomination"
-              items={membershipItems}
-              openMenu={openMenu}
-              setOpenMenu={setOpenMenu}
-              active={location.pathname.startsWith("/membership")}
-              onNavigate={closeMobileMenu}
-            />
 
             <NavLink
               to="/contribution"
@@ -246,16 +230,6 @@ function Navbar() {
           <NavLink to="/gallery" className={navLinkClass}>
             Gallery
           </NavLink>
-
-          <DropdownMenu
-            name="membership"
-            label="Membership"
-            mainPath="/membership/nomination"
-            items={membershipItems}
-            openMenu={openMenu}
-            setOpenMenu={setOpenMenu}
-            active={location.pathname.startsWith("/membership")}
-          />
 
           <NavLink to="/contribution" className={navLinkClass}>
             Contribution

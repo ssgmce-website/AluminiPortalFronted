@@ -94,8 +94,6 @@ export const AppRoutes = () => {
           <Route path="/about/activity-organized"  element={<ActivityOrganized />} />
           <Route path="/about/distinguished-alumni" element={<DistinguishedAlumni />} />
           <Route path="/about/annual-report"       element={<AnnualReport />} />
-          <Route path="/membership/nomination"     element={<Nomination />} />
-          <Route path="/membership/withdrawal-form" element={<WithdrawalForm />} />
           <Route path="/contribution"              element={<Contribution />} />
           <Route path="/newsletter"                element={<Newsletter />} />
           <Route path="/donation"                  element={<Donation />} />
