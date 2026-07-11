@@ -9,8 +9,8 @@ const aboutLinks = [
 ];
 
 const quickLinks = [
-  { label: "Nomination", path: "/membership/nomination" },
-  { label: "Withdrawal Form", path: "/membership/withdrawal-form" },
+  { label: "SSGMCE", path: "https://www.ssgmce.ac.in/" },
+  { label: "SSGMCE News", path: "https://www.ssgmce.ac.in/news" },
   { label: "Contribution", path: "/contribution" },
   { label: "Newsletter", path: "/newsletter" },
   { label: "Donation", path: "/donation" },
@@ -101,21 +101,18 @@ export const Footer = () => {
               </li>
               <li>
                 <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-blue-400">
-                  Phone
+                  Phone Number
                 </span>
-                +91 72620 00000
+                +91 9420834621
               </li>
+              <li>
+                <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-blue-400">
+                  Alt. Number
+                </span>
+                +91 9545956114
+              </li>
+              
             </ul>
-
-            <div className="mt-6 flex gap-3">
-             
-              <a
-                href="/sign-in"
-                className="rounded-md bg-blue-600 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-blue-500"
-              >
-                Sign In
-              </a>
-            </div>
           </div>
         </div>
       </div>

@@ -34,8 +34,12 @@ function ContactPage() {
             </a>
           </p>
           <p>
-            <span className="font-semibold text-blue-800">Phone:</span> +91
-            72620 00000
+            <span className="font-semibold text-blue-800">Phone Number:</span> +91
+            9420834621
+          </p>
+          <p>
+            <span className="font-semibold text-blue-800">Alt.Number:</span> +91
+            9545956114
           </p>
         </div>
 
