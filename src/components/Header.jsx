@@ -55,7 +55,7 @@ function Header() {
               </Link>
               <Link
                 className="inline-flex items-center justify-center gap-2 rounded-md bg-blue-700 px-4 py-2 text-white shadow-sm transition hover:bg-blue-800"
-                to="/sign-in"
+                to="/login"
               >
                 <LogIn size={16} />
                 Login

@@ -416,7 +416,7 @@ export const Register = () => {
   const handleAlreadyRegistered = (status) => {
     clearAuthIntent();
     setError('This email is already registered. Redirecting you to sign in…');
-    setTimeout(() => navigate(status === 'approved' ? '/sign-in' : '/pending'), 1500);
+    setTimeout(() => navigate(status === 'approved' ? '/login' : '/pending'), 1500);
   };
 
   const handleGoogle = async () => {
@@ -543,10 +543,10 @@ export const Register = () => {
                           if (i < step) setStep(i);
                         }}
                         className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold border-2 transition-all ${i < step
-                            ? 'bg-[#1a3a75] border-[#1a3a75] text-white cursor-pointer hover:bg-[#153470]'
-                            : i === step
-                              ? 'border-[#1a3a75] text-[#1a3a75] bg-white cursor-default shadow-sm ring-2 ring-[#1a3a75]/20'
-                              : 'border-gray-300 text-gray-400 bg-white cursor-not-allowed'
+                          ? 'bg-[#1a3a75] border-[#1a3a75] text-white cursor-pointer hover:bg-[#153470]'
+                          : i === step
+                            ? 'border-[#1a3a75] text-[#1a3a75] bg-white cursor-default shadow-sm ring-2 ring-[#1a3a75]/20'
+                            : 'border-gray-300 text-gray-400 bg-white cursor-not-allowed'
                           }`}
                       >
                         {i < step ? '✓' : i + 1}
@@ -1372,7 +1372,7 @@ export const Register = () => {
 
               <p className="text-center text-xs text-gray-400 mt-6 font-medium">
                 Already have an account?{" "}
-                <Link to="/sign-in" className="text-[#1a3a75] font-bold hover:underline">
+                <Link to="/login" className="text-[#1a3a75] font-bold hover:underline">
                   Login
                 </Link>
               </p>

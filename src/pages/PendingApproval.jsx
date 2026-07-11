@@ -21,7 +21,7 @@ export const PendingApproval = () => {
     }
   }, [userProfile, navigate]);
 
-  if (!currentUser) return <Navigate to="/sign-in" replace />;
+  if (!currentUser) return <Navigate to="/login" replace />;
 
   const handleCheck = async () => {
     setChecking(true);
@@ -36,7 +36,7 @@ export const PendingApproval = () => {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/sign-in', { replace: true });
+    navigate('/login', { replace: true });
   };
 
   const rejected = status === 'rejected';
@@ -49,9 +49,8 @@ export const PendingApproval = () => {
         className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center"
       >
         <div
-          className={`w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center ${
-            rejected ? 'bg-red-100' : 'bg-amber-100'
-          }`}
+          className={`w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center ${rejected ? 'bg-red-100' : 'bg-amber-100'
+            }`}
         >
           {rejected ? (
             <XCircle size={32} className="text-red-600" />
