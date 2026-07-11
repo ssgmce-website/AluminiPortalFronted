@@ -5,22 +5,23 @@ import {
   Pencil, Settings, MoreHorizontal, Camera, GraduationCap,
   Briefcase, Phone, Mail, CalendarDays, CheckCircle,
   AlertTriangle, Building2, User, Loader2, X, Save,
-  Users, Clock, BookOpen, IdCard, Copy, Check,
+  Users, Clock, BookOpen, IdCard, Copy, Check, CalendarCheck,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { updateProfile } from '../services/authService';
 import { uploadProfilePhoto } from '../services/uploadService';
 import { Onboarding } from '../components/Onboarding';
+import { EventRegistrationForm } from '../components/EventRegistrationForm';
 
 // ─── constants ────────────────────────────────────────────────────────────────
-const TABS = ['Overview', 'Contributions', 'Connections', 'Activity'];
+const TABS = ['Overview', 'Events', 'Contributions', 'Connections', 'Activity'];
 
 const COMPLETION_FIELDS = [
   { key: 'contactNumber', label: 'Contact Number' },
-  { key: 'dob',          label: 'Date of Birth'  },
-  { key: 'about',        label: 'About Me'        },
-  { key: 'companyName',  label: 'Company'         },
-  { key: 'designation',  label: 'Designation'     },
+  { key: 'dob', label: 'Date of Birth' },
+  { key: 'about', label: 'About Me' },
+  { key: 'companyName', label: 'Company' },
+  { key: 'designation', label: 'Designation' },
 ];
 
 // ─── tiny helpers ──────────────────────────────────────────────────────────────
@@ -87,14 +88,14 @@ function Section({ title, onEdit, children }) {
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
 export const Dashboard = () => {
   const { userProfile, setUserProfile, backendError } = useAuth();
-  const [activeTab,    setActiveTab]    = useState('Overview');
-  const [editSection,  setEditSection]  = useState(null);
-  const [editData,     setEditData]     = useState({});
-  const [saving,       setSaving]       = useState(false);
-  const [saveError,    setSaveError]    = useState('');
-  const [copied,       setCopied]       = useState(false);
+  const [activeTab, setActiveTab] = useState('Overview');
+  const [editSection, setEditSection] = useState(null);
+  const [editData, setEditData] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [copied, setCopied] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
-  const [photoError,     setPhotoError]     = useState('');
+  const [photoError, setPhotoError] = useState('');
   const photoInputRef = useRef(null);
 
   const handlePhotoChange = async (e) => {
@@ -298,11 +299,10 @@ export const Dashboard = () => {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`relative whitespace-nowrap pb-3 pr-4 text-sm font-semibold transition-colors ${
-                  activeTab === tab
+                className={`relative whitespace-nowrap pb-3 pr-4 text-sm font-semibold transition-colors ${activeTab === tab
                     ? 'text-slate-900'
                     : 'text-slate-400 hover:text-slate-600'
-                }`}
+                  }`}
               >
                 {tab}
                 {activeTab === tab && (
@@ -372,29 +372,29 @@ export const Dashboard = () => {
                   title="Basic Information"
                   onEdit={() =>
                     startEdit('basic', {
-                      name:           p.name           || '',
-                      contactNumber:  p.contactNumber  || '',
+                      name: p.name || '',
+                      contactNumber: p.contactNumber || '',
                       alternateEmail: p.alternateEmail || '',
-                      dob:            dobISO,
+                      dob: dobISO,
                     })
                   }
                 >
                   {editSection === 'basic' ? (
                     <>
                       <div className="grid gap-4 sm:grid-cols-2">
-                        <Input label="Full Name"       name="name"           value={editData.name           || ''} onChange={handleChange} placeholder="Your full name" />
-                        <Input label="Contact Number"  name="contactNumber"  value={editData.contactNumber  || ''} onChange={handleChange} placeholder="10-digit mobile" maxLength={10} />
+                        <Input label="Full Name" name="name" value={editData.name || ''} onChange={handleChange} placeholder="Your full name" />
+                        <Input label="Contact Number" name="contactNumber" value={editData.contactNumber || ''} onChange={handleChange} placeholder="10-digit mobile" maxLength={10} />
                         <Input label="Alternate Email" name="alternateEmail" value={editData.alternateEmail || ''} onChange={handleChange} placeholder="Other email address" type="email" />
-                        <Input label="Date of Birth"   name="dob"            value={editData.dob            || ''} onChange={handleChange} type="date" />
+                        <Input label="Date of Birth" name="dob" value={editData.dob || ''} onChange={handleChange} type="date" />
                       </div>
                       <SaveBar saving={saving} onSave={saveEdit} onCancel={cancelEdit} />
                     </>
                   ) : p.name || p.contactNumber || p.alternateEmail || p.dob ? (
                     <div className="space-y-3">
-                      {p.name           && <Field label="Full Name"       value={p.name} />}
-                      {p.contactNumber  && <Field label="Contact"         value={`+91 ${p.contactNumber}`} />}
+                      {p.name && <Field label="Full Name" value={p.name} />}
+                      {p.contactNumber && <Field label="Contact" value={`+91 ${p.contactNumber}`} />}
                       {p.alternateEmail && <Field label="Alternate Email" value={p.alternateEmail} />}
-                      {p.dob            && <Field label="Date of Birth"   value={dobFormatted} />}
+                      {p.dob && <Field label="Date of Birth" value={dobFormatted} />}
                       <Field label="Primary Email" value={p.email} />
                     </div>
                   ) : (
@@ -446,7 +446,7 @@ export const Dashboard = () => {
                     <>
                       <div className="grid gap-4 sm:grid-cols-2">
                         <Input label="Company / Organisation" name="companyName" value={editData.companyName || ''} onChange={handleChange} placeholder="e.g. Infosys, DRDO, …" />
-                        <Input label="Designation / Role"     name="designation" value={editData.designation || ''} onChange={handleChange} placeholder="e.g. Software Engineer" />
+                        <Input label="Designation / Role" name="designation" value={editData.designation || ''} onChange={handleChange} placeholder="e.g. Software Engineer" />
                       </div>
                       <SaveBar saving={saving} onSave={saveEdit} onCancel={cancelEdit} />
                     </>
@@ -472,20 +472,20 @@ export const Dashboard = () => {
                   title="Education"
                   onEdit={() =>
                     startEdit('education', {
-                      course:          p.course          || '',
-                      branch:          p.branch          || '',
+                      course: p.course || '',
+                      branch: p.branch || '',
                       yearOfAdmission: p.yearOfAdmission || '',
-                      yearOfPassout:   p.yearOfPassout   || '',
+                      yearOfPassout: p.yearOfPassout || '',
                     })
                   }
                 >
                   {editSection === 'education' ? (
                     <>
                       <div className="grid gap-4 sm:grid-cols-2">
-                        <Input label="Course"              name="course"          value={editData.course          || ''} onChange={handleChange} placeholder="e.g. B.E." />
-                        <Input label="Branch"              name="branch"          value={editData.branch          || ''} onChange={handleChange} placeholder="e.g. Computer Science" />
-                        <Input label="Year of Admission"   name="yearOfAdmission" value={editData.yearOfAdmission || ''} onChange={handleChange} type="number" placeholder="e.g. 2019" />
-                        <Input label="Year of Passout"     name="yearOfPassout"   value={editData.yearOfPassout   || ''} onChange={handleChange} type="number" placeholder="e.g. 2023" />
+                        <Input label="Course" name="course" value={editData.course || ''} onChange={handleChange} placeholder="e.g. B.E." />
+                        <Input label="Branch" name="branch" value={editData.branch || ''} onChange={handleChange} placeholder="e.g. Computer Science" />
+                        <Input label="Year of Admission" name="yearOfAdmission" value={editData.yearOfAdmission || ''} onChange={handleChange} type="number" placeholder="e.g. 2019" />
+                        <Input label="Year of Passout" name="yearOfPassout" value={editData.yearOfPassout || ''} onChange={handleChange} type="number" placeholder="e.g. 2023" />
                       </div>
                       <SaveBar saving={saving} onSave={saveEdit} onCancel={cancelEdit} />
                     </>
@@ -515,8 +515,46 @@ export const Dashboard = () => {
 
               </div>
             </motion.div>
+          ) : activeTab === 'Events' ? (
+            /* ── Event Registration tab ──────────────────────────────── */
+            // <motion.div
+            //   key="events"
+            //   initial={{ opacity: 0, y: 8 }}
+            //   animate={{ opacity: 1, y: 0 }}
+            //   exit={{ opacity: 0 }}
+            //   transition={{ duration: 0.2 }}
+            // >
+            //   {/* Header banner */}
+            //   <div className="mb-6 flex items-center gap-4 rounded-xl border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5">
+            //     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-600 shadow-sm">
+            //       <CalendarCheck size={24} className="text-white" />
+            //     </div>
+            //     <div>
+            //       <h2 className="text-base font-extrabold text-slate-800">Event Registration</h2>
+            //       <p className="mt-0.5 text-sm text-slate-500">
+            //         Register for upcoming SSGMCE alumni events, reunions, and guest lectures.
+            //       </p>
+            //     </div>
+            //   </div>
+
+            //   {/* Coming-soon placeholder card */}
+            //   <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-blue-200 bg-white py-16 text-center">
+            //     <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50">
+            //       <CalendarCheck size={32} className="text-blue-400" />
+            //     </div>
+            //     <p className="text-lg font-bold text-slate-700">No Events Available Yet</p>
+            //     <p className="mt-2 max-w-sm text-sm text-slate-400">
+            //       Alumni events and registration forms will appear here once they are published
+            //       by the Alumni Cell. Stay tuned!
+            //     </p>
+            //     <span className="mt-4 inline-block rounded-full bg-blue-50 px-4 py-1.5 text-xs font-semibold text-blue-500">
+            //       Coming Soon
+            //     </span>
+            //   </div>
+            // </motion.div>
+            <EventRegistrationForm />
           ) : (
-            /* ── Coming-soon tabs ─────────────────────────────────────── */
+            /* ── Other coming-soon tabs ───────────────────────────────── */
             <motion.div
               key={activeTab}
               initial={{ opacity: 0, y: 8 }}
@@ -526,8 +564,8 @@ export const Dashboard = () => {
               className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white py-16 text-center"
             >
               {activeTab === 'Contributions' && <BookOpen size={32} className="mb-3 text-slate-300" />}
-              {activeTab === 'Connections'   && <Users    size={32} className="mb-3 text-slate-300" />}
-              {activeTab === 'Activity'      && <Clock    size={32} className="mb-3 text-slate-300" />}
+              {activeTab === 'Connections' && <Users size={32} className="mb-3 text-slate-300" />}
+              {activeTab === 'Activity' && <Clock size={32} className="mb-3 text-slate-300" />}
               <p className="font-semibold text-slate-500">{activeTab}</p>
               <p className="mt-1 text-sm text-slate-400">This section is coming soon.</p>
               <span className="mt-3 rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-400">

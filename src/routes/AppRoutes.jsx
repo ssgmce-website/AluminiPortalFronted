@@ -2,7 +2,6 @@ import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { AuthLayout } from '../layouts/AuthLayout';
 import { DashboardLayout } from '../layouts/DashboardLayout';
 import { AdminLayout } from '../layouts/AdminLayout';
 import { ProtectedRoute } from './ProtectedRoute';
@@ -48,6 +47,7 @@ const Contribution       = lazy(() => import('../pages/Contribution'));
 const Newsletter         = lazy(() => import('../pages/Newsletter'));
 const Donation           = lazy(() => import('../pages/Donation'));
 const EventRegistration  = lazy(() => import('../pages/EventRegistration'));
+const AlumniFeedback     = lazy(() => import('../pages/AlumniFeedback'));
 const EventGallery       = lazy(() => import('../pages/EventGallery'));
 const Gallery            = lazy(() => import('../pages/Gallery'));
 const ContactPage        = lazy(() => import('../pages/ContactPage'));
@@ -96,9 +96,11 @@ export const AppRoutes = () => {
           <Route path="/newsletter"                element={<Newsletter />} />
           <Route path="/donation"                  element={<Donation />} />
           <Route path="/event/registration"        element={<EventRegistration />} />
+          <Route path="/event/feedback"            element={<AlumniFeedback />} />
           <Route path="/event/gallery"             element={<EventGallery />} />
           <Route path="/gallery"                   element={<Gallery />} />
           <Route path="/contact"                   element={<ContactPage />} />
+          <Route path="/feedback"                  element={<Navigate to="/event/feedback" replace />} />
         </Route>
 
         {/* ── Auth (no site chrome) ─────────────────────────────────────── */}
