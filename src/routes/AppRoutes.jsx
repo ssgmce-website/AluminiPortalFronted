@@ -44,8 +44,6 @@ const ExecutiveTeam      = lazy(() => import('../pages/ExecutiveTeam'));
 const ActivityOrganized  = lazy(() => import('../pages/ActivityOrganized'));
 const DistinguishedAlumni = lazy(() => import('../pages/DistinguishedAlumni'));
 const AnnualReport       = lazy(() => import('../pages/AnnualReport'));
-const Nomination         = lazy(() => import('../pages/Nomination'));
-const WithdrawalForm     = lazy(() => import('../pages/WithdrawalForm'));
 const Contribution       = lazy(() => import('../pages/Contribution'));
 const Newsletter         = lazy(() => import('../pages/Newsletter'));
 const Donation           = lazy(() => import('../pages/Donation'));
