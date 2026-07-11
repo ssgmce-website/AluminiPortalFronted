@@ -115,7 +115,6 @@ function Navbar() {
   const eventItems = [
     { label: "Event Registration", path: "/event/registration" },
     { label: "Feedback Form", path: "/event/feedback" },
-    { label: "Gallery", path: "/event/gallery" },
   ];
 
   const closeMobileMenu = () => {
