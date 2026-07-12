@@ -1,236 +1,300 @@
-import { useState } from "react";
-import { X, MapPin, Users, GraduationCap, ArrowRight, BookOpen, HeartHandshake, Briefcase, Award, Gift, Megaphone } from "lucide-react";
+import { useMemo, useState } from "react";
+import { BookOpen, GraduationCap, Layers, Users } from "lucide-react";
 import PageShell from "../components/PageShell";
 import contributions from "../data/contributions.json";
-import donations from "../data/donations";
 
-const TYPE_LABELS = {
-  "Mentoring":          "Mentoring",
-  "Guest Lecture":      "Guest Lecture",
-  "Internship Support": "Internship Support",
-  "Scholarship":        "Scholarship",
-  "Session":            "Session",
-  "Donation":           "Donation",
-};
+const YEARS = Array.from({ length: 10 }, (_, index) => 2017 + index);
 
-const typeConfig = {
-  "Mentoring":          { badge: "bg-blue-100 text-blue-700",     icon: HeartHandshake },
-  "Guest Lecture":      { badge: "bg-green-100 text-green-700",   icon: BookOpen       },
-  "Scholarship":        { badge: "bg-purple-100 text-purple-700", icon: Award          },
-  "Internship Support": { badge: "bg-amber-100 text-amber-700",   icon: Briefcase      },
-  "Session":            { badge: "bg-teal-100 text-teal-700",     icon: Megaphone      },
-  "Donation":           { badge: "bg-orange-100 text-orange-700", icon: Gift           },
-};
+const BRANCHES = [
+  { value: "cse", label: "CSE" },
+  { value: "it", label: "IT" },
+  { value: "entc", label: "ENTC" },
+  { value: "elpo", label: "ELPO" },
+  { value: "mech", label: "MECH" },
+  { value: "mba", label: "MBA" },
+  { value: "mca", label: "MCA" },
+];
 
-const fmtINR = (n) => `₹${n.toLocaleString("en-IN")}`;
+const companyWords = new Set([
+  "abb",
+  "accenture",
+  "adani",
+  "aakash",
+  "badve",
+  "barclays",
+  "bosch",
+  "byju",
+  "byjus",
+  "capgemini",
+  "cisco",
+  "coe",
+  "company",
+  "credit",
+  "etech",
+  "fidelity",
+  "global",
+  "group",
+  "india",
+  "industries",
+  "industry",
+  "infosys",
+  "investments",
+  "jade",
+  "limited",
+  "ltd",
+  "mahagenco",
+  "marico",
+  "mindtree",
+  "momentum",
+  "mit",
+  "msedcl",
+  "phronesis",
+  "pvt",
+  "reliance",
+  "service",
+  "services",
+  "siemens",
+  "solutions",
+  "suisse",
+  "system",
+  "systems",
+  "tcs",
+  "technology",
+  "technologies",
+  "unistal",
+  "value",
+  "whirlpool",
+  "wipro",
+  "work",
+  "works",
+]);
 
-const getInitials = (name) =>
-  name.replace(/^Late\.\s*/i, "").trim().split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
+const honorifics = new Set(["mr", "mrs", "ms", "miss", "dr", "prof", "shri", "smt", "late"]);
 
-// placehold.co uses form-encoding for its ?text= param — '+' renders as a space.
-const bannerText = (text) => encodeURIComponent(text).replace(/%20/g, "+");
+function cleanAlumniName(name = "") {
+  let value = String(name).replace(/\s+/g, " ").trim();
 
-// One card per ledger entry — keeps the donor list in sync with data/donations.js.
-// Entries with a `purpose` (named fund/project) show that as the card's banner
-// title instead of the generic "Donation" label.
-const donationCards = donations.map((d) => ({
-  id: `donation-${d.srNo}`,
-  type: "Donation",
-  name: d.name,
-  amount: d.amount,
-  branch: "Alumni Contribution",
-  description: d.purpose
-    ? `Contributed ${fmtINR(d.amount)} towards ${d.purpose}.`
-    : `Contributed ${fmtINR(d.amount)} towards the alumni development fund.`,
-  donationImage: `https://placehold.co/600x400/b45309/ffffff?text=${bannerText(d.purpose || "Donation")}`,
-  photo: `https://placehold.co/200x200/b45309/ffffff?text=${getInitials(d.name)}`,
-}));
+  value = value
+    .replace(/^\d+\)\s*/, "")
+    .replace(/Hon,\s*ble\s+/gi, "")
+    .replace(/([a-z])(?=(Vice|Manager|Lead|Director|Engineer|President|Professor|Asst|Officer|Owner|Founder|CEO|MD|HR|Badve)\b)/g, "$1 ")
+    .replace(/([a-z])VC\b/g, "$1")
+    .replace(/\s*\([^)]*\)/g, "")
+    .split(",")[0]
+    .trim()
+    .replace(/\s*[-–]\s*(Lead|Manager|Vice|President|Director|Professor|Engineer|Owner|Officer|Founder|CEO|MD|HR|Asst\.?|Asstt\.?|Senior|Junior|Project|Production|Supplychain|S\/W|Software|System|Systems|Scientist|Consultant|Executive|Partner|TCS|Infosys|Reliance|Jade|Wipro|Value|Momentum|Etech|Global).*$/i, "")
+    .replace(/\s+(Senior\s+Vice\s+President|Vice\s+President|Lead\s+Analyst|General\s+Manager|National\s+Head|Production\s+Head|Supplychain\s+Manager|Data\s+Scientist|Manager|Director|Professor|Engineer|Officer|Owner|Founder|CEO|MD|Dean|HR|Asst\.?|Asstt\.?|Senior|Junior|Technical|Software|System|Systems|Scientist|Consultant|Executive|Partner|DGM|GM|Entrepreneur|Cofounder)\b.*$/i, "")
+    .replace(/\b(pass\s*out|passed\s*out)\b.*$/i, "")
+    .replace(/\b\d{4}\b/g, "")
+    .trim();
 
-const allContributions = [...contributions, ...donationCards];
+  const words = value.split(/\s+/).filter(Boolean);
+  const cleanedWords = [];
+  let nameWordCount = 0;
 
-function getBannerTitle(url) {
-  try {
-    const text = new URL(url).searchParams.get("text") || "";
-    return text.replace(/\+/g, " ");
-  } catch {
-    return "";
+  for (const word of words) {
+    const token = word.replace(/[.,;:()]/g, "");
+    const lower = token.toLowerCase();
+    const isHonorific = honorifics.has(lower);
+
+    if (nameWordCount >= 2 && companyWords.has(lower)) break;
+    if (nameWordCount >= 1 && /^(AE|SSE|DGM|GM)$/.test(token)) break;
+    if (nameWordCount >= 2 && /^[A-Z]{2,}$/.test(token)) break;
+
+    cleanedWords.push(word);
+    if (!isHonorific) nameWordCount += 1;
   }
+
+  return cleanedWords.join(" ").replace(/\s+/g, " ").trim() || name;
 }
 
-/* ── Modal ── */
-function Modal({ c, onClose }) {
-  if (!c) return null;
-  const cfg = typeConfig[c.type] ?? { badge: "bg-slate-100 text-slate-600", icon: Award };
-  const Icon = cfg.icon;
+const rows = contributions
+  .map((item) => ({
+    id: item.id,
+    name: cleanAlumniName(item.name),
+    year: Number(item.contributionYear || item.year),
+    branch: item.departmentKey,
+    passoutYear: item.passoutYear || "-",
+    contribution: item.contribution,
+    contributionDate: item.contributionDate,
+    details: item.details,
+  }))
+  .filter((item) => YEARS.includes(item.year) && item.branch)
+  .sort((a, b) => a.name.localeCompare(b.name));
 
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
-      onClick={onClose}
-    >
-      <div
-        className="relative w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl bg-white"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-10 bg-black/40 hover:bg-black/60 text-white rounded-full p-1.5 transition"
-        >
-          <X size={18} />
-        </button>
-
-        {/* Donation image — top half */}
-        <div className="relative h-64 w-full bg-slate-100">
-          {c.donationImage ? (
-            <img src={c.donationImage} alt={c.description} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full bg-slate-100" />
-          )}
-          <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
-
-          {/* Type badge */}
-          <span className={`absolute top-4 left-4 flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${cfg.badge} bg-white/80 backdrop-blur-sm`}>
-            <Icon size={11} /> {TYPE_LABELS[c.type] || c.type}
-          </span>
-
-          {/* Alumni photo overlapping bottom edge */}
-          <div className="absolute -bottom-10 left-6">
-            <img
-              src={c.photo}
-              alt={c.name}
-              className="w-20 h-20 rounded-full object-cover ring-4 ring-white shadow-xl"
-              onError={(e) => { e.target.style.display = "none"; }}
-            />
-          </div>
-        </div>
-
-        {/* Bottom panel */}
-        <div className="pt-12 px-6 pb-6 flex flex-col gap-4">
-          <div>
-            <p className="text-slate-900 text-2xl font-extrabold leading-tight">{c.name}</p>
-            <p className="text-slate-500 text-sm mt-1">
-              {c.type === "Donation" ? fmtINR(c.amount) : <>Batch {c.batch}&nbsp;·&nbsp;{c.branch}</>}
-            </p>
-          </div>
-          <div className="border-t border-slate-200" />
-          <p className="text-slate-700 text-base leading-7">{c.description}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Card ── */
-function ContributionCard({ c, onClick }) {
-  const cfg   = typeConfig[c.type] ?? { badge: "bg-slate-100 text-slate-600", icon: Award };
-  const Icon  = cfg.icon;
-  const title = getBannerTitle(c.donationImage);
-
+function TabButton({ active, children, onClick }) {
   return (
     <button
       type="button"
+      aria-pressed={active}
       onClick={onClick}
-      className="group w-full text-left overflow-hidden rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-lg transition-shadow"
+      className={`rounded-full border px-4 py-2 text-sm font-bold transition ${
+        active
+          ? "border-blue-700 bg-blue-700 text-white shadow-sm"
+          : "border-blue-100 bg-white text-slate-600 hover:border-blue-300 hover:bg-blue-50"
+      }`}
     >
-      {/* Image with type badge overlay */}
-      <div className="relative h-52 overflow-hidden">
-        <img
-          src={c.donationImage}
-          alt={title}
-          className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-          loading="lazy"
-        />
-        <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur-sm">
-          <Icon size={10} /> {c.type}
-        </span>
-      </div>
-
-      {/* Content */}
-      <div className="p-4">
-        {/* Branch as location */}
-        <p className="flex items-center gap-1 text-xs text-slate-400">
-          <MapPin size={11} className="shrink-0" />
-          {c.branch}
-        </p>
-
-        {/* Title */}
-        <h3 className="mt-1 text-base font-extrabold text-slate-800 leading-snug">
-          {title}
-        </h3>
-
-        {/* Stats row — donor name below the card, amount or batch alongside */}
-        <div className="mt-3 flex items-center gap-4 border-b border-slate-100 pb-3 text-xs text-slate-500">
-          <span className="flex items-center gap-1 text-base font-bold text-slate-800">
-            <Users size={14} className="shrink-0 text-slate-400" />
-            {c.name}
-          </span>
-          <span className="flex items-center gap-1">
-            {c.type === "Donation" ? (
-              <span className="text-lg font-extrabold text-amber-500">{fmtINR(c.amount)}</span>
-            ) : (
-              <>
-                <GraduationCap size={12} className="shrink-0 text-slate-400" />
-                Batch {c.batch}
-              </>
-            )}
-          </span>
-        </div>
-
-        {/* Footer: description + CTA */}
-        <div className="mt-3 flex items-center justify-between gap-3">
-          <p className="text-xs text-slate-400 line-clamp-1 flex-1">
-            {c.description}
-          </p>
-          <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-emerald-700 px-4 py-1.5 text-xs font-semibold text-white">
-            Explore <ArrowRight size={12} />
-          </span>
-        </div>
-      </div>
+      {children}
     </button>
   );
 }
 
-/* ── Summary bar ── */
-function SummaryBar({ data }) {
-  const counts = data.reduce((acc, c) => { acc[c.type] = (acc[c.type] || 0) + 1; return acc; }, {});
+function ContributionTable({ data, selectedBranch, selectedYear }) {
+  const branchLabel = BRANCHES.find((branch) => branch.value === selectedBranch)?.label;
+
   return (
-    <div className="mb-8 flex flex-wrap gap-3">
-      {Object.keys(TYPE_LABELS).map((type) => (
-        <div key={type} className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-600">
-          {type}
-          <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-bold text-slate-700">
-            {counts[type] || 0}
-          </span>
+    <div className="overflow-hidden rounded-lg border border-blue-100 bg-white shadow-sm">
+      <div className="flex flex-col gap-2 border-b border-blue-100 bg-slate-50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">
+            Selected List
+          </p>
+          <h3 className="mt-1 text-lg font-extrabold text-slate-900">
+            {branchLabel} alumni contributions for {selectedYear}
+          </h3>
         </div>
-      ))}
+        <span className="inline-flex w-fit items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-800">
+          <Users size={14} />
+          {data.length} {data.length === 1 ? "entry" : "entries"}
+        </span>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-slate-100 text-left">
+          <thead className="bg-white">
+            <tr>
+              <th className="px-4 py-3 text-xs font-extrabold uppercase tracking-wide text-slate-500">
+                Name
+              </th>
+              <th className="px-4 py-3 text-xs font-extrabold uppercase tracking-wide text-slate-500">
+                Passout Year
+              </th>
+              <th className="px-4 py-3 text-xs font-extrabold uppercase tracking-wide text-slate-500">
+                Contribution
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {data.length > 0 ? (
+              data.map((row) => (
+                <tr key={row.id} className="align-top">
+                  <td className="px-4 py-4 text-sm font-bold text-slate-900">
+                    {row.name}
+                  </td>
+                  <td className="px-4 py-4 text-sm text-slate-600">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 font-semibold">
+                      <GraduationCap size={14} />
+                      {row.passoutYear}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4 text-sm leading-6 text-slate-700">
+                    <p>{row.contribution || "-"}</p>
+                    {(row.contributionDate || row.details) && (
+                      <p className="mt-1 text-xs font-semibold text-slate-500">
+                        {[row.contributionDate && `Date: ${row.contributionDate}`, row.details]
+                          .filter(Boolean)
+                          .join(" | ")}
+                      </p>
+                    )}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={3} className="px-4 py-10 text-center text-sm font-semibold text-slate-500">
+                  No alumni contributions are available for this year and branch yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
 
-/* ── Page ── */
 function Contribution() {
-  const [selected, setSelected] = useState(null);
+  const [selectedYear, setSelectedYear] = useState(null);
+  const [selectedBranch, setSelectedBranch] = useState("");
+
+  const filteredRows = useMemo(() => {
+    if (!selectedYear || !selectedBranch) return [];
+
+    return rows.filter(
+      (item) => item.year === selectedYear && item.branch === selectedBranch,
+    );
+  }, [selectedBranch, selectedYear]);
+
+  const showList = Boolean(selectedYear && selectedBranch);
 
   return (
-    <>
-      <PageShell eyebrow="Alumni Support" title="Contribution">
-        <SummaryBar data={allContributions} />
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {allContributions.map((c) => (
-            <ContributionCard
-              key={c.id}
-              c={c}
-              onClick={() => setSelected(c)}
-            />
-          ))}
-        </div>
-      </PageShell>
+    <PageShell eyebrow="Alumni Support" title="Contribution">
+      <div className="space-y-8">
+        <section className="rounded-lg border border-blue-100 bg-blue-50/50 p-4 md:p-5">
+          <div className="flex items-start gap-3">
+            <div className="rounded-lg bg-white p-2 text-blue-700 shadow-sm">
+              <BookOpen size={20} />
+            </div>
+            <div>
+              <h3 className="text-lg font-extrabold text-slate-900">
+                Select passout year and branch
+              </h3>
+              <p className="mt-1 text-sm leading-6 text-slate-600">
+                The contribution list appears after both tabs are selected.
+              </p>
+            </div>
+          </div>
+        </section>
 
-      {selected && (
-        <Modal c={selected} onClose={() => setSelected(null)} />
-      )}
-    </>
+        <section>
+          <div className="mb-3 flex items-center gap-2 text-sm font-extrabold text-slate-800">
+            <GraduationCap size={18} className="text-blue-700" />
+            Passout Year
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {YEARS.map((year) => (
+              <TabButton
+                key={year}
+                active={selectedYear === year}
+                onClick={() => setSelectedYear(year)}
+              >
+                {year}
+              </TabButton>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <div className="mb-3 flex items-center gap-2 text-sm font-extrabold text-slate-800">
+            <Layers size={18} className="text-blue-700" />
+            Branch
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {BRANCHES.map((branch) => (
+              <TabButton
+                key={branch.value}
+                active={selectedBranch === branch.value}
+                onClick={() => setSelectedBranch(branch.value)}
+              >
+                {branch.label}
+              </TabButton>
+            ))}
+          </div>
+        </section>
+
+        {showList ? (
+          <ContributionTable
+            data={filteredRows}
+            selectedBranch={selectedBranch}
+            selectedYear={selectedYear}
+          />
+        ) : (
+          <div className="rounded-lg border border-dashed border-blue-200 bg-white px-4 py-8 text-center text-sm font-semibold text-slate-500">
+            Choose one year and one branch to view alumni name, passout year, and contribution.
+          </div>
+        )}
+      </div>
+    </PageShell>
   );
 }
 
