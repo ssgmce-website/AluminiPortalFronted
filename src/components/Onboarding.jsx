@@ -49,7 +49,7 @@ export const Onboarding = () => {
       yearOfAdmission: Number(values.yearOfAdmission),
       yearOfPassout: Number(values.yearOfPassout),
     });
-    setUserProfile(data.user);
+    setUserProfile(data.data.user);
   };
 
   return (

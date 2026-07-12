@@ -32,19 +32,12 @@ export const PendingApproval = () => {
       const { data } = await api.post('/auth/check-email', { email: currentUser.email });
       const status = data?.data?.status;
       
-      // If status has changed from pending, sync/refresh the profile
-      if (status && status !== 'pending') {
-        const profile = await refreshProfile();
-        if (profile && (profile.role === 'admin' || profile.status === 'approved')) {
-          navigate(routeForProfile(profile), { replace: true });
-        }
-      } else {
-        // Still pending, just refresh the profile in context anyway
-        await refreshProfile();
+      const profile = await refreshProfile();
+      if (profile && (profile.role === 'admin' || profile.status === 'approved')) {
+        navigate(routeForProfile(profile), { replace: true });
       }
     } catch (err) {
       console.error('Failed to check email status:', err);
-      // Fallback
       await refreshProfile();
     } finally {
       setChecking(false);
