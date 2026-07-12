@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { adminLogout } from '../services/adminAuth';
 import { fetchRequests } from '../services/adminService';
-import logo from '../assets/logo.jpeg';
+import logo from '../assets/logo.png';
 import '../styles/admin-dark.css';
 
 const NAV_SECTIONS = [
@@ -20,38 +20,38 @@ const NAV_SECTIONS = [
   {
     label: 'Members',
     items: [
-      { label: 'Pending',   icon: Clock,        to: '/admin/members',           end: true },
-      { label: 'Approved',  icon: CheckCircle2, to: '/admin/members/approved' },
-      { label: 'Rejected',  icon: XCircle,      to: '/admin/members/rejected' },
-      { label: 'Dept-wise', icon: LayoutGrid,   to: '/admin/members/dept-wise' },
+      { label: 'Pending', icon: Clock, to: '/admin/members', end: true },
+      { label: 'Approved', icon: CheckCircle2, to: '/admin/members/approved' },
+      { label: 'Rejected', icon: XCircle, to: '/admin/members/rejected' },
+      { label: 'Dept-wise', icon: LayoutGrid, to: '/admin/members/dept-wise' },
     ],
   },
   {
     label: 'Events',
     items: [
       { label: 'Current Meet Reg', icon: CalendarClock, to: '/admin/events/current' },
-      { label: 'Old Meet Reg',     icon: History,       to: '/admin/events/old' },
+      { label: 'Old Meet Reg', icon: History, to: '/admin/events/old' },
     ],
   },
   {
     label: 'Finances',
     items: [
-      { label: 'Donations',     icon: Heart,      to: '/admin/finances/donations' },
+      { label: 'Donations', icon: Heart, to: '/admin/finances/donations' },
       { label: 'Contributions', icon: TrendingUp, to: '/admin/finances/contributions' },
     ],
   },
   {
     label: 'Travel',
     items: [
-      { label: 'Plans',         icon: Navigation, to: '/admin/travel/plans' },
-      { label: 'Accommodation', icon: Hotel,      to: '/admin/travel/accommodation' },
+      { label: 'Plans', icon: Navigation, to: '/admin/travel/plans' },
+      { label: 'Accommodation', icon: Hotel, to: '/admin/travel/accommodation' },
     ],
   },
   {
     label: 'Posts',
     items: [
-      { label: 'Jobs',           icon: Briefcase,     to: '/admin/posts/jobs' },
-      { label: 'Activities',     icon: Activity,      to: '/admin/posts/activities' },
+      { label: 'Jobs', icon: Briefcase, to: '/admin/posts/jobs' },
+      { label: 'Activities', icon: Activity, to: '/admin/posts/activities' },
       { label: 'Guest Lectures', icon: GraduationCap, to: '/admin/posts/guest-lectures' },
     ],
   },
@@ -69,15 +69,15 @@ export const AdminLayout = () => {
     setIsDark(prev => {
       const next = !prev;
       try { localStorage.setItem('adminTheme', next ? 'dark' : 'light'); }
-      catch {}
+      catch { }
       return next;
     });
   };
 
   // ── Notifications ──────────────────────────────────────────────────────────
-  const [showNotif, setShowNotif]   = useState(false);
-  const [notifs, setNotifs]         = useState([]);
-  const [readIds, setReadIds]       = useState(() => {
+  const [showNotif, setShowNotif] = useState(false);
+  const [notifs, setNotifs] = useState([]);
+  const [readIds, setReadIds] = useState(() => {
     try { return new Set(JSON.parse(localStorage.getItem('adminNotifRead') || '[]')); }
     catch { return new Set(); }
   });
@@ -87,18 +87,18 @@ export const AdminLayout = () => {
     fetchRequests('pending')
       .then(data => {
         const items = (data.requests || []).map(u => ({
-          id:      u.id,
-          name:    u.name || 'Unknown',
-          email:   u.email || '',
-          branch:  u.branch || '',
+          id: u.id,
+          name: u.name || 'Unknown',
+          email: u.email || '',
+          branch: u.branch || '',
           initial: (u.name?.[0] || '?').toUpperCase(),
-          date:    u.createdAt
+          date: u.createdAt
             ? new Date(u.createdAt).toLocaleDateString('en-IN')
             : '',
         }));
         setNotifs(items);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // Close dropdown on outside click
@@ -119,7 +119,7 @@ export const AdminLayout = () => {
     const all = new Set(notifs.map(n => n.id));
     setReadIds(all);
     try { localStorage.setItem('adminNotifRead', JSON.stringify([...all])); }
-    catch {}
+    catch { }
   };
 
   const markRead = id => {
@@ -127,7 +127,7 @@ export const AdminLayout = () => {
       const next = new Set(prev);
       next.add(id);
       try { localStorage.setItem('adminNotifRead', JSON.stringify([...next])); }
-      catch {}
+      catch { }
       return next;
     });
   };
@@ -348,17 +348,15 @@ export const AdminLayout = () => {
                         className={({ isActive }) => {
                           const base = 'flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-all duration-200';
                           if (isActive) {
-                            return `${base} font-semibold ${
-                              isDark
+                            return `${base} font-semibold ${isDark
                                 ? 'bg-white text-[#13152c] shadow-sm'
                                 : 'bg-[#1b1e36] text-white shadow-sm'
-                            }`;
+                              }`;
                           }
-                          return `${base} ${
-                            isDark
+                          return `${base} ${isDark
                               ? 'text-[#9da0be] hover:bg-white/10 hover:text-white hover:shadow-[0_2px_10px_rgba(0,0,0,0.35)]'
                               : 'text-gray-500 hover:bg-white hover:text-gray-900 hover:shadow-md'
-                          }`;
+                            }`;
                         }}
                       >
                         <Icon size={14} className="shrink-0" />

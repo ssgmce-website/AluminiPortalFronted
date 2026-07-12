@@ -2,7 +2,7 @@ import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import { logout } from '../services/authService';
 import { useAuth } from '../contexts/AuthContext';
-import logo from '../assets/logo.jpeg';
+import logo from '../assets/logo.png';
 
 export const DashboardLayout = () => {
   const { userProfile } = useAuth();
