@@ -45,6 +45,15 @@ export const AuthCallback = () => {
         navigate('/register?error=missing_details', { replace: true });
         return;
       }
+
+      const verifiedEmail = auth.currentUser?.email;
+      if (verifiedEmail && verifiedEmail.toLowerCase().trim() !== details.email.toLowerCase().trim()) {
+        clearAuthIntent();
+        await logout();
+        navigate(`/register?error=${encodeURIComponent(`The verified email (${verifiedEmail}) does not match the email entered in the registration form (${details.email}).`)}`, { replace: true });
+        return;
+      }
+
       setStatus('Submitting your registration…');
       try {
         const { user } = await registerWithBackend(details);

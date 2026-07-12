@@ -13,7 +13,9 @@ import {
   checkEmailRegistered,
   setAuthIntent,
   clearAuthIntent,
+  logout,
 } from '../services/authService';
+import { auth } from '../firebase/firebase';
 import { friendlyAuthError } from '../utils/authErrors';
 import { routeForProfile } from '../utils/authRoutes';
 import { useAuth } from '../contexts/AuthContext';
@@ -450,6 +452,13 @@ export const Register = () => {
       setAuthIntent('register', details);
       const popped = await googleAuth();
       if (popped) {
+        const verifiedEmail = auth.currentUser?.email;
+        if (verifiedEmail && verifiedEmail.toLowerCase().trim() !== details.email.toLowerCase().trim()) {
+          clearAuthIntent();
+          await logout();
+          setError(`The email address of the Google account you signed into (${verifiedEmail}) does not match the email you entered in the registration form (${details.email}). Please use the correct Google account or update the form.`);
+          return;
+        }
         const { user } = await registerWithBackend(details);
         clearAuthIntent();
         finish(user);
