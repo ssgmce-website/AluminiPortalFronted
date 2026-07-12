@@ -21,6 +21,9 @@ import { routeForProfile } from '../utils/authRoutes';
 import { useAuth } from '../contexts/AuthContext';
 import logo from '../assets/logo.png';
 import resisterBg from '../assets/REGISITER.png';
+import { Controller } from "react-hook-form";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const currentYear = new Date().getFullYear();
@@ -52,7 +55,15 @@ const schema = z
       .string()
       .regex(/^\d{10}$/, 'Enter a valid 10-digit mobile number'),
     profilePhoto: z.string().min(1, 'Profile photo is required'),
-    dob: z.string().min(1, 'Date of birth is required'),
+    dob: z.union([
+      z.date(),
+      z.string().min(1, 'Date of birth is required'),
+    ]).refine((val) => {
+      if (val instanceof Date) {
+        return !isNaN(val.getTime());
+      }
+      return val && val.trim().length > 0;
+    }, { message: 'Date of birth is required' }),
     gender: z.string().min(1, 'Please select your gender'),
     address: z.string().min(1, 'Address is required'),
     city: z.string().min(1, 'City is required'),
@@ -305,6 +316,7 @@ export const Register = () => {
     getValues,
     watch,
     setValue,
+    control,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(schema),
@@ -611,11 +623,11 @@ export const Register = () => {
                   <div className="space-y-4">
                     <p className="text-[11px] font-bold tracking-wider text-gray-400 uppercase mb-2 px-1">Personal Information</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Name */}
+                      {/*Full Name */}
                       <div>
                         <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
                           <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                            Name<span className="text-red-500 ml-0.5">*</span>
+                            Full Name<span className="text-red-500 ml-0.5">*</span>
                           </span>
                           <input
                             {...register('name')}
@@ -666,10 +678,23 @@ export const Register = () => {
                           <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
                             DOB<span className="text-red-500 ml-0.5">*</span>
                           </span>
-                          <input
-                            {...register('dob')}
-                            type="date"
-                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                          <Controller
+                            control={control}
+                            name="dob"
+                            render={({ field }) => (
+                              <DatePicker
+                                selected={field.value ? new Date(field.value) : null}
+                                onChange={(date) => field.onChange(date)}
+                                dateFormat="dd/MM/yy"
+                                placeholderText="DD/MM/YY"
+                                className="w-full px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                                wrapperClassName="flex-1"
+                                showMonthDropdown
+                                showYearDropdown
+                                dropdownMode="select"
+                                maxDate={new Date()}
+                              />
+                            )}
                           />
                         </div>
                         <FieldError message={errors.dob?.message} />
@@ -709,11 +734,11 @@ export const Register = () => {
                         <FieldError message={errors.address?.message} />
                       </div>
 
-                      {/* City */}
+                      {/* district */}
                       <div>
                         <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
                           <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                            City<span className="text-red-500 ml-0.5">*</span>
+                            district<span className="text-red-500 ml-0.5">*</span>
                           </span>
                           <input
                             {...register('city')}
