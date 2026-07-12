@@ -11,3 +11,9 @@ export const approveRequest = (id) =>
 
 export const rejectRequest = (id, reason) =>
   adminApi.patch(`/admin/requests/${id}/reject`, { reason }).then((r) => r.data.data);
+
+export const fetchEventRegistrations = (year) =>
+  adminApi.get('/event/admin/registrations', { params: { year } }).then((r) => r.data.data);
+
+export const updateEventAttendance = (id, attendanceStatus) =>
+  adminApi.patch(`/event/admin/registrations/${id}/attendance`, { attendanceStatus }).then((r) => r.data.data);
