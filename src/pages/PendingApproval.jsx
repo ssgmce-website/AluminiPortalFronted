@@ -5,6 +5,7 @@ import { Clock, ShieldCheck, RefreshCw, LogOut, XCircle, Loader2 } from 'lucide-
 import { useAuth } from '../contexts/AuthContext';
 import { logout } from '../services/authService';
 import { routeForProfile } from '../utils/authRoutes';
+import api from '../services/api';
 
 export const PendingApproval = () => {
   const { currentUser, userProfile, refreshProfile } = useAuth();
@@ -26,11 +27,28 @@ export const PendingApproval = () => {
   const handleCheck = async () => {
     setChecking(true);
     setJustChecked(false);
-    const profile = await refreshProfile();
-    setChecking(false);
-    setJustChecked(true);
-    if (profile && (profile.role === 'admin' || profile.status === 'approved')) {
-      navigate(routeForProfile(profile), { replace: true });
+    try {
+      // Call the check-email API to see if approval status has changed
+      const { data } = await api.post('/auth/check-email', { email: currentUser.email });
+      const status = data?.data?.status;
+      
+      // If status has changed from pending, sync/refresh the profile
+      if (status && status !== 'pending') {
+        const profile = await refreshProfile();
+        if (profile && (profile.role === 'admin' || profile.status === 'approved')) {
+          navigate(routeForProfile(profile), { replace: true });
+        }
+      } else {
+        // Still pending, just refresh the profile in context anyway
+        await refreshProfile();
+      }
+    } catch (err) {
+      console.error('Failed to check email status:', err);
+      // Fallback
+      await refreshProfile();
+    } finally {
+      setChecking(false);
+      setJustChecked(true);
     }
   };
 

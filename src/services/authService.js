@@ -42,18 +42,18 @@ export const clearAuthIntent = () => {
 // ── Backend calls ────────────────────────────────────────────────────────────────
 
 // LOGIN: resolve the existing account. Throws (404) if the email isn't registered.
-export const loginWithBackend = () => api.post('/auth/sync').then((r) => r.data);
+export const loginWithBackend = () => api.post('/auth/sync').then((r) => r.data.data);
 
 // UPDATE PROFILE: patch editable fields on an approved account.
-export const updateProfile = (data) => api.put('/user/profile', data).then((r) => r.data);
+export const updateProfile = (data) => api.put('/user/profile', data).then((r) => r.data.data);
 
 // REGISTER: create a pending account from the verified email + alumni details.
 export const registerWithBackend = (details) =>
-  api.post('/auth/register', details).then((r) => r.data);
+  api.post('/auth/register', details).then((r) => r.data.data);
 
 // Is this email already registered? Used before sending an email sign-in link.
 export const checkEmailRegistered = (email) =>
-  api.post('/auth/check-email', { email }).then((r) => r.data);
+  api.post('/auth/check-email', { email }).then((r) => r.data.data);
 
 // ── Email OTP (Firebase passwordless email link) ───────────────────────────────
 
@@ -73,7 +73,7 @@ export const requestEmailOtp = async (email) => {
   const { data } = await api.post('/auth/send-passwordless-email-link', { email });
   await sendSignInLinkToEmail(auth, email, actionCodeSettings());
   window.localStorage.setItem(EMAIL_FOR_SIGNIN_KEY, email);
-  return data; // { success, remaining }
+  return data.data; // { success, remaining }
 };
 
 /** True if the current URL is a Firebase email sign-in link. */
