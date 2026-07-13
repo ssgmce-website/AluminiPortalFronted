@@ -13,7 +13,6 @@ const quickLinks = [
   { label: "SSGMCE News", path: "https://www.ssgmce.ac.in/news" },
   { label: "Contribution", path: "/contribution" },
   { label: "Newsletter", path: "/newsletter" },
-  { label: "Donation", path: "/donation" },
   { label: "Event Registration", path: "/event/registration" },
   { label: "Contact", path: "/contact" },
 ];
