@@ -108,9 +108,7 @@ function Navbar() {
     { label: "SSGMCE ALUMNI CELL", path: "/about/alumni-cell" },
     { label: "Executive Team", path: "/about/executive-team" },
     { label: "Activity Organized", path: "/about/activity-organized" },
-    { label: "Distinguished Alumni", path: "/about/distinguished-alumni" },
-    { label: "Annual Report", path: "/about/annual-report" },
-  ];
+, ];
 
   const membershipItems = [
     { label: "Nomination", path: "/membership/nomination" },
@@ -218,7 +216,7 @@ function Navbar() {
               active={location.pathname.startsWith("/event")}
               onNavigate={closeMobileMenu}
             />
-
+            
             <NavLink
               to="/contact"
               onClick={closeMobileMenu}
