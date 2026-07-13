@@ -5,7 +5,7 @@ import {
   GraduationCap, AlertTriangle, LayoutGrid, ChevronDown, ChevronRight, Download, IdCard,
   Briefcase, User as UserIcon, Heart, Link2,
 } from 'lucide-react';
-import { fetchRequests, approveRequest, rejectRequest } from '../../services/adminService';
+import { fetchRequests, approveRequest, rejectRequest, fetchDeptWiseAlumni } from '../../services/adminService';
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -227,22 +227,17 @@ const MemberCard = ({ u, onApprove, onReject, actingId }) => {
   );
 };
 
-const DeptWiseView = ({ members }) => {
+const DeptWiseView = ({ groups }) => {
   const [expanded, setExpanded] = useState({});
-  const groups = members.reduce((acc, m) => {
-    const key = m.branch || m.course || 'Unspecified';
-    (acc[key] = acc[key] || []).push(m);
-    return acc;
-  }, {});
-
-  const sorted = Object.entries(groups).sort(([, a], [, b]) => b.length - a.length);
+  const sorted = Object.entries(groups || {}).sort(([, a], [, b]) => b.length - a.length);
   const max = sorted[0]?.[1].length || 1;
 
   const downloadCSV = () => {
     const header = ['Name', 'Email', 'Department', 'Batch', 'Course'];
+    const allMembers = Object.values(groups || {}).flat();
     const lines = [
       header.join(','),
-      ...members.map(m =>
+      ...allMembers.map(m =>
         [
           `"${m.name || ''}"`,
           `"${m.email || ''}"`,
@@ -354,6 +349,7 @@ const TAB_META = {
 
 export const MembersPanel = ({ tab }) => {
   const [members, setMembers]   = useState([]);
+  const [deptGroups, setDeptGroups] = useState({});
   const [counts, setCounts]     = useState({ pending: 0, approved: 0, rejected: 0 });
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState('');
@@ -365,15 +361,21 @@ export const MembersPanel = ({ tab }) => {
     setLoading(true);
     setError('');
     try {
-      const data = await fetchRequests(apiStatus);
-      setMembers(data.requests || []);
-      if (data.counts) setCounts(data.counts);
+      if (tab === 'dept-wise') {
+        const data = await fetchDeptWiseAlumni();
+        setDeptGroups(data.grouped || {});
+        if (data.counts) setCounts(data.counts);
+      } else {
+        const data = await fetchRequests(apiStatus);
+        setMembers(data.requests || []);
+        if (data.counts) setCounts(data.counts);
+      }
     } catch (err) {
       setError(err?.response?.data?.message || err.message);
     } finally {
       setLoading(false);
     }
-  }, [apiStatus]);
+  }, [tab, apiStatus]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -404,6 +406,10 @@ export const MembersPanel = ({ tab }) => {
   };
 
   const { label, icon: TitleIcon } = TAB_META[tab] || TAB_META.pending;
+
+  const isListEmpty = tab === 'dept-wise'
+    ? Object.keys(deptGroups).length === 0
+    : members.length === 0;
 
   return (
     <div className="space-y-6">
@@ -454,13 +460,13 @@ export const MembersPanel = ({ tab }) => {
         <div className="flex justify-center py-16 text-gray-400">
           <Loader2 size={28} className="animate-spin" />
         </div>
-      ) : members.length === 0 ? (
+      ) : isListEmpty ? (
         <div className="text-center py-16 text-gray-400">
           <Users size={36} className="mx-auto mb-3" />
           <p className="text-sm">No {tab === 'dept-wise' ? 'approved' : tab} members.</p>
         </div>
       ) : tab === 'dept-wise' ? (
-        <DeptWiseView members={members} />
+        <DeptWiseView groups={deptGroups} />
       ) : (
         <div className="space-y-3">
           {members.map(u => (

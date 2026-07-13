@@ -17,3 +17,6 @@ export const fetchEventRegistrations = (year) =>
 
 export const updateEventAttendance = (id, attendanceStatus) =>
   adminApi.patch(`/event/admin/registrations/${id}/attendance`, { attendanceStatus }).then((r) => r.data.data);
+
+export const fetchDeptWiseAlumni = () =>
+  adminApi.get('/admin/dept-wise').then((r) => r.data.data);
