@@ -1,163 +1,397 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Calendar, CalendarClock, History, Users, MapPin } from 'lucide-react';
-
-const CURRENT_EVENTS = [
-  { id: 1, name: 'Annual Alumni Meet 2025',  date: '2025-03-15', venue: 'SSGMCE Auditorium', registrations: 148, capacity: 200, status: 'open' },
-  { id: 2, name: 'Tech Summit 2025',          date: '2025-04-22', venue: 'Computer Hall',      registrations: 74,  capacity: 100, status: 'open' },
-  { id: 3, name: 'Alumni Sports Day 2025',    date: '2025-05-10', venue: 'Sports Ground',      registrations: 55,  capacity: 80,  status: 'open' },
-];
-
-const OLD_EVENTS = [
-  { id: 4, name: 'Annual Alumni Meet 2024',     date: '2024-03-12', venue: 'SSGMCE Auditorium', registrations: 182, capacity: 200, status: 'closed' },
-  { id: 5, name: 'Industry Interaction 2024',   date: '2024-07-18', venue: 'Seminar Hall',       registrations: 90,  capacity: 100, status: 'closed' },
-  { id: 6, name: 'Annual Alumni Meet 2023',     date: '2023-03-10', venue: 'SSGMCE Auditorium', registrations: 167, capacity: 200, status: 'closed' },
-  { id: 7, name: 'Grand Reunion 2022',          date: '2022-12-20', venue: 'City Hotel',         registrations: 123, capacity: 150, status: 'closed' },
-];
-
-const REGISTRATIONS = {
-  1: [
-    { id: 1, name: 'Rajesh Kumar',  email: 'rajesh@example.com',  batch: '2015', branch: 'Computer',     registeredAt: '2025-02-10' },
-    { id: 2, name: 'Priya Sharma',  email: 'priya@example.com',   batch: '2018', branch: 'Electronics',  registeredAt: '2025-02-11' },
-    { id: 3, name: 'Amit Patel',    email: 'amit@example.com',    batch: '2016', branch: 'Mechanical',   registeredAt: '2025-02-12' },
-    { id: 4, name: 'Sneha Desai',   email: 'sneha@example.com',   batch: '2019', branch: 'Civil',        registeredAt: '2025-02-13' },
-    { id: 5, name: 'Vikram Singh',  email: 'vikram@example.com',  batch: '2014', branch: 'Computer',     registeredAt: '2025-02-14' },
-  ],
-  4: [
-    { id: 1, name: 'Suresh Mehta',  email: 'suresh@example.com',  batch: '2012', branch: 'Mechanical',   registeredAt: '2024-02-08' },
-    { id: 2, name: 'Kavita Rao',    email: 'kavita@example.com',  batch: '2015', branch: 'Electronics',  registeredAt: '2024-02-09' },
-    { id: 3, name: 'Deepak Nair',   email: 'deepak@example.com',  batch: '2010', branch: 'Civil',        registeredAt: '2024-02-10' },
-  ],
-};
-
-function EventCard({ event, isSelected, onClick }) {
-  const pct = Math.round((event.registrations / event.capacity) * 100);
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      onClick={() => onClick(event)}
-      className={`bg-white rounded-lg border p-4 cursor-pointer transition-colors ${
-        isSelected
-          ? 'border-blue-500 ring-2 ring-blue-50'
-          : 'border-gray-200 hover:border-blue-300'
-      }`}
-    >
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <h3 className="font-semibold text-gray-900">{event.name}</h3>
-        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 capitalize ${
-          event.status === 'open' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'
-        }`}>
-          {event.status}
-        </span>
-      </div>
-      <div className="space-y-1 text-sm text-gray-500 mb-3">
-        <div className="flex items-center gap-1.5"><Calendar size={13} /> {new Date(event.date).toLocaleDateString('en-IN')}</div>
-        <div className="flex items-center gap-1.5"><MapPin size={13} /> {event.venue}</div>
-        <div className="flex items-center gap-1.5"><Users size={13} /> {event.registrations} / {event.capacity} registered</div>
-      </div>
-      <div className="w-full bg-gray-100 rounded-full h-2">
-        <div
-          className={`h-2 rounded-full transition-all duration-500 ${pct >= 90 ? 'bg-red-500' : pct >= 70 ? 'bg-amber-500' : 'bg-blue-500'}`}
-          style={{ width: `${Math.min(100, pct)}%` }}
-        />
-      </div>
-      <p className="text-xs text-gray-400 mt-1 text-right">{pct}% capacity</p>
-    </motion.div>
-  );
-}
-
-function RegistrationsTable({ eventId }) {
-  const rows = REGISTRATIONS[eventId] || [
-    { id: 1, name: 'Sample Alumnus',  email: 'sample@example.com',  batch: '2015', branch: 'Computer',   registeredAt: '2025-01-01' },
-    { id: 2, name: 'Another Alumnus', email: 'another@example.com', batch: '2016', branch: 'Mechanical', registeredAt: '2025-01-02' },
-  ];
-  return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
-      <table className="w-full text-sm">
-        <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
-          <tr>
-            {['#', 'Name', 'Email', 'Branch', 'Batch', 'Registered On'].map(h => (
-              <th key={h} className="px-4 py-3 text-left">{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-50">
-          {rows.map((r, i) => (
-            <tr key={r.id} className="hover:bg-gray-50 transition-colors">
-              <td className="px-4 py-3 text-gray-400">{i + 1}</td>
-              <td className="px-4 py-3 font-medium text-gray-900">{r.name}</td>
-              <td className="px-4 py-3 text-gray-500">{r.email}</td>
-              <td className="px-4 py-3 text-gray-500">{r.branch}</td>
-              <td className="px-4 py-3 text-gray-500">{r.batch}</td>
-              <td className="px-4 py-3 text-gray-400">{new Date(r.registeredAt).toLocaleDateString('en-IN')}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
+import React, { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Calendar, CalendarClock, History, Users, MapPin, Search,
+  Filter, CheckCircle2, XCircle, Loader2, Download, Bus,
+  Train, Car, Home, Clock, Phone, Mail, Award, Check
+} from 'lucide-react';
+import { fetchEventRegistrations, updateEventAttendance } from '../../services/adminService';
+import { search } from 'fast-fuzzy';
 
 export const EventsPanel = ({ tab }) => {
-  const events = tab === 'current' ? CURRENT_EVENTS : OLD_EVENTS;
-  const [selected, setSelected] = useState(null);
+  // Current meet is 2026, old meets can be 2025, etc.
+  const targetYear = tab === 'current' ? '2026' : '2025';
+
+  const [registrations, setRegistrations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  // Search & Filter State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [accommFilter, setAccommFilter] = useState('all');
+  const [travelFilter, setTravelFilter] = useState('all');
+
+  // Updating feedback states
+  const [updatingIds, setUpdatingIds] = useState({});
+  const [successMsg, setSuccessMsg] = useState('');
+
+  // Load data
+  useEffect(() => {
+    loadRegistrations();
+  }, [targetYear]);
+
+  const loadRegistrations = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const data = await fetchEventRegistrations(targetYear);
+      setRegistrations(data.registrations || []);
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to load registration data.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAttendanceChange = async (regId, status) => {
+    try {
+      setUpdatingIds(prev => ({ ...prev, [regId]: true }));
+      await updateEventAttendance(regId, status);
+
+      // Update state local list
+      setRegistrations(prev =>
+        prev.map(r => r.id === regId ? { ...r, attendanceStatus: status } : r)
+      );
+
+      setSuccessMsg(`Attendance updated to ${status} successfully.`);
+      setTimeout(() => setSuccessMsg(''), 3000);
+    } catch (err) {
+      alert(err?.response?.data?.message || 'Failed to update attendance.');
+    } finally {
+      setUpdatingIds(prev => ({ ...prev, [regId]: false }));
+    }
+  };
+
+  // Filtered registrations using fast-fuzzy
+  const filteredRegistrations = useMemo(() => {
+    // 1. First apply structural dropdown filters
+    const matchesStructural = registrations.filter(r => {
+      const matchesStatus = statusFilter === 'all' || r.attendanceStatus === statusFilter;
+      const matchesAccomm = accommFilter === 'all' || r.accommodationRequired === accommFilter;
+      const matchesTravel = travelFilter === 'all' || r.travelDetails?.travelMode === travelFilter;
+      return matchesStatus && matchesAccomm && matchesTravel;
+    });
+
+    // 2. If no search query, return structural matches
+    if (!searchQuery.trim()) {
+      return matchesStructural;
+    }
+
+    // 3. Otherwise, use fast-fuzzy search with threshold 0.6
+    return search(searchQuery, matchesStructural, {
+      threshold: 1,
+      keySelector: (r) => [
+        r.alumnus?.name || '',
+        r.alumnus?.email || '',
+        r.alumnus?.alumniId || '',
+        r.alumnus?.branch || '',
+        r.alumnus?.yearOfPassout?.toString() || ''
+      ]
+    });
+  }, [registrations, searchQuery, statusFilter, accommFilter, travelFilter]);
+
+  // Export to Excel Helper
+  const handleExport = () => {
+    const rows = [
+      ['Alumni ID', 'Name', 'Email', 'Contact', 'Branch', 'Batch', 'Accommodation', 'Family Count', 'Travel Mode', 'Arrival Date', 'Arrival Time', 'Departure Date', 'Departure Time', 'Attendance'],
+      ...filteredRegistrations.map(r => [
+        r.alumnus?.alumniId || 'N/A',
+        r.alumnus?.name || 'N/A',
+        r.alumnus?.email || 'N/A',
+        r.alumnus?.contactNumber || 'N/A',
+        r.alumnus?.branch || 'N/A',
+        r.alumnus?.yearOfPassout || 'N/A',
+        r.accommodationRequired || 'No',
+        r.familyMembersCount || 0,
+        r.travelDetails?.travelMode || 'N/A',
+        r.travelDetails?.arrivalDate ? new Date(r.travelDetails.arrivalDate).toLocaleDateString('en-IN') : 'N/A',
+        r.travelDetails?.arrivalTime || 'N/A',
+        r.travelDetails?.departureDate ? new Date(r.travelDetails.departureDate).toLocaleDateString('en-IN') : 'N/A',
+        r.travelDetails?.departureTime || 'N/A',
+        r.attendanceStatus || 'registered'
+      ])
+    ];
+
+    const xml = `<?xml version="1.0"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+          xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+  <Worksheet ss:Name="Event Registrations">
+    <Table>
+      ${rows.map(row =>
+      `<Row>${row.map(cell =>
+        `<Cell><Data ss:Type="String">${String(cell).replace(/&/g, '&amp;').replace(/</g, '&lt;')}</Data></Cell>`
+      ).join('')}</Row>`
+    ).join('\n      ')}
+    </Table>
+  </Worksheet>
+</Workbook>`;
+
+    const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Meet-${targetYear}-Registrations.xls`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Stats calculation
+  const stats = useMemo(() => {
+    const total = registrations.length;
+    const present = registrations.filter(r => r.attendanceStatus === 'present').length;
+    const accomm = registrations.filter(r => r.accommodationRequired === 'Yes').length;
+    const family = registrations.reduce((sum, r) => sum + (r.familyMembersCount || 0), 0);
+
+    return { total, present, accomm, family };
+  }, [registrations]);
+
   const Icon = tab === 'current' ? CalendarClock : History;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <Icon size={24} className="text-blue-700" />
-          {tab === 'current' ? 'Current Meet Registrations' : 'Old Meet Registrations'}
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          {tab === 'current'
-            ? 'Upcoming events and their live registration details.'
-            : 'Past events and attendance records.'}
-        </p>
-      </div>
-
-      {/* Quick stats */}
-      <div className="flex gap-6 text-sm">
-        <span className="text-gray-500">{events.length} events</span>
-        <span className="text-gray-300">|</span>
-        <span className="text-gray-500">{events.reduce((s, e) => s + e.registrations, 0)} total registrations</span>
-        <span className="text-gray-300">|</span>
-        <span className="text-gray-500">
-          {Math.round(events.reduce((s, e) => s + e.registrations / e.capacity, 0) / (events.length || 1) * 100)}% avg. capacity
-        </span>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-3">
-          {events.map(event => (
-            <EventCard
-              key={event.id}
-              event={event}
-              isSelected={selected?.id === event.id}
-              onClick={e => setSelected(prev => prev?.id === e.id ? null : e)}
-            />
-          ))}
-        </div>
-
+      {/* Title block */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          {selected ? (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Users size={15} className="text-blue-700" />
-                <h2 className="font-semibold text-gray-800">Registrations — {selected.name}</h2>
-              </div>
-              <RegistrationsTable eventId={selected.id} />
+          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+            <Icon className="w-7 h-7 text-[#0A3287]" />
+            {tab === 'current' ? `Alumni Meet ${targetYear} Registrations` : `Past Meet ${targetYear} Records`}
+          </h1>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Manage registrations, view travel plans, accommodation requests, and track attendance.
+          </p>
+        </div>
+
+        {registrations.length > 0 && (
+          <button
+            onClick={handleExport}
+            className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition shadow-md shrink-0 cursor-pointer"
+          >
+            <Download size={14} /> Export to Excel
+          </button>
+        )}
+      </div>
+
+      {/* Analytics Stats Strip */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'Total Registered', value: stats.total, color: 'text-blue-700', bg: 'bg-blue-50 border-blue-100', icon: Users },
+          { label: 'Marked Present', value: stats.present, color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-100', icon: CheckCircle2 },
+          { label: 'Accommodations', value: stats.accomm, color: 'text-indigo-700', bg: 'bg-indigo-50 border-indigo-100', icon: Home },
+          { label: 'Accompanying Guests', value: stats.family, color: 'text-amber-700', bg: 'bg-amber-50 border-amber-100', icon: Users }
+        ].map((item, idx) => (
+          <div
+            key={idx}
+            className={`p-5 rounded-2xl border ${item.bg} flex items-center justify-between shadow-sm`}
+          >
+            <div>
+              <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">{item.label}</p>
+              <h3 className={`text-2xl font-black mt-1.5 ${item.color}`}>{loading ? '...' : item.value}</h3>
             </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-52 text-gray-400 border-2 border-dashed border-gray-200 rounded-xl">
-              <CalendarClock size={28} className="mb-2" />
-              <p className="text-sm">Select an event to view registrations</p>
-            </div>
-          )}
+            <item.icon className="w-8 h-8 opacity-20 text-slate-800" />
+          </div>
+        ))}
+      </div>
+
+      {/* Success Notification Banner */}
+      <AnimatePresence>
+        {successMsg && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-sm font-medium"
+          >
+            <CheckCircle2 size={16} className="text-emerald-600" />
+            {successMsg}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Filters Toolbar */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Search Box */}
+          <div className="relative md:col-span-1">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search by name, ID, branch..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 transition"
+            />
+          </div>
+
+          {/* Status Filter */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide shrink-0">Status</span>
+            <select
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none cursor-pointer"
+            >
+              <option value="all">All Attendance</option>
+              <option value="registered">Just Registered</option>
+              <option value="present">Present (Checked-in)</option>
+              <option value="absent">Absent</option>
+            </select>
+          </div>
+
+          {/* Travel Filter */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide shrink-0">Travel</span>
+            <select
+              value={travelFilter}
+              onChange={e => setTravelFilter(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none cursor-pointer"
+            >
+              <option value="all">All Travel Modes</option>
+              <option value="Train">Train</option>
+              <option value="Bus">Bus</option>
+              <option value="Own Vehicle">Own Vehicle</option>
+            </select>
+          </div>
+
+          {/* Accommodation Filter */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide shrink-0">Stay</span>
+            <select
+              value={accommFilter}
+              onChange={e => setAccommFilter(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none cursor-pointer"
+            >
+              <option value="all">All Lodging</option>
+              <option value="Yes">Needs Stay</option>
+              <option value="No">No Stay</option>
+            </select>
+          </div>
         </div>
       </div>
+
+      {/* Main Table / Data Loading View */}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <Loader2 className="w-10 h-10 animate-spin text-[#0A3287] mb-3" />
+          <p className="text-slate-500 font-medium">Fetching meet registrations from database...</p>
+        </div>
+      ) : error ? (
+        <div className="p-8 text-center bg-rose-50 border border-rose-100 rounded-2xl">
+          <XCircle className="w-12 h-12 text-rose-600 mx-auto mb-2" />
+          <h3 className="text-base font-bold text-slate-800">Failed to load</h3>
+          <p className="text-sm text-slate-500 mt-1">{error}</p>
+        </div>
+      ) : filteredRegistrations.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-slate-200 shadow-sm text-slate-400">
+          <Users size={40} className="mb-2 opacity-50" />
+          <p className="text-sm font-semibold">No registrations match the selected filters.</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-[11px] font-black text-slate-500 uppercase tracking-wider border-b border-slate-100">
+                <tr>
+                  <th className="px-6 py-4 text-left">Alumnus</th>
+                  <th className="px-6 py-4 text-left">Academic details</th>
+                  <th className="px-6 py-4 text-left">Travel mode & Arrival</th>
+                  <th className="px-6 py-4 text-center">Stay</th>
+                  <th className="px-6 py-4 text-center">Family Count</th>
+                  <th className="px-6 py-4 text-center">Attendance status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredRegistrations.map((reg) => (
+                  <tr key={reg.id} className="hover:bg-slate-50/50 transition-colors">
+                    {/* Alumnus Column */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        <div>
+                          <p className="font-bold text-slate-800">{reg.alumnus?.name || 'N/A'}</p>
+                          <p className="text-xs text-slate-400 font-semibold">{reg.alumnus?.alumniId || 'N/A'}</p>
+                          <div className="flex items-center gap-3 mt-1 text-[11px] text-slate-500">
+                            <span className="flex items-center gap-0.5"><Mail size={11} /> {reg.alumnus?.email || 'N/A'}</span>
+                            <span className="flex items-center gap-0.5"><Phone size={11} /> {reg.alumnus?.contactNumber || 'N/A'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Academic Column */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <p className="text-xs font-bold text-slate-700">{reg.alumnus?.branch || 'N/A'}</p>
+                      <p className="text-[11px] font-medium text-slate-400 mt-0.5">Batch: {reg.alumnus?.yearOfPassout || 'N/A'}</p>
+                    </td>
+
+                    {/* Travel Details Column */}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-1.5 font-bold text-xs text-slate-700">
+                        {reg.travelDetails?.travelMode === 'Train' && <Train size={13} className="text-blue-600" />}
+                        {reg.travelDetails?.travelMode === 'Bus' && <Bus size={13} className="text-indigo-600" />}
+                        {reg.travelDetails?.travelMode === 'Own Vehicle' && <Car size={13} className="text-emerald-600" />}
+                        <span>{reg.travelDetails?.travelMode || 'Not Provided'}</span>
+                      </div>
+
+                      {reg.travelDetails?.arrivalDate && (
+                        <p className="text-[10px] text-slate-500 mt-1 flex items-center gap-1">
+                          <Clock size={11} />
+                          Arr: {new Date(reg.travelDetails.arrivalDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} @ {reg.travelDetails.arrivalTime || 'N/A'}
+                        </p>
+                      )}
+                    </td>
+
+                    {/* Stay (Accommodation) Column */}
+                    <td className="px-6 py-4 text-center whitespace-nowrap">
+                      <span className={`inline-block text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase border ${reg.accommodationRequired === 'Yes'
+                          ? 'bg-blue-50 text-blue-700 border-blue-100'
+                          : 'bg-slate-100 text-slate-500 border-slate-200'
+                        }`}>
+                        {reg.accommodationRequired || 'No'}
+                      </span>
+                    </td>
+
+                    {/* Family Count Column */}
+                    <td className="px-6 py-4 text-center whitespace-nowrap font-bold text-slate-700">
+                      {reg.familyMembersCount || 0}
+                    </td>
+
+                    {/* Attendance Column with Toggle dropdown */}
+                    <td className="px-6 py-4 text-center whitespace-nowrap">
+                      <div className="inline-flex items-center gap-2">
+                        {updatingIds[reg.id] ? (
+                          <Loader2 size={14} className="animate-spin text-slate-400" />
+                        ) : null}
+
+                        <select
+                          value={reg.attendanceStatus || 'registered'}
+                          disabled={updatingIds[reg.id]}
+                          onChange={e => handleAttendanceChange(reg.id, e.target.value)}
+                          className={`text-xs font-bold rounded-xl px-3 py-1.5 border cursor-pointer focus:outline-none transition ${reg.attendanceStatus === 'present'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : reg.attendanceStatus === 'absent'
+                                ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                : 'bg-slate-50 text-slate-600 border-slate-200'
+                            }`}
+                        >
+                          <option value="registered">Registered</option>
+                          <option value="present">Present</option>
+                          <option value="absent">Absent</option>
+                        </select>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="bg-slate-50 px-6 py-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-500">
+            <span>Showing {filteredRegistrations.length} of {registrations.length} records</span>
+            <span>Alumni Meet {targetYear} Portal</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

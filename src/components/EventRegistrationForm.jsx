@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { 
-  Calendar, Clock, Train, Bus, Car, Users, 
-  CheckCircle2, Edit3, AlertTriangle, AlertCircle, 
-  ArrowRight, ShieldCheck, Home, Info, Loader2 
+import {
+  Calendar, Clock, Train, Bus, Car, Users,
+  CheckCircle2, Edit3, AlertTriangle, AlertCircle,
+  ArrowRight, ShieldCheck, Home, Info, Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  registerForEvent, 
-  getMyEventRegistration, 
-  updateEventRegistration 
+import {
+  registerForEvent,
+  getMyEventRegistration,
+  updateEventRegistration
 } from '../services/alumniService';
 
 const EVENT_YEAR = '2026';
@@ -169,7 +169,7 @@ export const EventRegistrationForm = () => {
       {/* Notifications */}
       <AnimatePresence>
         {successMsg && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
@@ -181,7 +181,7 @@ export const EventRegistrationForm = () => {
         )}
 
         {error && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
@@ -214,140 +214,220 @@ export const EventRegistrationForm = () => {
             </p>
           </div>
 
-          <div className="p-8 space-y-8">
-            {/* Travel Details Grid */}
-            <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
-                <Calendar className="w-4 h-4" /> Travel Information
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                <div>
-                  <p className="text-xs text-slate-400 font-medium">Travel Mode</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    {registration.travelDetails?.travelMode === 'Train' && <Train className="w-4 h-4 text-blue-600" />}
-                    {registration.travelDetails?.travelMode === 'Bus' && <Bus className="w-4 h-4 text-indigo-600" />}
-                    {registration.travelDetails?.travelMode === 'Own Vehicle' && <Car className="w-4 h-4 text-emerald-600" />}
-                    <span className="text-sm font-semibold text-slate-800">{registration.travelDetails?.travelMode || 'N/A'}</span>
+          <div className="p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Left side: Premium Pass Card */}
+            <div className="lg:col-span-5 flex flex-col items-center justify-start space-y-4">
+              <div
+                id="alumni-pass-card"
+                className="w-full max-w-[320px] bg-gradient-to-b from-[#0A3287] via-[#0D3BB0] to-[#041a4a] text-white rounded-3xl p-6 shadow-2xl relative overflow-hidden border-2 border-amber-400/30 flex flex-col justify-between min-h-[460px] text-center"
+              >
+                {/* Decorative gradients */}
+                <div className="absolute -top-10 -left-10 w-28 h-28 bg-white/5 rounded-full blur-xl animate-pulse" />
+                <div className="absolute -bottom-10 -right-10 w-28 h-28 bg-amber-400/5 rounded-full blur-xl animate-pulse" />
+
+                {/* Badge Top Header */}
+                <div className="relative pb-3 border-b border-white/10">
+                  <div className="text-[10px] uppercase font-bold tracking-widest text-amber-400">Official Entry Pass</div>
+                  <h4 className="text-sm font-black tracking-wide mt-0.5">SSGMCE SHEGAON</h4>
+                </div>
+
+                {/* QR Code Container */}
+                <div className="my-6 flex flex-col items-center justify-center bg-white p-4 rounded-2xl shadow-inner relative z-10 w-44 h-44 mx-auto border border-slate-100">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
+                      window.location.origin + '/event/scan-attendance/' + registration._id
+                    )}`}
+                    alt="Scan Attendance QR"
+                    className="w-36 h-36 object-contain"
+                  />
+                </div>
+
+                {/* Alumnus info */}
+                <div className="space-y-1 relative z-10">
+                  <h3 className="text-base font-black tracking-wide">{registration.user?.profile?.name || 'Alumnus'}</h3>
+                  <p className="text-[11px] font-bold text-amber-400/90 tracking-wider uppercase">
+                    ID: {registration.user?.alumniId || 'N/A'}
+                  </p>
+
+                  <div className="pt-2 flex justify-center items-center gap-3 text-[10px] text-white/70 font-semibold uppercase tracking-wider">
+                    <div>{registration.user?.academic?.branch || 'N/A'}</div>
+                    <div className="w-1 h-1 bg-white/30 rounded-full" />
+                    <div>Batch {registration.user?.academic?.yearOfPassout || 'N/A'}</div>
                   </div>
+
+                  {/* Alumini Image  */}
+                  {/* <div className="mt-6 pt-3 border-t border-white/10 flex justify-between items-center text-[9px] uppercase font-black tracking-wider text-white/50">
+                    <img src={registration.user?.profile?.profilePhoto || 'N/A'} alt="Alumini" className="w-36 h-36 object-contain" />
+                  </div> */}
                 </div>
 
-                <div>
-                  <p className="text-xs text-slate-400 font-medium">Arrival Details</p>
-                  <p className="text-sm font-semibold text-slate-800 mt-1">
-                    {registration.travelDetails?.arrivalDate 
-                      ? new Date(registration.travelDetails.arrivalDate).toLocaleDateString('en-IN') 
-                      : 'N/A'}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-slate-400" /> {registration.travelDetails?.arrivalTime || 'N/A'}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-xs text-slate-400 font-medium">Departure Details</p>
-                  <p className="text-sm font-semibold text-slate-800 mt-1">
-                    {registration.travelDetails?.departureDate 
-                      ? new Date(registration.travelDetails.departureDate).toLocaleDateString('en-IN') 
-                      : 'N/A'}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-slate-400" /> {registration.travelDetails?.departureTime || 'N/A'}
-                  </p>
+                {/* Badge Bottom Footer */}
+                <div className="mt-6 pt-3 border-t border-white/10 flex justify-between items-center text-[9px] uppercase font-black tracking-wider text-white/50">
+                  <span>Alumni Meet 2026</span>
+                  <span className="text-emerald-400 font-bold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" />
+                    {registration.attendanceStatus === 'present' ? 'Present' : 'Verified'}
+                  </span>
                 </div>
               </div>
+
+              {/* Print / Save Pass Button */}
+              <button
+                onClick={() => {
+                  const cardElement = document.getElementById("alumni-pass-card");
+                  if (cardElement) {
+                    const printContent = cardElement.outerHTML;
+                    const originalContent = document.body.innerHTML;
+                    document.body.innerHTML = `
+                      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+                        ${printContent}
+                      </div>
+                    `;
+                    window.print();
+                    window.location.reload();
+                  }
+                }}
+                className="w-full max-w-[320px] inline-flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs py-3 rounded-xl transition border border-slate-200/50 cursor-pointer shadow-sm"
+              >
+                Print Entry Pass
+              </button>
             </div>
 
-            {/* Travel Specifics (Conditional) */}
-            {registration.travelDetails?.travelMode && (
+            {/* Right side: Detailed Information */}
+            <div className="lg:col-span-7 space-y-6">
+              {/* Travel Details Grid */}
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
-                  Vehicles & Identification
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                  <Calendar className="w-4 h-4" /> Travel Information
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                  {registration.travelDetails.travelMode === 'Train' && (
-                    <>
-                      <div>
-                        <p className="text-xs text-slate-400 font-medium">Train Name / Number</p>
-                        <p className="text-sm font-semibold text-slate-800 mt-0.5">{registration.travelDetails.trainNameOrNumber || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-400 font-medium">Coach Number</p>
-                        <p className="text-sm font-semibold text-slate-800 mt-0.5">{registration.travelDetails.coachNumber || 'N/A'}</p>
-                      </div>
-                    </>
-                  )}
-                  {registration.travelDetails.travelMode === 'Bus' && (
-                    <>
-                      <div>
-                        <p className="text-xs text-slate-400 font-medium">Bus Name</p>
-                        <p className="text-sm font-semibold text-slate-800 mt-0.5">{registration.travelDetails.busName || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-400 font-medium">Bus Agency</p>
-                        <p className="text-sm font-semibold text-slate-800 mt-0.5">{registration.travelDetails.busAgency || 'N/A'}</p>
-                      </div>
-                    </>
-                  )}
-                  {registration.travelDetails.travelMode === 'Own Vehicle' && (
-                    <div>
-                      <p className="text-xs text-slate-400 font-medium">Vehicle Number</p>
-                      <p className="text-sm font-semibold text-slate-800 mt-0.5 uppercase">{registration.travelDetails.vehicleNumber || 'N/A'}</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                  <div>
+                    <p className="text-xs text-slate-400 font-medium">Travel Mode</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      {registration.travelDetails?.travelMode === 'Train' && <Train className="w-4 h-4 text-blue-600" />}
+                      {registration.travelDetails?.travelMode === 'Bus' && <Bus className="w-4 h-4 text-indigo-600" />}
+                      {registration.travelDetails?.travelMode === 'Own Vehicle' && <Car className="w-4 h-4 text-emerald-600" />}
+                      <span className="text-sm font-semibold text-slate-800">{registration.travelDetails?.travelMode || 'N/A'}</span>
                     </div>
-                  )}
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-slate-400 font-medium">Arrival Details</p>
+                    <p className="text-sm font-semibold text-slate-800 mt-1">
+                      {registration.travelDetails?.arrivalDate
+                        ? new Date(registration.travelDetails.arrivalDate).toLocaleDateString('en-IN')
+                        : 'N/A'}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" /> {registration.travelDetails?.arrivalTime || 'N/A'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-slate-400 font-medium">Departure Details</p>
+                    <p className="text-sm font-semibold text-slate-800 mt-1">
+                      {registration.travelDetails?.departureDate
+                        ? new Date(registration.travelDetails.departureDate).toLocaleDateString('en-IN')
+                        : 'N/A'}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-slate-400" /> {registration.travelDetails?.departureTime || 'N/A'}
+                    </p>
+                  </div>
                 </div>
               </div>
-            )}
 
-            {/* Accommodation & Guests */}
-            <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
-                <Home className="w-4 h-4" /> Guest & Room Requirements
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+              {/* Travel Specifics (Conditional) */}
+              {registration.travelDetails?.travelMode && (
                 <div>
-                  <p className="text-xs text-slate-400 font-medium">Accommodation Required</p>
-                  <span className={`inline-block text-xs font-bold px-3 py-1 rounded-full mt-2 ${
-                    registration.accommodationRequired === 'Yes' 
-                      ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+                    Vehicles & Identification
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                    {registration.travelDetails.travelMode === 'Train' && (
+                      <>
+                        <div>
+                          <p className="text-xs text-slate-400 font-medium">Train Name / Number</p>
+                          <p className="text-sm font-semibold text-slate-800 mt-0.5">{registration.travelDetails.trainNameOrNumber || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-400 font-medium">Coach Number</p>
+                          <p className="text-sm font-semibold text-slate-800 mt-0.5">{registration.travelDetails.coachNumber || 'N/A'}</p>
+                        </div>
+                      </>
+                    )}
+                    {registration.travelDetails.travelMode === 'Bus' && (
+                      <>
+                        <div>
+                          <p className="text-xs text-slate-400 font-medium">Bus Name</p>
+                          <p className="text-sm font-semibold text-slate-800 mt-0.5">{registration.travelDetails.busName || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-400 font-medium">Bus Agency</p>
+                          <p className="text-sm font-semibold text-slate-800 mt-0.5">{registration.travelDetails.busAgency || 'N/A'}</p>
+                        </div>
+                      </>
+                    )}
+                    {registration.travelDetails.travelMode === 'Own Vehicle' && (
+                      <div>
+                        <p className="text-xs text-slate-400 font-medium">Vehicle Number</p>
+                        <p className="text-sm font-semibold text-slate-800 mt-0.5 uppercase">{registration.travelDetails.vehicleNumber || 'N/A'}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Accommodation & Guests */}
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                  <Home className="w-4 h-4" /> Guest & Room Requirements
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                  <div>
+                    <p className="text-xs text-slate-400 font-medium">Accommodation Required</p>
+                    <span className={`inline-block text-xs font-bold px-3 py-1 rounded-full mt-2 ${registration.accommodationRequired === 'Yes'
+                      ? 'bg-blue-100 text-blue-800 border border-blue-200'
                       : 'bg-slate-100 text-slate-600 border border-slate-200'
-                  }`}>
-                    {registration.accommodationRequired || 'No'}
+                      }`}>
+                      {registration.accommodationRequired || 'No'}
+                    </span>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-slate-400 font-medium">Family Members Accompanying</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Users className="w-4 h-4 text-slate-500" />
+                      <span className="text-sm font-semibold text-slate-800">
+                        {registration.familyMembersCount || 0} Member(s)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Actions and Deadlines */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100">
+                <div className="flex items-center gap-2 bg-slate-100/60 border border-slate-200/50 rounded-xl px-4 py-2 text-xs font-medium text-slate-500">
+                  <Info className="w-4 h-4 text-slate-500 shrink-0" />
+                  <span>
+                    {isEditable
+                      ? 'Registration is editable up to Sept 1, 2026.'
+                      : 'Editing is locked (Sept 1, 2026 deadline passed).'
+                    }
                   </span>
                 </div>
 
-                <div>
-                  <p className="text-xs text-slate-400 font-medium">Family Members Accompanying</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Users className="w-4 h-4 text-slate-500" />
-                    <span className="text-sm font-semibold text-slate-800">
-                      {registration.familyMembersCount || 0} Member(s)
-                    </span>
-                  </div>
-                </div>
+                {isEditable && (
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#0A3287] hover:bg-blue-900 text-white font-semibold text-sm px-6 py-2.5 rounded-xl transition shadow-md cursor-pointer"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    Edit Details
+                  </button>
+                )}
               </div>
-            </div>
-
-            {/* Bottom Actions and Deadlines */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-6 border-t border-slate-150">
-              <div className="flex items-center gap-2.5 bg-slate-100/60 border border-slate-200/50 rounded-xl px-4 py-2 text-xs font-medium text-slate-500 max-w-md">
-                <Info className="w-4 h-4 text-slate-500 shrink-0" />
-                <span>
-                  {isEditable 
-                    ? 'Registration details are editable up to September 1, 2026.'
-                    : 'Editing is now locked as the September 1, 2026 deadline has passed.'
-                  }
-                </span>
-              </div>
-
-              {isEditable && (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="w-full md:w-auto flex items-center justify-center gap-2 bg-[#0A3287] hover:bg-blue-900 text-white font-semibold text-sm px-6 py-3 rounded-xl transition shadow-md"
-                >
-                  <Edit3 className="w-4 h-4" />
-                  Edit Details
-                </button>
-              )}
             </div>
           </div>
         </motion.div>

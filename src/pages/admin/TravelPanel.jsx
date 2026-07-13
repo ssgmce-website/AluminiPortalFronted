@@ -1,76 +1,104 @@
-import { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Navigation, Hotel, Calendar, Users, FileSpreadsheet, Clock,
-  Train, Car, Plane, Bus, ChevronDown,
+  Train, Car, Plane, Bus, ChevronDown, Loader2, Phone, Mail,
+  XCircle, CheckCircle2, ShieldAlert
 } from 'lucide-react';
+import { fetchEventRegistrations } from '../../services/adminService';
 
-const TRAVEL_PLANS = [
-  // ── Annual Meet 2026 ──────────────────────────────────────────────────────
-  { id:  1, alumnus: 'Ravi Sharma',     email: 'ravi.s@ex.com',     from: 'Nagpur',     mode: 'Train',  arrival: '2025-12-24', departure: '2025-12-26', needsAccommodation: true,  status: 'confirmed', event: 'Annual Meet 2026' },
-  { id:  2, alumnus: 'Priya Joshi',     email: 'priya.j@ex.com',    from: 'Pune',       mode: 'Car',    arrival: '2025-12-24', departure: '2025-12-25', needsAccommodation: false, status: 'confirmed', event: 'Annual Meet 2026' },
-  { id:  3, alumnus: 'Amit Desai',      email: 'amit.d@ex.com',     from: 'Mumbai',     mode: 'Flight', arrival: '2025-12-23', departure: '2025-12-27', needsAccommodation: true,  status: 'confirmed', event: 'Annual Meet 2026' },
-  { id:  4, alumnus: 'Sneha Kulkarni',  email: 'sneha.k@ex.com',    from: 'Delhi',      mode: 'Flight', arrival: '2025-12-24', departure: '2025-12-26', needsAccommodation: true,  status: 'confirmed', event: 'Annual Meet 2026' },
-  { id:  5, alumnus: 'Vikram Rao',      email: 'vikram.r@ex.com',   from: 'Hyderabad',  mode: 'Flight', arrival: '2025-12-24', departure: '2025-12-25', needsAccommodation: false, status: 'confirmed', event: 'Annual Meet 2026' },
-  { id:  6, alumnus: 'Neha Tiwari',     email: 'neha.t@ex.com',     from: 'Bangalore',  mode: 'Flight', arrival: '2025-12-24', departure: '2025-12-26', needsAccommodation: true,  status: 'confirmed', event: 'Annual Meet 2026' },
-  { id:  7, alumnus: 'Suresh Mehta',    email: 'suresh.m@ex.com',   from: 'Ahmedabad',  mode: 'Train',  arrival: '2025-12-24', departure: '2025-12-26', needsAccommodation: true,  status: 'confirmed', event: 'Annual Meet 2026' },
-  { id:  8, alumnus: 'Kavita Nair',     email: 'kavita.n@ex.com',   from: 'Chennai',    mode: 'Flight', arrival: '2025-12-23', departure: '2025-12-27', needsAccommodation: true,  status: 'confirmed', event: 'Annual Meet 2026' },
-  { id:  9, alumnus: 'Deepak Singh',    email: 'deepak.s@ex.com',   from: 'Kolkata',    mode: 'Flight', arrival: '2025-12-24', departure: '2025-12-26', needsAccommodation: true,  status: 'confirmed', event: 'Annual Meet 2026' },
-  { id: 10, alumnus: 'Anita Patil',     email: 'anita.p@ex.com',    from: 'Wardha',     mode: 'Car',    arrival: '2025-12-25', departure: '2025-12-25', needsAccommodation: false, status: 'confirmed', event: 'Annual Meet 2026' },
-  { id: 11, alumnus: 'Rohit Gupta',     email: 'rohit.g@ex.com',    from: 'Bhopal',     mode: 'Train',  arrival: '2025-12-24', departure: '2025-12-26', needsAccommodation: true,  status: 'confirmed', event: 'Annual Meet 2026' },
-  { id: 12, alumnus: 'Meena Jain',      email: 'meena.j@ex.com',    from: 'Indore',     mode: 'Train',  arrival: '2025-12-24', departure: '2025-12-25', needsAccommodation: false, status: 'confirmed', event: 'Annual Meet 2026' },
-  { id: 13, alumnus: 'Arun Pillai',     email: 'arun.p@ex.com',     from: 'Kochi',      mode: 'Flight', arrival: '2025-12-24', departure: '2025-12-26', needsAccommodation: true,  status: 'pending',   event: 'Annual Meet 2026' },
-  { id: 14, alumnus: 'Pooja Wagh',      email: 'pooja.w@ex.com',    from: 'Akola',      mode: 'Bus',    arrival: '2025-12-25', departure: '2025-12-25', needsAccommodation: false, status: 'pending',   event: 'Annual Meet 2026' },
-  { id: 15, alumnus: 'Sanjay Bose',     email: 'sanjay.b@ex.com',   from: 'Kolkata',    mode: 'Flight', arrival: '2025-12-23', departure: '2025-12-27', needsAccommodation: true,  status: 'pending',   event: 'Annual Meet 2026' },
-  { id: 16, alumnus: 'Lata Gaikwad',    email: 'lata.g@ex.com',     from: 'Yavatmal',   mode: 'Car',    arrival: '2025-12-25', departure: '2025-12-25', needsAccommodation: false, status: 'pending',   event: 'Annual Meet 2026' },
-  { id: 17, alumnus: 'Nikhil Verma',    email: 'nikhil.v@ex.com',   from: 'Lucknow',    mode: 'Train',  arrival: '2025-12-24', departure: '2025-12-26', needsAccommodation: true,  status: 'confirmed', event: 'Annual Meet 2026' },
-  { id: 18, alumnus: 'Shruti Thakur',   email: 'shruti.t@ex.com',   from: 'Chandigarh', mode: 'Flight', arrival: '2025-12-24', departure: '2025-12-25', needsAccommodation: false, status: 'confirmed', event: 'Annual Meet 2026' },
-
-  // ── Annual Meet 2025 ──────────────────────────────────────────────────────
-  { id: 20, alumnus: 'Rajesh Kumar',    email: 'rajesh@ex.com',     from: 'Mumbai',     mode: 'Flight', arrival: '2025-03-14', departure: '2025-03-16', needsAccommodation: true,  status: 'confirmed', event: 'Annual Meet 2025' },
-  { id: 21, alumnus: 'Priya Sharma',    email: 'priya@ex.com',      from: 'Pune',       mode: 'Train',  arrival: '2025-03-14', departure: '2025-03-16', needsAccommodation: true,  status: 'confirmed', event: 'Annual Meet 2025' },
-  { id: 22, alumnus: 'Amit Patel',      email: 'amit@ex.com',       from: 'Nagpur',     mode: 'Car',    arrival: '2025-03-15', departure: '2025-03-15', needsAccommodation: false, status: 'confirmed', event: 'Annual Meet 2025' },
-  { id: 23, alumnus: 'Sneha Desai',     email: 'sneha@ex.com',      from: 'Delhi',      mode: 'Flight', arrival: '2025-03-13', departure: '2025-03-17', needsAccommodation: true,  status: 'confirmed', event: 'Annual Meet 2025' },
-  { id: 24, alumnus: 'Vikram Singh',    email: 'vikram@ex.com',     from: 'Hyderabad',  mode: 'Flight', arrival: '2025-03-14', departure: '2025-03-16', needsAccommodation: false, status: 'cancelled', event: 'Annual Meet 2025' },
-];
-
-const ACCOMMODATION = [
-  { id: 1, alumnus: 'Amit Desai',     email: 'amit.d@ex.com',   hotel: 'Hotel Ashoka', checkIn: '2025-12-23', checkOut: '2025-12-27', type: 'Single', bookedBy: 'college', status: 'booked' },
-  { id: 2, alumnus: 'Sneha Kulkarni', email: 'sneha.k@ex.com',  hotel: 'Hotel Ashoka', checkIn: '2025-12-24', checkOut: '2025-12-26', type: 'Double', bookedBy: 'college', status: 'booked' },
-  { id: 3, alumnus: 'Neha Tiwari',    email: 'neha.t@ex.com',   hotel: 'Guest House',  checkIn: '2025-12-24', checkOut: '2025-12-26', type: 'Single', bookedBy: 'college', status: 'booked' },
-  { id: 4, alumnus: 'Suresh Mehta',   email: 'suresh.m@ex.com', hotel: 'Hotel Raj',    checkIn: '2025-12-24', checkOut: '2025-12-26', type: 'Single', bookedBy: 'self',    status: 'booked' },
-  { id: 5, alumnus: 'Kavita Nair',    email: 'kavita.n@ex.com', hotel: 'Hotel Ashoka', checkIn: '2025-12-23', checkOut: '2025-12-27', type: 'Double', bookedBy: 'college', status: 'booked' },
-  { id: 6, alumnus: 'Deepak Singh',   email: 'deepak.s@ex.com', hotel: 'Guest House',  checkIn: '2025-12-24', checkOut: '2025-12-26', type: 'Single', bookedBy: 'college', status: 'booked' },
-  { id: 7, alumnus: 'Rohit Gupta',    email: 'rohit.g@ex.com',  hotel: 'Hotel Raj',    checkIn: '2025-12-24', checkOut: '2025-12-26', type: 'Single', bookedBy: 'self',    status: 'requested' },
-  { id: 8, alumnus: 'Arun Pillai',    email: 'arun.p@ex.com',   hotel: '—',            checkIn: '2025-12-24', checkOut: '2025-12-26', type: 'Single', bookedBy: 'college', status: 'requested' },
-  { id: 9, alumnus: 'Sanjay Bose',    email: 'sanjay.b@ex.com', hotel: '—',            checkIn: '2025-12-23', checkOut: '2025-12-27', type: 'Double', bookedBy: 'college', status: 'requested' },
-  { id:10, alumnus: 'Nikhil Verma',   email: 'nikhil.v@ex.com', hotel: 'Hotel Ashoka', checkIn: '2025-12-24', checkOut: '2025-12-26', type: 'Single', bookedBy: 'self',    status: 'booked' },
-];
-
-const MODE_ICON = { Train: Train, Car: Car, Flight: Plane, Bus: Bus };
+const MODE_ICON = { Train: Train, Bus: Bus, 'Own Vehicle': Car };
 
 const STATUS_COLOR = {
-  confirmed:  'bg-emerald-100 text-emerald-700',
-  pending:    'bg-amber-100 text-amber-700',
-  cancelled:  'bg-red-100 text-red-700',
-  booked:     'bg-emerald-100 text-emerald-700',
-  requested:  'bg-blue-100 text-blue-700',
-  'no-stay':  'bg-gray-100 text-gray-500',
+  present: 'bg-emerald-100 text-emerald-700 border-emerald-250',
+  registered: 'bg-blue-100 text-blue-700 border-blue-250',
+  absent: 'bg-rose-100 text-rose-700 border-rose-250',
 };
 
-const EVENTS = [...new Set(TRAVEL_PLANS.map(p => p.event))];
+export const TravelPanel = ({ tab }) => {
+  const [selectedYear, setSelectedYear] = useState('2026');
+  const [registrations, setRegistrations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-function exportToExcel(plans, eventName) {
-  const rows = [
-    ['Name', 'Email', 'From', 'Mode', 'Arrival', 'Departure', 'Accommodation', 'Status'],
-    ...plans.map(p => [
-      p.alumnus, p.email, p.from, p.mode,
-      p.arrival, p.departure,
-      p.needsAccommodation ? 'Yes' : 'No',
-      p.status,
-    ]),
-  ];
-  const xml = `<?xml version="1.0"?>
+  useEffect(() => {
+    loadData();
+  }, [selectedYear]);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const data = await fetchEventRegistrations(selectedYear);
+      setRegistrations(data.registrations || []);
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to fetch travel information.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter registrations that actually provided travel details
+  const travelPlans = useMemo(() => {
+    return registrations.filter(r => r.travelDetails && r.travelDetails.travelMode);
+  }, [registrations]);
+
+  // Filter registrations that require accommodation
+  const accommodationRequests = useMemo(() => {
+    return registrations.filter(r => r.accommodationRequired === 'Yes');
+  }, [registrations]);
+
+  // Statistics for Travel tab
+  const travelStats = useMemo(() => {
+    const total = travelPlans.length;
+    const train = travelPlans.filter(p => p.travelDetails.travelMode === 'Train').length;
+    const bus = travelPlans.filter(p => p.travelDetails.travelMode === 'Bus').length;
+    const selfVehicle = travelPlans.filter(p => p.travelDetails.travelMode === 'Own Vehicle').length;
+
+    return { total, train, bus, selfVehicle };
+  }, [travelPlans]);
+
+  // Statistics for Accommodation tab
+  const accommStats = useMemo(() => {
+    const total = accommodationRequests.length;
+    const present = accommodationRequests.filter(r => r.attendanceStatus === 'present').length;
+    const registered = accommodationRequests.filter(r => r.attendanceStatus === 'registered').length;
+
+    return { total, present, registered };
+  }, [accommodationRequests]);
+
+  // Export Travel Plans to Excel
+  const handleExportTravel = () => {
+    const rows = [
+      ['Name', 'Email', 'Contact', 'Branch', 'Batch', 'Travel Mode', 'Details', 'Arrival Date', 'Arrival Time', 'Departure Date', 'Departure Time', 'Stay Required'],
+      ...travelPlans.map(p => {
+        let details = 'N/A';
+        if (p.travelDetails.travelMode === 'Train') {
+          details = `Train: ${p.travelDetails.trainNameOrNumber || 'N/A'}, Coach: ${p.travelDetails.coachNumber || 'N/A'}`;
+        } else if (p.travelDetails.travelMode === 'Bus') {
+          details = `Bus: ${p.travelDetails.busName || 'N/A'}, Agency: ${p.travelDetails.busAgency || 'N/A'}`;
+        } else if (p.travelDetails.travelMode === 'Own Vehicle') {
+          details = `Vehicle No: ${p.travelDetails.vehicleNumber || 'N/A'}`;
+        }
+        return [
+          p.alumnus?.name || 'N/A',
+          p.alumnus?.email || 'N/A',
+          p.alumnus?.contactNumber || 'N/A',
+          p.alumnus?.branch || 'N/A',
+          p.alumnus?.yearOfPassout || 'N/A',
+          p.travelDetails.travelMode,
+          details,
+          p.travelDetails.arrivalDate ? new Date(p.travelDetails.arrivalDate).toLocaleDateString('en-IN') : 'N/A',
+          p.travelDetails.arrivalTime || 'N/A',
+          p.travelDetails.departureDate ? new Date(p.travelDetails.departureDate).toLocaleDateString('en-IN') : 'N/A',
+          p.travelDetails.departureTime || 'N/A',
+          p.accommodationRequired || 'No'
+        ];
+      })
+    ];
+
+    const xml = `<?xml version="1.0"?>
 <Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
           xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
   <Worksheet ss:Name="Travel Plans">
@@ -83,210 +111,317 @@ function exportToExcel(plans, eventName) {
     </Table>
   </Worksheet>
 </Workbook>`;
-  const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = `travel-plans-${eventName.replace(/\s+/g, '-')}.xls`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
 
-function StatStrip({ plans }) {
-  const arriving     = plans.filter(p => p.status !== 'cancelled').length;
-  const needsAccomm  = plans.filter(p => p.status !== 'cancelled' && p.needsAccommodation).length;
-  const confirmed    = plans.filter(p => p.status === 'confirmed').length;
-  const pending      = plans.filter(p => p.status === 'pending').length;
+    const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Meet-${selectedYear}-Travel-Plans.xls`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      {[
-        { label: 'Total Arriving',     value: arriving,    color: 'text-gray-900',    icon: Users },
-        { label: 'Need Accommodation', value: needsAccomm, color: 'text-gray-900',    icon: Hotel },
-        { label: 'Confirmed',          value: confirmed,   color: 'text-emerald-700', icon: Navigation },
-        { label: 'Pending',            value: pending,     color: 'text-amber-600',   icon: Clock },
-      ].map(s => (
-        <div key={s.label} className="bg-white rounded-lg border border-gray-200 p-4 flex items-center gap-3">
-          <s.icon size={18} className="text-gray-300 shrink-0" />
-          <div>
-            <p className="text-xs text-gray-500 font-medium">{s.label}</p>
-            <p className={`text-2xl font-bold mt-0.5 ${s.color}`}>{s.value}</p>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
+  // Export Accommodation list to Excel
+  const handleExportAccommodation = () => {
+    const rows = [
+      ['Name', 'Email', 'Contact', 'Branch', 'Batch', 'Accompanying Family Count', 'Attendance Status'],
+      ...accommodationRequests.map(a => [
+        a.alumnus?.name || 'N/A',
+        a.alumnus?.email || 'N/A',
+        a.alumnus?.contactNumber || 'N/A',
+        a.alumnus?.branch || 'N/A',
+        a.alumnus?.yearOfPassout || 'N/A',
+        a.familyMembersCount || 0,
+        a.attendanceStatus || 'registered'
+      ])
+    ];
 
-function StatCard({ label, value }) {
-  return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4">
-      <p className="text-xs text-gray-500 font-medium">{label}</p>
-      <p className="text-2xl font-bold text-gray-900 mt-0.5">{value}</p>
-    </div>
-  );
-}
+    const xml = `<?xml version="1.0"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+          xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+  <Worksheet ss:Name="Accommodations">
+    <Table>
+      ${rows.map(row =>
+        `<Row>${row.map(cell =>
+          `<Cell><Data ss:Type="String">${String(cell).replace(/&/g, '&amp;').replace(/</g, '&lt;')}</Data></Cell>`
+        ).join('')}</Row>`
+      ).join('\n      ')}
+    </Table>
+  </Worksheet>
+</Workbook>`;
 
-export const TravelPanel = ({ tab }) => {
-  const [selectedEvent, setSelectedEvent] = useState(EVENTS[0]);
+    const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Meet-${selectedYear}-Accommodations.xls`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
-  const plans = useMemo(
-    () => TRAVEL_PLANS.filter(p => p.event === selectedEvent),
-    [selectedEvent],
-  );
-
-  if (tab === 'plans') {
-    return (
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Navigation size={24} className="text-blue-700" />
-              Alumni Travel Plans
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Travel arrangements submitted by alumni for upcoming events.
-            </p>
-          </div>
-
-          {/* Event selector */}
-          <div className="relative shrink-0">
-            <select
-              value={selectedEvent}
-              onChange={e => setSelectedEvent(e.target.value)}
-              className="appearance-none bg-white border border-gray-200 rounded-lg pl-3 pr-8 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200 cursor-pointer"
-            >
-              {EVENTS.map(ev => (
-                <option key={ev} value={ev}>{ev}</option>
-              ))}
-            </select>
-            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          </div>
-        </div>
-
-        {/* Summary strip */}
-        <StatStrip plans={plans} />
-
-        {/* Table + Export */}
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          {/* Table toolbar */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-            <p className="text-sm font-medium text-gray-700">
-              {selectedEvent} — {plans.filter(p => p.status !== 'cancelled').length} alumni
-            </p>
-            <button
-              onClick={() => exportToExcel(plans, selectedEvent)}
-              className="flex items-center gap-1.5 text-sm text-emerald-700 border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 rounded-lg px-3 py-1.5 transition-colors font-medium"
-            >
-              <FileSpreadsheet size={15} /> Export to Excel
-            </button>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
-                <tr>
-                  {['#', 'Name', 'From', 'Mode', 'Arrival', 'Accommodation', 'Status'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {plans.map((p, i) => {
-                  const ModeIcon = MODE_ICON[p.mode] ?? Plane;
-                  return (
-                    <motion.tr
-                      key={p.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: i * 0.03 }}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-4 py-3 text-gray-400">{i + 1}</td>
-                      <td className="px-4 py-3">
-                        <p className="font-medium text-gray-900">{p.alumnus}</p>
-                        <p className="text-xs text-gray-400">{p.email}</p>
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">{p.from}</td>
-                      <td className="px-4 py-3">
-                        <span className="flex items-center gap-1.5 text-gray-600">
-                          <ModeIcon size={14} className="text-blue-500 shrink-0" />
-                          {p.mode}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
-                        {new Date(p.arrival).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                      </td>
-                      <td className="px-4 py-3">
-                        {p.needsAccommodation ? (
-                          <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-violet-100 text-violet-700">
-                            <Hotel size={11} /> Yes
-                          </span>
-                        ) : (
-                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
-                            No
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize ${STATUS_COLOR[p.status]}`}>
-                          {p.status}
-                        </span>
-                      </td>
-                    </motion.tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Accommodation tab ──────────────────────────────────────────────────────
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <Hotel size={24} className="text-blue-700" /> Accommodation
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">Hotel and guest house arrangements for alumni attending events.</p>
-      </div>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+            {tab === 'plans' ? (
+              <>
+                <Navigation size={24} className="text-[#0A3287]" />
+                Alumni Travel Plans
+              </>
+            ) : (
+              <>
+                <Hotel size={24} className="text-[#0A3287]" />
+                Accommodation Requests
+              </>
+            )}
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            {tab === 'plans'
+              ? 'Real travel modes, arrival dates, and vehicle/train details submitted by alumni.'
+              : 'Alumni who requested lodging accommodation for the upcoming meet.'}
+          </p>
+        </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <StatCard label="Total"     value={ACCOMMODATION.length} />
-        <StatCard label="Booked"    value={ACCOMMODATION.filter(a => a.status === 'booked').length} />
-        <StatCard label="Requested" value={ACCOMMODATION.filter(a => a.status === 'requested').length} />
-      </div>
-
-      <div className="space-y-3">
-        {ACCOMMODATION.map(a => (
-          <motion.div key={a.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-lg border border-gray-200 p-4"
+        {/* Year selector */}
+        <div className="relative shrink-0">
+          <select
+            value={selectedYear}
+            onChange={e => setSelectedYear(e.target.value)}
+            className="appearance-none bg-white border border-slate-200 rounded-xl pl-4 pr-10 py-2.5 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-100 cursor-pointer shadow-sm"
           >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-gray-900">{a.alumnus}</span>
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[a.status]}`}>{a.status}</span>
-                  <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{a.type}</span>
-                </div>
-                <p className="text-xs text-gray-400 mt-0.5">{a.email}</p>
-                <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 flex-wrap">
-                  <span className="flex items-center gap-1"><Hotel size={13} /> {a.hotel}</span>
-                  <span className="flex items-center gap-1">
-                    <Calendar size={13} />
-                    {new Date(a.checkIn).toLocaleDateString('en-IN')} → {new Date(a.checkOut).toLocaleDateString('en-IN')}
-                  </span>
-                  <span className="text-xs text-gray-400">Booked by: {a.bookedBy}</span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        ))}
+            <option value="2026">Alumni Meet 2026</option>
+            <option value="2025">Alumni Meet 2025</option>
+            <option value="2024">Alumni Meet 2024</option>
+          </select>
+          <ChevronDown size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+        </div>
       </div>
+
+      {/* Loading & Error States */}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <Loader2 className="w-10 h-10 animate-spin text-[#0A3287] mb-3" />
+          <p className="text-slate-500 font-medium">Loading database information...</p>
+        </div>
+      ) : error ? (
+        <div className="p-8 text-center bg-rose-50 border border-rose-100 rounded-2xl">
+          <XCircle className="w-12 h-12 text-rose-600 mx-auto mb-2" />
+          <h3 className="text-base font-bold text-slate-800">Failed to load</h3>
+          <p className="text-sm text-slate-500 mt-1">{error}</p>
+        </div>
+      ) : (
+        <>
+          {/* Plans Tab */}
+          {tab === 'plans' && (
+            <div className="space-y-6">
+              {/* Stat Strip */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {[
+                  { label: 'Total Travel Submissions', value: travelStats.total, icon: Navigation, color: 'text-slate-700', bg: 'bg-slate-50 border-slate-100' },
+                  { label: 'Coming By Train', value: travelStats.train, icon: Train, color: 'text-blue-700', bg: 'bg-blue-50 border-blue-100' },
+                  { label: 'Coming By Bus', value: travelStats.bus, icon: Bus, color: 'text-indigo-700', bg: 'bg-indigo-50 border-indigo-100' },
+                  { label: 'Coming By Personal Vehicle', value: travelStats.selfVehicle, icon: Car, color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-100' },
+                ].map((s, idx) => (
+                  <div key={idx} className={`p-4 rounded-2xl border ${s.bg} flex items-center gap-3 shadow-sm`}>
+                    <s.icon size={20} className="text-slate-400 shrink-0" />
+                    <div>
+                      <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">{s.label}</p>
+                      <p className={`text-2xl font-black mt-1 ${s.color}`}>{s.value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Plans Table */}
+              {travelPlans.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-slate-200 shadow-sm text-slate-400">
+                  <ShieldAlert size={36} className="mb-2 opacity-50" />
+                  <p className="text-sm font-semibold">No travel plans recorded for Meet {selectedYear}.</p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-slate-150 bg-slate-50/50">
+                    <p className="text-sm font-bold text-slate-700">
+                      Alumni Meet {selectedYear} — {travelPlans.length} Submissions
+                    </p>
+                    <button
+                      onClick={handleExportTravel}
+                      className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-3.5 py-2 rounded-xl transition shadow-sm cursor-pointer"
+                    >
+                      <FileSpreadsheet size={14} /> Export Travel Details
+                    </button>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-slate-50 text-[11px] font-black text-slate-500 uppercase tracking-wider border-b border-slate-100">
+                        <tr>
+                          <th className="px-6 py-4 text-left">Alumnus</th>
+                          <th className="px-6 py-4 text-left">Travel Mode</th>
+                          <th className="px-6 py-4 text-left">Details / Vehicle info</th>
+                          <th className="px-6 py-4 text-left">Arrival</th>
+                          <th className="px-6 py-4 text-left">Departure</th>
+                          <th className="px-6 py-4 text-center">Stay Req.</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {travelPlans.map((p, i) => {
+                          const ModeIcon = MODE_ICON[p.travelDetails.travelMode] || Bus;
+                          return (
+                            <tr key={p.id || i} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <p className="font-bold text-slate-800">{p.alumnus?.name || 'N/A'}</p>
+                                <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-400 font-semibold">
+                                  <span>ID: {p.alumnus?.alumniId || 'N/A'}</span>
+                                  <span>•</span>
+                                  <span>{p.alumnus?.branch || 'N/A'}</span>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className="inline-flex items-center gap-1.5 font-bold text-xs text-slate-700">
+                                  <ModeIcon size={14} className="text-blue-700 shrink-0" />
+                                  {p.travelDetails.travelMode}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-slate-600 font-medium">
+                                {p.travelDetails.travelMode === 'Train' && (
+                                  <div>
+                                    <p className="text-xs">Train: {p.travelDetails.trainNameOrNumber || 'N/A'}</p>
+                                    <p className="text-[10px] text-slate-400">Coach: {p.travelDetails.coachNumber || 'N/A'}</p>
+                                  </div>
+                                )}
+                                {p.travelDetails.travelMode === 'Bus' && (
+                                  <div>
+                                    <p className="text-xs">Bus: {p.travelDetails.busName || 'N/A'}</p>
+                                    <p className="text-[10px] text-slate-400">Agency: {p.travelDetails.busAgency || 'N/A'}</p>
+                                  </div>
+                                )}
+                                {p.travelDetails.travelMode === 'Own Vehicle' && (
+                                  <span className="text-xs uppercase bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                                    {p.travelDetails.vehicleNumber || 'N/A'}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-slate-500 font-semibold text-xs">
+                                {p.travelDetails.arrivalDate 
+                                  ? `${new Date(p.travelDetails.arrivalDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} @ ${p.travelDetails.arrivalTime || 'N/A'}`
+                                  : 'N/A'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-slate-500 font-semibold text-xs">
+                                {p.travelDetails.departureDate 
+                                  ? `${new Date(p.travelDetails.departureDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} @ ${p.travelDetails.departureTime || 'N/A'}`
+                                  : 'N/A'}
+                              </td>
+                              <td className="px-6 py-4 text-center whitespace-nowrap">
+                                <span className={`inline-block text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase border ${
+                                  p.accommodationRequired === 'Yes'
+                                    ? 'bg-blue-50 text-blue-700 border-blue-100'
+                                    : 'bg-slate-100 text-slate-500 border-slate-200'
+                                }`}>
+                                  {p.accommodationRequired || 'No'}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Accommodation Tab */}
+          {tab === 'accommodation' && (
+            <div className="space-y-6">
+              {/* Summary Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { label: 'Total Lodging Requests', value: accommStats.total, icon: Hotel, color: 'text-indigo-700', bg: 'bg-indigo-50 border-indigo-100' },
+                  { label: 'Arriving Attendees', value: accommStats.present, icon: CheckCircle2, color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-100' },
+                  { label: 'Registered Awaiting Arrival', value: accommStats.registered, icon: Clock, color: 'text-amber-700', bg: 'bg-amber-50 border-amber-100' }
+                ].map((s, idx) => (
+                  <div key={idx} className={`p-5 rounded-2xl border ${s.bg} flex items-center justify-between shadow-sm`}>
+                    <div>
+                      <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">{s.label}</p>
+                      <h3 className={`text-2xl font-black mt-1.5 ${s.color}`}>{s.value}</h3>
+                    </div>
+                    <s.icon className="w-8 h-8 opacity-20 text-slate-800" />
+                  </div>
+                ))}
+              </div>
+
+              {/* Action Toolbar */}
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-slate-700">Requests List</span>
+                {accommodationRequests.length > 0 && (
+                  <button
+                    onClick={handleExportAccommodation}
+                    className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-3.5 py-2.5 rounded-xl transition shadow-md cursor-pointer"
+                  >
+                    <FileSpreadsheet size={14} /> Export Accommodation List
+                  </button>
+                )}
+              </div>
+
+              {/* Accommodation Requests Cards */}
+              {accommodationRequests.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-slate-200 shadow-sm text-slate-400">
+                  <Hotel size={40} className="mb-2 opacity-50" />
+                  <p className="text-sm font-semibold">No active lodging requests for Meet {selectedYear}.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {accommodationRequests.map((a, i) => (
+                    <motion.div
+                      key={a.id || i}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.02 }}
+                      className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-bold text-slate-800">{a.alumnus?.name || 'N/A'}</h4>
+                          <p className="text-xs text-slate-400 font-semibold mt-0.5">ID: {a.alumnus?.alumniId || 'N/A'}</p>
+                        </div>
+                        <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase border ${STATUS_COLOR[a.attendanceStatus || 'registered']}`}>
+                          {a.attendanceStatus || 'registered'}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                        <div>
+                          <span className="text-slate-400 font-semibold block uppercase tracking-wider text-[9px]">Branch & Batch</span>
+                          <span className="text-slate-700 font-bold block mt-0.5">{a.alumnus?.branch || 'N/A'} ({a.alumnus?.yearOfPassout || 'N/A'})</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 font-semibold block uppercase tracking-wider text-[9px]">Family Accompanying</span>
+                          <span className="text-slate-700 font-bold block mt-0.5">{a.familyMembersCount || 0} Member(s)</span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5 text-xs text-slate-500 pt-2 border-t border-slate-100">
+                        <div className="flex items-center gap-2"><Mail size={12} className="text-slate-400" /> {a.alumnus?.email || 'N/A'}</div>
+                        <div className="flex items-center gap-2"><Phone size={12} className="text-slate-400" /> {a.alumnus?.contactNumber || 'N/A'}</div>
+                        {a.travelDetails?.arrivalDate && (
+                          <div className="flex items-center gap-2 text-[11px] text-indigo-600 font-semibold mt-1">
+                            <Clock size={12} />
+                            Arr: {new Date(a.travelDetails.arrivalDate).toLocaleDateString('en-IN')} @ {a.travelDetails.arrivalTime || 'N/A'}
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };
