@@ -126,7 +126,7 @@ export const googleAuth = async () => {
 // Full-page redirect to the backend, which authenticates the email and bounces
 // back to /auth/callback?customToken=... The caller sets the intent first.
 export const linkedInRedirect = () => {
-  window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/v1/auth/linkedin`;
+  window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/v1/auth/linkedin`;
 };
 
 // ── Session ──────────────────────────────────────────────────────────────────

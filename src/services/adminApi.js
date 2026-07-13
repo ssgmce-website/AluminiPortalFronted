@@ -4,7 +4,7 @@ import { getAdminToken, adminLogout } from './adminAuth';
 // Axios instance for the admin portal. Unlike services/api.js (which attaches a
 // Firebase ID token), this attaches the standalone admin session token.
 const adminApi = axios.create({
-  baseURL: `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/v1`,
+  baseURL: `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/v1`,
 });
 
 adminApi.interceptors.request.use((config) => {
