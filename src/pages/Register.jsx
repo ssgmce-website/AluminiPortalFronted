@@ -13,12 +13,17 @@ import {
   checkEmailRegistered,
   setAuthIntent,
   clearAuthIntent,
+  logout,
 } from '../services/authService';
+import { auth } from '../firebase/firebase';
 import { friendlyAuthError } from '../utils/authErrors';
 import { routeForProfile } from '../utils/authRoutes';
 import { useAuth } from '../contexts/AuthContext';
 import logo from '../assets/logo.png';
 import resisterBg from '../assets/REGISITER.png';
+import { Controller } from "react-hook-form";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const currentYear = new Date().getFullYear();
@@ -30,15 +35,14 @@ const BRANCHES = [
   'Electronics & Telecommunication',
   'Electrical Engineering',
   'Mechanical Engineering',
+  'MBA',
+  'MCA',
 ];
 
 const EMPLOYMENT_STATUSES = [
   'Employed',
   'Entrepreneur',
   'Higher Studies',
-  'Government Service',
-  'Self-Employed',
-  'Looking for Opportunities',
 ];
 
 // ─── VALIDATION SCHEMA ───────────────────────────────────────────────────────
@@ -49,20 +53,23 @@ const schema = z
     email: z.string().email('Enter a valid email address'),
     contactNumber: z
       .string()
-      .optional()
-      .refine((v) => !v || /^\d{10}$/.test(v), { message: 'Enter a valid 10-digit mobile number' }),
-    whatsappNo: z
-      .string()
-      .optional()
-      .refine((v) => !v || /^\d{10}$/.test(v), { message: 'Enter a valid 10-digit mobile number' }),
-    profilePhoto: z.string().optional(),
-    dob: z.string().optional(),
-    gender: z.string().optional(),
-    address: z.string().optional(),
-    city: z.string().optional(),
-    state: z.string().optional(),
-    country: z.string().optional(),
-    pinCode: z.string().optional(),
+      .regex(/^\d{10}$/, 'Enter a valid 10-digit mobile number'),
+    profilePhoto: z.string().min(1, 'Profile photo is required'),
+    dob: z.union([
+      z.date(),
+      z.string().min(1, 'Date of birth is required'),
+    ]).refine((val) => {
+      if (val instanceof Date) {
+        return !isNaN(val.getTime());
+      }
+      return val && val.trim().length > 0;
+    }, { message: 'Date of birth is required' }),
+    gender: z.string().min(1, 'Please select your gender'),
+    address: z.string().min(1, 'Address is required'),
+    city: z.string().min(1, 'City is required'),
+    state: z.string().min(1, 'State is required'),
+    country: z.string().min(1, 'Country is required'),
+    pinCode: z.string().regex(/^\d{6}$/, 'Enter a valid 6-digit pin code'),
     linkedinUrl: z.string().optional(),
 
     // Step 1: Academic
@@ -80,7 +87,7 @@ const schema = z
       .max(currentYear + 6, 'Year seems too far in the future'),
 
     // Step 2: Professional
-    employmentStatus: z.string().optional(),
+    employmentStatus: z.string().min(1, 'Please select your employment status'),
     companyName: z.string().optional(),
     designation: z.string().optional(),
     industry: z.string().optional(),
@@ -95,7 +102,6 @@ const schema = z
     officeState: z.string().optional(),
     officeCountry: z.string().optional(),
     officePinCode: z.string().optional(),
-    annualPackage: z.string().optional(),
     companyWebsite: z.string().optional(),
     workEmail: z.string().email('Invalid work email address').optional().or(z.literal('')),
     startupName: z.string().optional(),
@@ -104,23 +110,51 @@ const schema = z
     universityName: z.string().optional(),
     higherStudiesCourse: z.string().optional(),
     higherStudiesCountry: z.string().optional(),
-    skills: z.string().optional(),
-
-    // Step 3: Other / Engagement
-    interestedInMentoring: z.boolean().default(false),
-    interestedInRecruitment: z.boolean().default(false),
-    interestedInGuestLectures: z.boolean().default(false),
-    interestedInDonations: z.boolean().default(false),
-    dataConsentGiven: z.boolean().refine((v) => v === true, {
-      message: 'You must consent to data storage to continue',
-    }),
-    termsAccepted: z.boolean().refine((v) => v === true, {
-      message: 'You must accept the Terms & Privacy Policy to continue',
-    }),
   })
   .refine((d) => d.yearOfPassout >= d.yearOfAdmission, {
     message: 'Passout year must be ≥ admission year',
     path: ['yearOfPassout'],
+  })
+  .superRefine((val, ctx) => {
+    if (val.employmentStatus === 'Employed') {
+      if (!val.companyName || val.companyName.trim() === '') {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Company name is required',
+          path: ['companyName'],
+        });
+      }
+      if (!val.designation || val.designation.trim() === '') {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Designation is required',
+          path: ['designation'],
+        });
+      }
+    } else if (val.employmentStatus === 'Entrepreneur') {
+      if (!val.startupName || val.startupName.trim() === '') {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Startup name is required',
+          path: ['startupName'],
+        });
+      }
+    } else if (val.employmentStatus === 'Higher Studies') {
+      if (!val.universityName || val.universityName.trim() === '') {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'University name is required',
+          path: ['universityName'],
+        });
+      }
+      if (!val.higherStudiesCourse || val.higherStudiesCourse.trim() === '') {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Course name is required',
+          path: ['higherStudiesCourse'],
+        });
+      }
+    }
   });
 
 // ─── RESEND COUNTDOWN HOOK ───────────────────────────────────────────────────
@@ -282,6 +316,7 @@ export const Register = () => {
     getValues,
     watch,
     setValue,
+    control,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(schema),
@@ -289,7 +324,6 @@ export const Register = () => {
       name: '',
       email: '',
       contactNumber: '',
-      whatsappNo: '',
       profilePhoto: '',
       dob: '',
       gender: '',
@@ -314,7 +348,6 @@ export const Register = () => {
       officeState: '',
       officeCountry: 'India',
       officePinCode: '',
-      annualPackage: '',
       companyWebsite: '',
       workEmail: '',
       startupName: '',
@@ -323,21 +356,28 @@ export const Register = () => {
       universityName: '',
       higherStudiesCourse: '',
       higherStudiesCountry: '',
-      skills: '',
-      interestedInMentoring: false,
-      interestedInRecruitment: false,
-      interestedInGuestLectures: false,
-      interestedInDonations: false,
-      dataConsentGiven: false,
-      termsAccepted: false,
     },
   });
 
   const employmentStatus = watch('employmentStatus');
   const isEntrepreneur = employmentStatus === 'Entrepreneur';
   const isHigherStudies = employmentStatus === 'Higher Studies';
-  const isLooking = employmentStatus === 'Looking for Opportunities';
-  const showCompanyFields = !isHigherStudies && !isLooking && !!employmentStatus;
+  const showCompanyFields = employmentStatus === 'Employed';
+
+  const selectedCourse = watch('course');
+
+  useEffect(() => {
+    if (selectedCourse === 'MCA') {
+      setValue('branch', 'MCA');
+    } else if (selectedCourse === 'MBA') {
+      setValue('branch', 'MBA');
+    } else {
+      const currentBranch = getValues('branch');
+      if (currentBranch === 'MCA' || currentBranch === 'MBA') {
+        setValue('branch', '');
+      }
+    }
+  }, [selectedCourse, setValue, getValues]);
 
   // Surface errors bounced back via URL (e.g. LinkedIn cancel / no-email)
   useEffect(() => {
@@ -364,20 +404,19 @@ export const Register = () => {
       yearOfPassout: Number(v.yearOfPassout),
 
       // Personal
-      contactNumber: v.contactNumber?.trim() || undefined,
-      whatsappNo: v.whatsappNo?.trim() || undefined,
-      profilePhoto: v.profilePhoto || undefined,
-      dob: v.dob || undefined,
-      gender: v.gender || undefined,
-      address: v.address?.trim() || undefined,
-      city: v.city?.trim() || undefined,
-      state: v.state?.trim() || undefined,
-      country: v.country?.trim() || undefined,
-      pinCode: v.pinCode?.trim() || undefined,
+      contactNumber: v.contactNumber.trim(),
+      profilePhoto: v.profilePhoto,
+      dob: v.dob,
+      gender: v.gender,
+      address: v.address.trim(),
+      city: v.city.trim(),
+      state: v.state.trim(),
+      country: v.country.trim(),
+      pinCode: v.pinCode.trim(),
       linkedinUrl: v.linkedinUrl?.trim() || undefined,
 
       // Professional
-      employmentStatus: v.employmentStatus || undefined,
+      employmentStatus: v.employmentStatus,
       companyName: showCompanyFields ? (v.companyName?.trim() || undefined) : undefined,
       designation: showCompanyFields ? (v.designation?.trim() || undefined) : undefined,
       industry: showCompanyFields ? (v.industry?.trim() || undefined) : undefined,
@@ -388,10 +427,8 @@ export const Register = () => {
       officeState: showCompanyFields ? (v.officeState?.trim() || undefined) : undefined,
       officeCountry: showCompanyFields ? (v.officeCountry?.trim() || undefined) : undefined,
       officePinCode: showCompanyFields ? (v.officePinCode?.trim() || undefined) : undefined,
-      annualPackage: showCompanyFields ? (v.annualPackage?.trim() || undefined) : undefined,
       companyWebsite: showCompanyFields ? (v.companyWebsite?.trim() || undefined) : undefined,
       workEmail: showCompanyFields ? (v.workEmail?.trim() || undefined) : undefined,
-      skills: v.skills?.trim() || undefined,
       startupName: isEntrepreneur ? (v.startupName?.trim() || undefined) : undefined,
       startupWebsite: isEntrepreneur ? (v.startupWebsite?.trim() || undefined) : undefined,
       startupDescription: isEntrepreneur ? (v.startupDescription?.trim() || undefined) : undefined,
@@ -399,12 +436,12 @@ export const Register = () => {
       higherStudiesCourse: isHigherStudies ? (v.higherStudiesCourse?.trim() || undefined) : undefined,
       higherStudiesCountry: isHigherStudies ? (v.higherStudiesCountry?.trim() || undefined) : undefined,
 
-      // Engagement
-      interestedInMentoring: v.interestedInMentoring,
-      interestedInRecruitment: v.interestedInRecruitment,
-      interestedInGuestLectures: v.interestedInGuestLectures,
-      interestedInDonations: v.interestedInDonations,
-      dataConsentGiven: v.dataConsentGiven,
+      // Engagement (Implicit Consent / Defaulted)
+      interestedInMentoring: false,
+      interestedInRecruitment: false,
+      interestedInGuestLectures: false,
+      interestedInDonations: false,
+      dataConsentGiven: true,
     };
   };
 
@@ -416,7 +453,7 @@ export const Register = () => {
   const handleAlreadyRegistered = (status) => {
     clearAuthIntent();
     setError('This email is already registered. Redirecting you to sign in…');
-    setTimeout(() => navigate(status === 'approved' ? '/sign-in' : '/pending'), 1500);
+    setTimeout(() => navigate(status === 'approved' ? '/login' : '/pending'), 1500);
   };
 
   const handleGoogle = async () => {
@@ -427,6 +464,13 @@ export const Register = () => {
       setAuthIntent('register', details);
       const popped = await googleAuth();
       if (popped) {
+        const verifiedEmail = auth.currentUser?.email;
+        if (verifiedEmail && verifiedEmail.toLowerCase().trim() !== details.email.toLowerCase().trim()) {
+          clearAuthIntent();
+          await logout();
+          setError(`The email address of the Google account you signed into (${verifiedEmail}) does not match the email you entered in the registration form (${details.email}). Please use the correct Google account or update the form.`);
+          return;
+        }
         const { user } = await registerWithBackend(details);
         clearAuthIntent();
         finish(user);
@@ -472,7 +516,6 @@ export const Register = () => {
         'name',
         'email',
         'contactNumber',
-        'whatsappNo',
         'profilePhoto',
         'dob',
         'gender',
@@ -480,6 +523,7 @@ export const Register = () => {
         'city',
         'state',
         'country',
+        'pinCode',
       ]);
     } else if (step === 1) {
       ok = await trigger(['course', 'branch', 'yearOfAdmission', 'yearOfPassout']);
@@ -490,7 +534,7 @@ export const Register = () => {
       setStep((s) => s + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      setError('Please resolve the errors in the current step before proceeding.');
+      setError('Please fill the required fields in the current step before proceeding.');
     }
   };
 
@@ -529,9 +573,9 @@ export const Register = () => {
               {/* Progress Indicator */}
               <div className="mb-8">
                 <div className="flex items-center justify-between">
-                  {['Personal', 'Academic', 'Professional', 'Verification'].map((label, i) => (
+                  {['Personal', 'Academic', 'Professional'].map((label, i) => (
                     <div key={label} className="flex-1 flex flex-col items-center relative">
-                      {i < 3 && (
+                      {i < 2 && (
                         <div
                           className={`absolute top-4 left-1/2 w-full h-0.5 z-0 ${i < step ? 'bg-[#1a3a75]' : 'bg-gray-200'
                             }`}
@@ -543,10 +587,10 @@ export const Register = () => {
                           if (i < step) setStep(i);
                         }}
                         className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold border-2 transition-all ${i < step
-                            ? 'bg-[#1a3a75] border-[#1a3a75] text-white cursor-pointer hover:bg-[#153470]'
-                            : i === step
-                              ? 'border-[#1a3a75] text-[#1a3a75] bg-white cursor-default shadow-sm ring-2 ring-[#1a3a75]/20'
-                              : 'border-gray-300 text-gray-400 bg-white cursor-not-allowed'
+                          ? 'bg-[#1a3a75] border-[#1a3a75] text-white cursor-pointer hover:bg-[#153470]'
+                          : i === step
+                            ? 'border-[#1a3a75] text-[#1a3a75] bg-white cursor-default shadow-sm ring-2 ring-[#1a3a75]/20'
+                            : 'border-gray-300 text-gray-400 bg-white cursor-not-allowed'
                           }`}
                       >
                         {i < step ? '✓' : i + 1}
@@ -579,11 +623,11 @@ export const Register = () => {
                   <div className="space-y-4">
                     <p className="text-[11px] font-bold tracking-wider text-gray-400 uppercase mb-2 px-1">Personal Information</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Name */}
+                      {/*Full Name */}
                       <div>
                         <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
                           <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                            Name<span className="text-red-500 ml-0.5">*</span>
+                            Full Name<span className="text-red-500 ml-0.5">*</span>
                           </span>
                           <input
                             {...register('name')}
@@ -615,7 +659,7 @@ export const Register = () => {
                       <div>
                         <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
                           <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                            Mobile
+                            Mobile<span className="text-red-500 ml-0.5">*</span>
                           </span>
                           <input
                             {...register('contactNumber')}
@@ -628,35 +672,29 @@ export const Register = () => {
                         <FieldError message={errors.contactNumber?.message} />
                       </div>
 
-                      {/* WhatsApp Contact */}
-                      <div>
-                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
-                          <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                            WhatsApp
-                          </span>
-                          <input
-                            {...register('whatsappNo')}
-                            type="tel"
-                            placeholder="10-digit number"
-                            maxLength={10}
-                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
-                          />
-                        </div>
-                        <FieldError message={errors.whatsappNo?.message} />
-                      </div>
-
-
-
                       {/* Date of Birth */}
                       <div>
                         <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
                           <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                            DOB
+                            DOB<span className="text-red-500 ml-0.5">*</span>
                           </span>
-                          <input
-                            {...register('dob')}
-                            type="date"
-                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                          <Controller
+                            control={control}
+                            name="dob"
+                            render={({ field }) => (
+                              <DatePicker
+                                selected={field.value ? new Date(field.value) : null}
+                                onChange={(date) => field.onChange(date)}
+                                dateFormat="dd/MM/yy"
+                                placeholderText="DD/MM/YY"
+                                className="w-full px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                                wrapperClassName="flex-1"
+                                showMonthDropdown
+                                showYearDropdown
+                                dropdownMode="select"
+                                maxDate={new Date()}
+                              />
+                            )}
                           />
                         </div>
                         <FieldError message={errors.dob?.message} />
@@ -666,7 +704,7 @@ export const Register = () => {
                       <div>
                         <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
                           <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                            Gender
+                            Gender<span className="text-red-500 ml-0.5">*</span>
                           </span>
                           <select
                             {...register('gender')}
@@ -680,13 +718,11 @@ export const Register = () => {
                         <FieldError message={errors.gender?.message} />
                       </div>
 
-
-
                       {/* Address */}
                       <div className="md:col-span-2">
                         <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
                           <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                            Address
+                            Address<span className="text-red-500 ml-0.5">*</span>
                           </span>
                           <input
                             {...register('address')}
@@ -698,11 +734,11 @@ export const Register = () => {
                         <FieldError message={errors.address?.message} />
                       </div>
 
-                      {/* City */}
+                      {/* district */}
                       <div>
                         <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
                           <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                            City
+                            district<span className="text-red-500 ml-0.5">*</span>
                           </span>
                           <input
                             {...register('city')}
@@ -718,7 +754,7 @@ export const Register = () => {
                       <div>
                         <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
                           <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                            State
+                            State<span className="text-red-500 ml-0.5">*</span>
                           </span>
                           <input
                             {...register('state')}
@@ -734,7 +770,7 @@ export const Register = () => {
                       <div>
                         <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
                           <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                            Country
+                            Country<span className="text-red-500 ml-0.5">*</span>
                           </span>
                           <input
                             {...register('country')}
@@ -750,7 +786,7 @@ export const Register = () => {
                       <div>
                         <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
                           <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                            Pin Code
+                            Pin Code<span className="text-red-500 ml-0.5">*</span>
                           </span>
                           <input
                             {...register('pinCode')}
@@ -761,7 +797,6 @@ export const Register = () => {
                         </div>
                         <FieldError message={errors.pinCode?.message} />
                       </div>
-
 
                       {/* Profile Photo Upload */}
                       <div className="md:col-span-2 flex flex-col items-center gap-3 bg-white/50 border border-[#cbd5e1]/80 rounded-2xl p-4 shadow-sm">
@@ -797,8 +832,9 @@ export const Register = () => {
                           </label>
                         </div>
                         <div className="text-center">
-                          <p className="text-xs font-bold text-[#1a3a75]">Profile Photo</p>
+                          <p className="text-xs font-bold text-[#1a3a75]">Profile Photo<span className="text-red-500 ml-0.5">*</span></p>
                           <p className="text-[10px] text-gray-400">JPG, PNG or WEBP · Max 2MB</p>
+                          <FieldError message={errors.profilePhoto?.message} />
                         </div>
                       </div>
                     </div>
@@ -828,21 +864,41 @@ export const Register = () => {
                       </div>
 
                       {/* Branch */}
-                      <div>
-                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
-                          <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                            Branch/Dept<span className="text-red-500 ml-0.5">*</span>
-                          </span>
-                          <select
-                            {...register('branch')}
-                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent appearance-none cursor-pointer"
-                          >
-                            <option value="">Select Branch</option>
-                            {BRANCHES.map((b) => <option key={b} value={b}>{b}</option>)}
-                          </select>
+                      {selectedCourse && (selectedCourse === 'MCA' || selectedCourse === 'MBA') ? (
+                        <div>
+                          <div className="flex items-stretch bg-gray-50 border border-[#cbd5e1] rounded-xl shadow-sm overflow-hidden opacity-80">
+                            <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                              Branch/Dept<span className="text-red-500 ml-0.5">*</span>
+                            </span>
+                            <input
+                              type="text"
+                              value={selectedCourse}
+                              disabled
+                              className="flex-1 px-4 py-3 text-sm text-gray-500 bg-transparent focus:outline-none cursor-not-allowed font-semibold"
+                            />
+                            <input type="hidden" {...register('branch')} />
+                          </div>
                         </div>
-                        <FieldError message={errors.branch?.message} />
-                      </div>
+                      ) : (
+                        <div>
+                          <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                            <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                              Branch/Dept<span className="text-red-500 ml-0.5">*</span>
+                            </span>
+                            <select
+                              {...register('branch')}
+                              disabled={!selectedCourse}
+                              className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <option value="">{selectedCourse ? 'Select Branch' : 'Select Course First'}</option>
+                              {['Computer Science & Engineering', 'Information Technology', 'Electronics & Telecommunication', 'Electrical Engineering', 'Mechanical Engineering'].map((b) => (
+                                <option key={b} value={b}>{b}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <FieldError message={errors.branch?.message} />
+                        </div>
+                      )}
 
                       {/* Admission Year */}
                       <div>
@@ -892,7 +948,7 @@ export const Register = () => {
                       <div className="md:col-span-2">
                         <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
                           <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                            Employment Status
+                            Employment Status<span className="text-red-500 ml-0.5">*</span>
                           </span>
                           <select
                             {...register('employmentStatus')}
@@ -904,6 +960,7 @@ export const Register = () => {
                             ))}
                           </select>
                         </div>
+                        <FieldError message={errors.employmentStatus?.message} />
                       </div>
 
                       {/* Company Fields */}
@@ -912,7 +969,7 @@ export const Register = () => {
                           <div>
                             <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
                               <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                                Company Name
+                                Company Name<span className="text-red-500 ml-0.5">*</span>
                               </span>
                               <input
                                 {...register('companyName')}
@@ -921,12 +978,13 @@ export const Register = () => {
                                 className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
                               />
                             </div>
+                            <FieldError message={errors.companyName?.message} />
                           </div>
 
                           <div>
                             <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
                               <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                                Designation
+                                Designation<span className="text-red-500 ml-0.5">*</span>
                               </span>
                               <input
                                 {...register('designation')}
@@ -935,6 +993,7 @@ export const Register = () => {
                                 className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
                               />
                             </div>
+                            <FieldError message={errors.designation?.message} />
                           </div>
 
                           <div>
@@ -949,6 +1008,7 @@ export const Register = () => {
                                 className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
                               />
                             </div>
+                            <FieldError message={errors.industry?.message} />
                           </div>
 
                           <div>
@@ -963,6 +1023,7 @@ export const Register = () => {
                                 className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
                               />
                             </div>
+                            <FieldError message={errors.workExperience?.message} />
                           </div>
 
                           <div className="md:col-span-2">
@@ -1040,20 +1101,6 @@ export const Register = () => {
                             <FieldError message={errors.officePinCode?.message} />
                           </div>
 
-                          <div>
-                            <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
-                              <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                                Annual Package
-                              </span>
-                              <input
-                                {...register('annualPackage')}
-                                type="text"
-                                placeholder="e.g. 10 LPA"
-                                className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
-                              />
-                            </div>
-                          </div>
-
                           <div className="md:col-span-2">
                             <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
                               <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
@@ -1066,6 +1113,7 @@ export const Register = () => {
                                 className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
                               />
                             </div>
+                            <FieldError message={errors.companyWebsite?.message} />
                           </div>
 
                           <div className="md:col-span-2">
@@ -1080,9 +1128,7 @@ export const Register = () => {
                                 className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
                               />
                             </div>
-                            {errors.workEmail && (
-                              <p className="mt-1 text-xs text-red-500 pl-4">{errors.workEmail.message}</p>
-                            )}
+                            <FieldError message={errors.workEmail?.message} />
                           </div>
                         </>
                       )}
@@ -1093,7 +1139,7 @@ export const Register = () => {
                           <div>
                             <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
                               <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                                Startup Name
+                                Startup Name<span className="text-red-500 ml-0.5">*</span>
                               </span>
                               <input
                                 {...register('startupName')}
@@ -1102,6 +1148,7 @@ export const Register = () => {
                                 className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
                               />
                             </div>
+                            <FieldError message={errors.startupName?.message} />
                           </div>
 
                           <div>
@@ -1116,6 +1163,7 @@ export const Register = () => {
                                 className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
                               />
                             </div>
+                            <FieldError message={errors.startupWebsite?.message} />
                           </div>
 
                           <div className="md:col-span-2">
@@ -1130,6 +1178,7 @@ export const Register = () => {
                                 className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent resize-none"
                               />
                             </div>
+                            <FieldError message={errors.startupDescription?.message} />
                           </div>
                         </>
                       )}
@@ -1140,7 +1189,7 @@ export const Register = () => {
                           <div>
                             <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
                               <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                                University Name
+                                University Name<span className="text-red-500 ml-0.5">*</span>
                               </span>
                               <input
                                 {...register('universityName')}
@@ -1149,12 +1198,13 @@ export const Register = () => {
                                 className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
                               />
                             </div>
+                            <FieldError message={errors.universityName?.message} />
                           </div>
 
                           <div>
                             <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
                               <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                                Course Name
+                                Course Name<span className="text-red-500 ml-0.5">*</span>
                               </span>
                               <input
                                 {...register('higherStudiesCourse')}
@@ -1163,6 +1213,7 @@ export const Register = () => {
                                 className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
                               />
                             </div>
+                            <FieldError message={errors.higherStudiesCourse?.message} />
                           </div>
 
                           <div className="md:col-span-2">
@@ -1177,24 +1228,10 @@ export const Register = () => {
                                 className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
                               />
                             </div>
+                            <FieldError message={errors.higherStudiesCountry?.message} />
                           </div>
                         </>
                       )}
-
-                      {/* Skills */}
-                      <div className="md:col-span-2">
-                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
-                          <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                            Key Skills
-                          </span>
-                          <input
-                            {...register('skills')}
-                            type="text"
-                            placeholder="e.g. React, Node.js, Project Management (comma separated)"
-                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
-                          />
-                        </div>
-                      </div>
 
                       {/* LinkedIn URL */}
                       <div className="md:col-span-2">
@@ -1211,89 +1248,6 @@ export const Register = () => {
                         </div>
                         <FieldError message={errors.linkedinUrl?.message} />
                       </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* ── Step 3: Other / Engagement & Verification ── */}
-                {step === 3 && (
-                  <div className="space-y-4 animate-fadeIn">
-                    <p className="text-[11px] font-bold tracking-wider text-gray-400 uppercase mb-2 px-1">Engagement & Consent</p>
-
-                    {/* Engagement checkboxes */}
-                    <div className="bg-white border border-[#cbd5e1] rounded-2xl p-4 space-y-3 shadow-sm">
-                      <p className="text-xs font-bold text-gray-600 mb-2">How would you like to contribute to the alumni community?</p>
-
-                      <label className="flex items-center gap-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          {...register('interestedInMentoring')}
-                          className="h-4.5 w-4.5 rounded border-gray-300 text-[#1d4289] focus:ring-[#1d4289]"
-                        />
-                        <span className="text-xs font-medium text-gray-700">Interested in Mentoring Students</span>
-                      </label>
-
-                      <label className="flex items-center gap-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          {...register('interestedInRecruitment')}
-                          className="h-4.5 w-4.5 rounded border-gray-300 text-[#1d4289] focus:ring-[#1d4289]"
-                        />
-                        <span className="text-xs font-medium text-gray-700">Interested in Campus Recruitment</span>
-                      </label>
-
-                      <label className="flex items-center gap-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          {...register('interestedInGuestLectures')}
-                          className="h-4.5 w-4.5 rounded border-gray-300 text-[#1d4289] focus:ring-[#1d4289]"
-                        />
-                        <span className="text-xs font-medium text-gray-700">Interested in Guest Lectures</span>
-                      </label>
-
-                      <label className="flex items-center gap-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          {...register('interestedInDonations')}
-                          className="h-4.5 w-4.5 rounded border-gray-300 text-[#1d4289] focus:ring-[#1d4289]"
-                        />
-                        <span className="text-xs font-medium text-gray-700">Interested in Donations / Sponsorships</span>
-                      </label>
-                    </div>
-
-
-
-                    {/* Consents */}
-                    <div className="space-y-3 rounded-xl border border-gray-200 bg-white/70 p-4">
-                      <div className="flex items-start gap-2.5">
-                        <input
-                          id="dataConsentGiven"
-                          type="checkbox"
-                          {...register('dataConsentGiven')}
-                          className="mt-1 h-4.5 w-4.5 rounded border-gray-300 text-[#1d4289] focus:ring-[#1d4289] cursor-pointer"
-                        />
-                        <label htmlFor="dataConsentGiven" className="cursor-pointer text-xs leading-normal text-gray-500 font-semibold select-none">
-                          I consent to the storage and use of my personal data by SSGMCE Alumni Cell for engagement purposes.<span className="text-red-500">*</span>
-                        </label>
-                      </div>
-                      <FieldError message={errors.dataConsentGiven?.message} />
-
-                      <div className="flex items-start gap-2.5">
-                        <input
-                          id="termsAccepted"
-                          type="checkbox"
-                          {...register('termsAccepted')}
-                          className="mt-1 h-4.5 w-4.5 rounded border-gray-300 text-[#1d4289] focus:ring-[#1d4289] cursor-pointer"
-                        />
-                        <label htmlFor="termsAccepted" className="cursor-pointer text-xs leading-normal text-gray-500 font-semibold select-none">
-                          I confirm that the information provided is accurate and I agree to the{' '}
-                          <span className="text-[#2563eb] hover:text-[#1d4ed8] font-bold hover:underline">Terms of Service</span>
-                          {' '}and{' '}
-                          <span className="text-[#2563eb] hover:text-[#1d4ed8] font-bold hover:underline">Privacy Policy</span>
-                          .<span className="text-red-500">*</span>
-                        </label>
-                      </div>
-                      <FieldError message={errors.termsAccepted?.message} />
                     </div>
 
                     {/* Verification Method Divider */}
@@ -1357,7 +1311,7 @@ export const Register = () => {
                   <div />
                 )}
 
-                {step < 3 ? (
+                {step < 2 ? (
                   <button
                     type="button"
                     onClick={validateAndGoNext}
@@ -1372,7 +1326,7 @@ export const Register = () => {
 
               <p className="text-center text-xs text-gray-400 mt-6 font-medium">
                 Already have an account?{" "}
-                <Link to="/sign-in" className="text-[#1a3a75] font-bold hover:underline">
+                <Link to="/login" className="text-[#1a3a75] font-bold hover:underline">
                   Login
                 </Link>
               </p>

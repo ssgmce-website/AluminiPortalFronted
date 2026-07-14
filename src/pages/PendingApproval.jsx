@@ -5,6 +5,7 @@ import { Clock, ShieldCheck, RefreshCw, LogOut, XCircle, Loader2 } from 'lucide-
 import { useAuth } from '../contexts/AuthContext';
 import { logout } from '../services/authService';
 import { routeForProfile } from '../utils/authRoutes';
+import api from '../services/api';
 
 export const PendingApproval = () => {
   const { currentUser, userProfile, refreshProfile } = useAuth();
@@ -21,22 +22,32 @@ export const PendingApproval = () => {
     }
   }, [userProfile, navigate]);
 
-  if (!currentUser) return <Navigate to="/sign-in" replace />;
+  if (!currentUser) return <Navigate to="/login" replace />;
 
   const handleCheck = async () => {
     setChecking(true);
     setJustChecked(false);
-    const profile = await refreshProfile();
-    setChecking(false);
-    setJustChecked(true);
-    if (profile && (profile.role === 'admin' || profile.status === 'approved')) {
-      navigate(routeForProfile(profile), { replace: true });
+    try {
+      // Call the check-email API to see if approval status has changed
+      const { data } = await api.post('/auth/check-email', { email: currentUser.email });
+      const status = data?.data?.status;
+      
+      const profile = await refreshProfile();
+      if (profile && (profile.role === 'admin' || profile.status === 'approved')) {
+        navigate(routeForProfile(profile), { replace: true });
+      }
+    } catch (err) {
+      console.error('Failed to check email status:', err);
+      await refreshProfile();
+    } finally {
+      setChecking(false);
+      setJustChecked(true);
     }
   };
 
   const handleLogout = async () => {
     await logout();
-    navigate('/sign-in', { replace: true });
+    navigate('/login', { replace: true });
   };
 
   const rejected = status === 'rejected';
@@ -49,9 +60,8 @@ export const PendingApproval = () => {
         className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 text-center"
       >
         <div
-          className={`w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center ${
-            rejected ? 'bg-red-100' : 'bg-amber-100'
-          }`}
+          className={`w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center ${rejected ? 'bg-red-100' : 'bg-amber-100'
+            }`}
         >
           {rejected ? (
             <XCircle size={32} className="text-red-600" />

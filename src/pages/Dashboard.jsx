@@ -12,6 +12,7 @@ import { updateProfile } from '../services/authService';
 import { uploadProfilePhoto } from '../services/uploadService';
 import { Onboarding } from '../components/Onboarding';
 import { EventRegistrationForm } from '../components/EventRegistrationForm';
+import { AlumniContributionForm } from '../components/AlumniContributionForm';
 
 // ─── constants ────────────────────────────────────────────────────────────────
 const TABS = ['Overview', 'Events', 'Contributions', 'Connections', 'Activity'];
@@ -553,6 +554,8 @@ export const Dashboard = () => {
             //   </div>
             // </motion.div>
             <EventRegistrationForm />
+          ) : activeTab === 'Contributions' ? (
+            <AlumniContributionForm />
           ) : (
             /* ── Other coming-soon tabs ───────────────────────────────── */
             <motion.div
@@ -563,7 +566,6 @@ export const Dashboard = () => {
               transition={{ duration: 0.2 }}
               className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white py-16 text-center"
             >
-              {activeTab === 'Contributions' && <BookOpen size={32} className="mb-3 text-slate-300" />}
               {activeTab === 'Connections' && <Users size={32} className="mb-3 text-slate-300" />}
               {activeTab === 'Activity' && <Clock size={32} className="mb-3 text-slate-300" />}
               <p className="font-semibold text-slate-500">{activeTab}</p>

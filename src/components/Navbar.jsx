@@ -105,20 +105,14 @@ function Navbar() {
   const location = useLocation();
 
   const aboutItems = [
-    { label: "SSGMCE ALUMNI CELL", path: "/about/alumni-cell" },
+    { label: "ALUMNI CELL", path: "/about/alumni-cell" },
     { label: "Executive Team", path: "/about/executive-team" },
     { label: "Activity Organized", path: "/about/activity-organized" },
 , ];
 
-  const membershipItems = [
-    { label: "Nomination", path: "/membership/nomination" },
-    { label: "Withdrawal Form", path: "/membership/withdrawal-form" },
-  ];
-
   const eventItems = [
     { label: "Event Registration", path: "/event/registration" },
     { label: "Feedback Form", path: "/event/feedback" },
-    { label: "Gallery", path: "/event/gallery" },
   ];
 
   const closeMobileMenu = () => {
@@ -170,17 +164,6 @@ function Navbar() {
             >
               Gallery
             </NavLink>
-
-            <MobileDropdown
-              name="membership"
-              label="Membership"
-              mainPath="/membership/nomination"
-              items={membershipItems}
-              openMenu={openMenu}
-              setOpenMenu={setOpenMenu}
-              active={location.pathname.startsWith("/membership")}
-              onNavigate={closeMobileMenu}
-            />
 
             <NavLink
               to="/contribution"
@@ -245,16 +228,6 @@ function Navbar() {
           <NavLink to="/gallery" className={navLinkClass}>
             Gallery
           </NavLink>
-
-          <DropdownMenu
-            name="membership"
-            label="Membership"
-            mainPath="/membership/nomination"
-            items={membershipItems}
-            openMenu={openMenu}
-            setOpenMenu={setOpenMenu}
-            active={location.pathname.startsWith("/membership")}
-          />
 
           <NavLink to="/contribution" className={navLinkClass}>
             Contribution

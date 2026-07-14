@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion } from 'framer-motion';
-import { GraduationCap, Loader2 } from 'lucide-react';
+import { GraduationCap, Loader2, MicVocalIcon } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 
@@ -26,13 +26,15 @@ const schema = z.object({
   path: ['yearOfPassout'],
 });
 
-const COURSES = ['B.E', 'M.E', 'MBA', 'PhD'];
+const COURSES = ['B.E', 'M.E', 'MBA', 'PhD', 'MCA'];
 const BRANCHES = [
   'Computer Science & Engineering',
   'Information Technology',
   'Electronics & Telecommunication',
   'Electrical Engineering',
   'Mechanical Engineering',
+  'MCA',
+  'MBA'
 ];
 
 export const Onboarding = () => {
@@ -49,7 +51,7 @@ export const Onboarding = () => {
       yearOfAdmission: Number(values.yearOfAdmission),
       yearOfPassout: Number(values.yearOfPassout),
     });
-    setUserProfile(data.user);
+    setUserProfile(data.data.user);
   };
 
   return (

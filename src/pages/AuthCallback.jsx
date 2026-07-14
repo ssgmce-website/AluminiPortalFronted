@@ -21,9 +21,9 @@ export const AuthCallback = () => {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const { setUserProfile } = useAuth();
-  const [status, setStatus]       = useState('Completing sign in…');
-  const [error, setError]         = useState('');
-  const [retrying, setRetrying]   = useState(false);
+  const [status, setStatus] = useState('Completing sign in…');
+  const [error, setError] = useState('');
+  const [retrying, setRetrying] = useState(false);
   const [needEmail, setNeedEmail] = useState(false); // email-link opened on another device
   const [emailInput, setEmailInput] = useState('');
 
@@ -45,6 +45,15 @@ export const AuthCallback = () => {
         navigate('/register?error=missing_details', { replace: true });
         return;
       }
+
+      const verifiedEmail = auth.currentUser?.email;
+      if (verifiedEmail && verifiedEmail.toLowerCase().trim() !== details.email.toLowerCase().trim()) {
+        clearAuthIntent();
+        await logout();
+        navigate(`/register?error=${encodeURIComponent(`The verified email (${verifiedEmail}) does not match the email entered in the registration form (${details.email}).`)}`, { replace: true });
+        return;
+      }
+
       setStatus('Submitting your registration…');
       try {
         const { user } = await registerWithBackend(details);
@@ -55,7 +64,7 @@ export const AuthCallback = () => {
           // Already registered — send them to sign in (or pending).
           clearAuthIntent();
           const st = err.response.data?.status;
-          navigate(st === 'approved' ? '/sign-in?error=already_registered' : '/pending', { replace: true });
+          navigate(st === 'approved' ? '/login?error=already_registered' : '/pending', { replace: true });
           return;
         }
         throw err;
@@ -73,7 +82,7 @@ export const AuthCallback = () => {
       if (err?.response?.status === 404) {
         clearAuthIntent();
         await logout(); // sign the unregistered user back out of Firebase
-        navigate('/sign-in?error=not_registered', { replace: true });
+        navigate('/login?error=not_registered', { replace: true });
         return;
       }
       throw err;
@@ -87,7 +96,7 @@ export const AuthCallback = () => {
     // OAuth error bounced back from the backend (e.g. LinkedIn).
     const oauthError = params.get('error');
     if (oauthError) {
-      navigate(`/sign-in?error=${encodeURIComponent(oauthError)}`, { replace: true });
+      navigate(`/login?error=${encodeURIComponent(oauthError)}`, { replace: true });
       return;
     }
 
@@ -118,7 +127,7 @@ export const AuthCallback = () => {
       }
 
       // Nothing to complete here — go back to sign in.
-      navigate('/sign-in', { replace: true });
+      navigate('/login', { replace: true });
     } catch (err) {
       if (err?.code === 'auth/missing-email') {
         // The link was opened on a different device/browser; ask for the email.

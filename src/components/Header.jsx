@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import logo from "../assets/logo.jpeg";
+import logo from "../assets/logo.png";
 import { LogIn, UserPlus, LayoutDashboard } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { routeForProfile } from "../utils/authRoutes";
@@ -58,7 +58,7 @@ function Header() {
               </Link>
               <Link
                 className="inline-flex items-center justify-center gap-2 rounded-md bg-blue-700 px-4 py-2 text-white shadow-sm transition hover:bg-blue-800"
-                to="/sign-in"
+                to="/login"
               >
                 <LogIn size={16} />
                 Login

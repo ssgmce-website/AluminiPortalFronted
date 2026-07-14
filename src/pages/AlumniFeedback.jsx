@@ -2,7 +2,7 @@ import { useState } from "react";
 import { RotateCcw, Send } from "lucide-react";
 import PageShell from "../components/PageShell";
 import FormField from "../components/FormField";
-import logo from "../assets/logo.jpeg";
+import logo from "../assets/logo.png";
 
 const awarenessOptions = [
   "WhatsApp Communication / SMS",

@@ -8,11 +8,11 @@ import { adminLogin } from '../services/adminAuth';
 // No registration, no Firebase. On success the admin lands on /admin.
 export const AdminLogin = () => {
   const navigate = useNavigate();
-  const [email, setEmail]       = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPw, setShowPw]     = useState(false);
-  const [error, setError]       = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [showPw, setShowPw] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -99,13 +99,9 @@ export const AdminLogin = () => {
             className="w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-60 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2"
           >
             {loading ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
-            {loading ? 'Signing in…' : 'Sign in'}
+            {loading ? 'Login in…' : 'Login'}
           </button>
         </form>
-
-        <p className="text-center text-xs text-gray-400 mt-6">
-          Alumni? <a href="/sign-in" className="text-slate-700 font-medium hover:underline">Sign in here</a>
-        </p>
       </motion.div>
     </div>
   );

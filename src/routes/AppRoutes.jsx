@@ -15,44 +15,42 @@ import { Footer } from '../pages/footer';
 
 // ─── CODE-SPLIT: every page is a separate JS chunk ────────────────────────────
 // Auth (small, load fast)
-const SignIn          = lazy(() => import('../pages/SignIn').then(m => ({ default: m.SignIn })));
-const Register        = lazy(() => import('../pages/Register').then(m => ({ default: m.Register })));
-const AuthCallback    = lazy(() => import('../pages/AuthCallback').then(m => ({ default: m.AuthCallback })));
+const SignIn = lazy(() => import('../pages/SignIn').then(m => ({ default: m.SignIn })));
+const Register = lazy(() => import('../pages/Register').then(m => ({ default: m.Register })));
+const AuthCallback = lazy(() => import('../pages/AuthCallback').then(m => ({ default: m.AuthCallback })));
 const PendingApproval = lazy(() => import('../pages/PendingApproval').then(m => ({ default: m.PendingApproval })));
 
 // Protected
-const Dashboard         = lazy(() => import('../pages/Dashboard').then(m => ({ default: m.Dashboard })));
+const Dashboard = lazy(() => import('../pages/Dashboard').then(m => ({ default: m.Dashboard })));
 const ProfileCompletion = lazy(() => import('../pages/ProfileCompletion'));
 
 // Admin (standalone auth — email + password, separate from Firebase)
-const AdminLogin    = lazy(() => import('../pages/AdminLogin').then(m => ({ default: m.AdminLogin })));
+const AdminLogin = lazy(() => import('../pages/AdminLogin').then(m => ({ default: m.AdminLogin })));
 
 // Admin panels
 const AdminOverview = lazy(() => import('../pages/admin/AdminOverview').then(m => ({ default: m.AdminOverview })));
-const MembersPanel  = lazy(() => import('../pages/admin/MembersPanel').then(m => ({ default: m.MembersPanel })));
-const EventsPanel   = lazy(() => import('../pages/admin/EventsPanel').then(m => ({ default: m.EventsPanel })));
+const MembersPanel = lazy(() => import('../pages/admin/MembersPanel').then(m => ({ default: m.MembersPanel })));
+const EventsPanel = lazy(() => import('../pages/admin/EventsPanel').then(m => ({ default: m.EventsPanel })));
 const FinancesPanel = lazy(() => import('../pages/admin/FinancesPanel').then(m => ({ default: m.FinancesPanel })));
-const TravelPanel   = lazy(() => import('../pages/admin/TravelPanel').then(m => ({ default: m.TravelPanel })));
-const PostsPanel    = lazy(() => import('../pages/admin/PostsPanel').then(m => ({ default: m.PostsPanel })));
+const TravelPanel = lazy(() => import('../pages/admin/TravelPanel').then(m => ({ default: m.TravelPanel })));
+const PostsPanel = lazy(() => import('../pages/admin/PostsPanel').then(m => ({ default: m.PostsPanel })));
 
 
 // Public pages
-const HomePage           = lazy(() => import('../pages/HomePage'));
-const AlumniCell         = lazy(() => import('../pages/AlumniCell'));
-const ExecutiveTeam      = lazy(() => import('../pages/ExecutiveTeam'));
-const ActivityOrganized  = lazy(() => import('../pages/ActivityOrganized'));
+const HomePage = lazy(() => import('../pages/HomePage'));
+const AlumniCell = lazy(() => import('../pages/AlumniCell'));
+const ExecutiveTeam = lazy(() => import('../pages/ExecutiveTeam'));
+const ActivityOrganized = lazy(() => import('../pages/ActivityOrganized'));
 const DistinguishedAlumni = lazy(() => import('../pages/DistinguishedAlumni'));
-const AnnualReport       = lazy(() => import('../pages/AnnualReport'));
-const Nomination         = lazy(() => import('../pages/Nomination'));
-const WithdrawalForm     = lazy(() => import('../pages/WithdrawalForm'));
-const Contribution       = lazy(() => import('../pages/Contribution'));
-const Newsletter         = lazy(() => import('../pages/Newsletter'));
-const Donation           = lazy(() => import('../pages/Donation'));
-const EventRegistration  = lazy(() => import('../pages/EventRegistration'));
-const AlumniFeedback     = lazy(() => import('../pages/AlumniFeedback'));
-const EventGallery       = lazy(() => import('../pages/EventGallery'));
-const Gallery            = lazy(() => import('../pages/Gallery'));
-const ContactPage        = lazy(() => import('../pages/ContactPage'));
+const AnnualReport = lazy(() => import('../pages/AnnualReport'));
+const Contribution = lazy(() => import('../pages/Contribution'));
+const Newsletter = lazy(() => import('../pages/Newsletter'));
+const Donation = lazy(() => import('../pages/Donation'));
+const EventRegistration = lazy(() => import('../pages/EventRegistration'));
+const AlumniFeedback = lazy(() => import('../pages/AlumniFeedback'));
+const EventGallery = lazy(() => import('../pages/EventGallery'));
+const Gallery = lazy(() => import('../pages/Gallery'));
+const ContactPage = lazy(() => import('../pages/ContactPage'));
 
 // ─── LOADING FALLBACK ─────────────────────────────────────────────────────────
 const PageLoader = () => (
@@ -88,28 +86,26 @@ export const AppRoutes = () => {
 
         {/* ── Public site ───────────────────────────────────────────────── */}
         <Route element={<MainLayout />}>
-          <Route path="/"                          element={<HomePage />} />
-          <Route path="/about/alumni-cell"         element={<AlumniCell />} />
-          <Route path="/about/executive-team"      element={<ExecutiveTeam />} />
-          <Route path="/about/activity-organized"  element={<ActivityOrganized />} />
+          <Route path="/" element={<HomePage />} />
+          <Route path="/about/alumni-cell" element={<AlumniCell />} />
+          <Route path="/about/executive-team" element={<ExecutiveTeam />} />
+          <Route path="/about/activity-organized" element={<ActivityOrganized />} />
           <Route path="/about/distinguished-alumni" element={<DistinguishedAlumni />} />
-          <Route path="/about/annual-report"       element={<AnnualReport />} />
-          <Route path="/membership/nomination"     element={<Nomination />} />
-          <Route path="/membership/withdrawal-form" element={<WithdrawalForm />} />
-          <Route path="/contribution"              element={<Contribution />} />
-          <Route path="/newsletter"                element={<Newsletter />} />
-          <Route path="/donation"                  element={<Donation />} />
-          <Route path="/event/registration"        element={<EventRegistration />} />
-          <Route path="/event/feedback"            element={<AlumniFeedback />} />
-          <Route path="/event/gallery"             element={<EventGallery />} />
-          <Route path="/gallery"                   element={<Gallery />} />
-          <Route path="/contact"                   element={<ContactPage />} />
-          <Route path="/feedback"                  element={<Navigate to="/event/feedback" replace />} />
+          <Route path="/about/annual-report" element={<AnnualReport />} />
+          <Route path="/contribution" element={<Contribution />} />
+          <Route path="/newsletter" element={<Newsletter />} />
+          <Route path="/donation" element={<Donation />} />
+          <Route path="/event/registration" element={<EventRegistration />} />
+          <Route path="/event/feedback" element={<AlumniFeedback />} />
+          <Route path="/event/gallery" element={<EventGallery />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/feedback" element={<Navigate to="/event/feedback" replace />} />
         </Route>
 
         {/* ── Auth (no site chrome) ─────────────────────────────────────── */}
         <Route
-          path="/sign-in"
+          path="/login"
           element={
             alreadyIn
               ? <Navigate to={routeForProfile(userProfile)} replace />
@@ -126,8 +122,8 @@ export const AppRoutes = () => {
         />
 
         {/* ── Redirect aliases ──────────────────────────────────────────── */}
-        <Route path="/signin"   element={<Navigate to="/sign-in" replace />} />
-        <Route path="/Sign-in"  element={<Navigate to="/sign-in" replace />} />
+        <Route path="/signin" element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<Navigate to="/login" replace />} />
 
         {/* ── OAuth / email-link callback — no layout ───────────────────── */}
         <Route path="/auth/callback" element={<Suspense fallback={<PageLoader />}><AuthCallback /></Suspense>} />
@@ -163,26 +159,26 @@ export const AppRoutes = () => {
           <Route index element={<Suspense fallback={<PageLoader />}><AdminOverview /></Suspense>} />
 
           {/* Members */}
-          <Route path="members"           element={<Suspense fallback={<PageLoader />}><MembersPanel tab="pending" /></Suspense>} />
-          <Route path="members/approved"  element={<Suspense fallback={<PageLoader />}><MembersPanel tab="approved" /></Suspense>} />
-          <Route path="members/rejected"  element={<Suspense fallback={<PageLoader />}><MembersPanel tab="rejected" /></Suspense>} />
+          <Route path="members" element={<Suspense fallback={<PageLoader />}><MembersPanel tab="pending" /></Suspense>} />
+          <Route path="members/approved" element={<Suspense fallback={<PageLoader />}><MembersPanel tab="approved" /></Suspense>} />
+          <Route path="members/rejected" element={<Suspense fallback={<PageLoader />}><MembersPanel tab="rejected" /></Suspense>} />
           <Route path="members/dept-wise" element={<Suspense fallback={<PageLoader />}><MembersPanel tab="dept-wise" /></Suspense>} />
 
           {/* Events */}
           <Route path="events/current" element={<Suspense fallback={<PageLoader />}><EventsPanel tab="current" /></Suspense>} />
-          <Route path="events/old"     element={<Suspense fallback={<PageLoader />}><EventsPanel tab="old" /></Suspense>} />
+          <Route path="events/old" element={<Suspense fallback={<PageLoader />}><EventsPanel tab="old" /></Suspense>} />
 
           {/* Finances */}
-          <Route path="finances/donations"     element={<Suspense fallback={<PageLoader />}><FinancesPanel tab="donations" /></Suspense>} />
+          <Route path="finances/donations" element={<Suspense fallback={<PageLoader />}><FinancesPanel tab="donations" /></Suspense>} />
           <Route path="finances/contributions" element={<Suspense fallback={<PageLoader />}><FinancesPanel tab="contributions" /></Suspense>} />
 
           {/* Travel */}
-          <Route path="travel/plans"         element={<Suspense fallback={<PageLoader />}><TravelPanel tab="plans" /></Suspense>} />
+          <Route path="travel/plans" element={<Suspense fallback={<PageLoader />}><TravelPanel tab="plans" /></Suspense>} />
           <Route path="travel/accommodation" element={<Suspense fallback={<PageLoader />}><TravelPanel tab="accommodation" /></Suspense>} />
 
           {/* Posts */}
-          <Route path="posts/jobs"           element={<Suspense fallback={<PageLoader />}><PostsPanel tab="jobs" /></Suspense>} />
-          <Route path="posts/activities"     element={<Suspense fallback={<PageLoader />}><PostsPanel tab="activities" /></Suspense>} />
+          <Route path="posts/jobs" element={<Suspense fallback={<PageLoader />}><PostsPanel tab="jobs" /></Suspense>} />
+          <Route path="posts/activities" element={<Suspense fallback={<PageLoader />}><PostsPanel tab="activities" /></Suspense>} />
           <Route path="posts/guest-lectures" element={<Suspense fallback={<PageLoader />}><PostsPanel tab="guest-lectures" /></Suspense>} />
         </Route>
 

@@ -134,6 +134,9 @@ const galleryRow1 = [
 const galleryRow2 = [
   { src: meet2026Faculty,      alt: 'Alumni Faculty Interaction — Alumni Meet 2026' },
   { src: meet2026Auditorium,   alt: 'Alumni Meet Auditorium Session 2026' },
+];
+
+const galleryRow3 = [
   { src: meet2026Inauguration, alt: 'Inauguration Ceremony — Alumni Meet 2026' },
   { src: meet2026Session,      alt: 'Student Interaction Session — Alumni Meet 2026' },
 ];
@@ -164,7 +167,7 @@ export default function HomePage() {
 
       {/* ── STATS STRIP ─────────────────────────────────────────────────────── */}
       <section className="mx-auto max-w-[1425px]">
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
           <div className="grid grid-cols-2 divide-x divide-y divide-slate-100 md:grid-cols-4 md:divide-y-0">
             <StatCard icon={UserCheck}    label="Registered Alumni" value={15000} suffix="+" />
             <StatCard icon={Building2}    label="Companies"         value={350}   suffix="+" />
@@ -376,7 +379,7 @@ export default function HomePage() {
         </div>
         <div className="space-y-3 pb-8" aria-label="Alumni meet photo gallery">
           <div className="gallery-marquee-row">
-            <div className="gallery-marquee-track gallery-marquee-track-left" style={{ '--marquee-speed': '32s' }}>
+            <div className="gallery-marquee-track gallery-marquee-track-left" style={{ '--marquee-speed': '65s' }}>
               {[...galleryRow1, ...galleryRow1].map((img, i) => (
                 <div key={`r1-${i}`} className="gallery-marquee-item">
                   <img src={img.src} alt={img.alt} loading="lazy" />
@@ -388,9 +391,21 @@ export default function HomePage() {
             </div>
           </div>
           <div className="gallery-marquee-row">
-            <div className="gallery-marquee-track gallery-marquee-track-right" style={{ '--marquee-speed': '38s' }}>
+            <div className="gallery-marquee-track gallery-marquee-track-right" style={{ '--marquee-speed': '55s' }}>
               {[...galleryRow2, ...galleryRow2].map((img, i) => (
                 <div key={`r2-${i}`} className="gallery-marquee-item">
+                  <img src={img.src} alt={img.alt} loading="lazy" />
+                  <div className="gallery-marquee-item-overlay" aria-hidden="true">
+                    <span>{img.alt}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="gallery-marquee-row">
+            <div className="gallery-marquee-track gallery-marquee-track-left" style={{ '--marquee-speed': '75s' }}>
+              {[...galleryRow3, ...galleryRow3].map((img, i) => (
+                <div key={`r3-${i}`} className="gallery-marquee-item">
                   <img src={img.src} alt={img.alt} loading="lazy" />
                   <div className="gallery-marquee-item-overlay" aria-hidden="true">
                     <span>{img.alt}</span>

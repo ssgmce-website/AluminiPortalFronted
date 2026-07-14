@@ -15,10 +15,10 @@ export const AuthProvider = ({ children }) => {
   // Apply the result of an /auth/sync call to context state.
   const applySync = (err, data) => {
     if (!err) {
-      setUserProfile(data.user);
+      setUserProfile(data.data.user);
       setUnregistered(false);
       setBackendError(null);
-      return data.user;
+      return data.data.user;
     }
     // 404 = the email isn't registered yet (not an error condition).
     if (err?.response?.status === 404) {

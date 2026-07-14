@@ -8,7 +8,7 @@ import axios from 'axios';
 
 const TOKEN_KEY = 'adminToken';
 
-const API_BASE = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/v1`;
+const API_BASE = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/v1`;
 
 export const getAdminToken = () => {
   try { return window.localStorage.getItem(TOKEN_KEY); } catch { return null; }
@@ -20,7 +20,7 @@ export const isAdminAuthed = () => !!getAdminToken();
 export const adminLogin = async (email, password) => {
   const { data } = await axios.post(`${API_BASE}/auth/admin/login`, { email, password });
   try {
-    window.localStorage.setItem(TOKEN_KEY, data.token);
+    window.localStorage.setItem(TOKEN_KEY, data.data.token);
   } catch { /* storage unavailable — token just won't persist */ }
   return data;
 };
