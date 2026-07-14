@@ -23,7 +23,7 @@ import resisterBg from '../assets/REGISITER.png';
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const currentYear = new Date().getFullYear();
 
-const COURSES = ['B.E', 'M.E', 'MBA', 'PhD', 'MCA'];
+const COURSES = ['B.E/B.Tech', 'M.E/M.Tech', 'MBA', 'MCA', 'PhD'];
 const BRANCHES = [
   'Computer Science & Engineering',
   'Information Technology',
@@ -520,7 +520,7 @@ export const Register = () => {
               {/* Header */}
               <div className="text-center mb-6">
                 <img src={logo} alt="SSGMCE Logo" className="mx-auto h-20 w-24 object-contain" />
-                <h1 className="text-2xl font-extrabold text-[#1a3a75] tracking-tight">Register</h1>
+                <h1 className="text-2xl font-extrabold text-[#1a3a75] tracking-tight">Alumni Register</h1>
                 <p className="mt-1 text-sm text-gray-500 font-semibold">
                   Join our alumni community
                 </p>
