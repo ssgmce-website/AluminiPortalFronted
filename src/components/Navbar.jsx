@@ -108,9 +108,7 @@ function Navbar() {
     { label: "ALUMNI CELL", path: "/about/alumni-cell" },
     { label: "Executive Team", path: "/about/executive-team" },
     { label: "Activity Organized", path: "/about/activity-organized" },
-    { label: "Distinguished Alumni", path: "/about/distinguished-alumni" },
-    { label: "Annual Report", path: "/about/annual-report" },
-  ];
+, ];
 
   const eventItems = [
     { label: "Event Registration", path: "/event/registration" },
@@ -201,7 +199,7 @@ function Navbar() {
               active={location.pathname.startsWith("/event")}
               onNavigate={closeMobileMenu}
             />
-
+            
             <NavLink
               to="/contact"
               onClick={closeMobileMenu}

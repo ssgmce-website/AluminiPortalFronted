@@ -30,7 +30,10 @@ function Header() {
               SSGMCE Alumni Connect
             </h1>
             <p className="mt-2 max-w-2xl text-sm font-medium text-slate-600 sm:text-base md:text-lg">
-              Shri Sant Gajanan Maharaj College of Engineering, Shegaon
+              Shri Sant Gajanan Maharaj College of Engineering, Shegaon, 
+              </p>
+              <p>
+              An Autonomous Institution | NAAC "A+" Accredited | Estd. 1983
             </p>
           </div>
         </div>
