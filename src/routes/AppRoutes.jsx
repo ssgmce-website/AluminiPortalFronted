@@ -78,6 +78,17 @@ const MainLayout = () => (
 export const AppRoutes = () => {
   const { currentUser, userProfile } = useAuth();
   const alreadyIn = currentUser && userProfile;
+  const approvedAlumni =
+    Boolean(currentUser) &&
+    userProfile?.role === 'alumni' &&
+    userProfile?.status === 'approved';
+  const feedbackRoute = !currentUser ? (
+    <Navigate to="/login" replace />
+  ) : approvedAlumni ? (
+    <Suspense fallback={<PageLoader />}><AlumniFeedback /></Suspense>
+  ) : (
+    <Navigate to={userProfile ? routeForProfile(userProfile) : '/login'} replace />
+  );
 
   return (
     <>
@@ -96,12 +107,13 @@ export const AppRoutes = () => {
           <Route path="/newsletter" element={<Newsletter />} />
           <Route path="/donation" element={<Donation />} />
           <Route path="/event/registration" element={<EventRegistration />} />
-          <Route path="/event/feedback" element={<AlumniFeedback />} />
           <Route path="/event/gallery" element={<EventGallery />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<ContactPage />} />
-          <Route path="/feedback" element={<Navigate to="/event/feedback" replace />} />
         </Route>
+
+        <Route path="/event/feedback" element={feedbackRoute} />
+        <Route path="/feedback" element={<Navigate to="/event/feedback" replace />} />
 
         {/* ── Auth (no site chrome) ─────────────────────────────────────── */}
         <Route

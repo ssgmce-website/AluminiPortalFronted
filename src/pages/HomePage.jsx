@@ -6,13 +6,8 @@ import {
   ArrowRight, Building2, MapPin, ChevronRight, CalendarDays, UserCheck,
 } from 'lucide-react';
 import HeroSlider from '../components/HeroSlider';
-<<<<<<< HEAD
-import Newsroom from '../components/Newsroom';
 import distinguishedAlumni from '../data/DistinguishedAlumni';
-=======
 import Newsletter from '../pages/Newsletter';
-import distinguishedAlumni from '../data/distinguishedAlumni';
->>>>>>> 462108e1dc9e239da0112ae9feef83488acf8196
 import { fetchNewlyRegisteredAlumni } from '../services/alumniService';
 import meet2026Guest from '../assets/gallery/AlumniMeet2026.jpeg';
 import meet2026Faculty from '../assets/gallery/AM2026.jpeg';
