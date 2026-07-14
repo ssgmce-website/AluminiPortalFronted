@@ -2,6 +2,7 @@ import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import { logout } from '../services/authService';
 import { useAuth } from '../contexts/AuthContext';
+import FeedbackButton from '../components/FeedbackButton';
 import logo from '../assets/logo.png';
 
 export const DashboardLayout = () => {
@@ -40,6 +41,7 @@ export const DashboardLayout = () => {
       </nav>
 
       <Outlet />
+      <FeedbackButton />
     </div>
   );
 };
