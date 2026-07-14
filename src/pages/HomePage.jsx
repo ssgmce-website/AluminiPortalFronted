@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import HeroSlider from '../components/HeroSlider';
 import Newsroom from '../components/Newsroom';
-import distinguishedAlumni from '../data/distinguishedAlumni';
+import distinguishedAlumni from '../data/DistinguishedAlumni';
 import { fetchNewlyRegisteredAlumni } from '../services/alumniService';
 import meet2026Guest from '../assets/gallery/AlumniMeet2026.jpeg';
 import meet2026Faculty from '../assets/gallery/AM2026.jpeg';

@@ -41,9 +41,9 @@ const HomePage = lazy(() => import('../pages/HomePage'));
 const AlumniCell = lazy(() => import('../pages/AlumniCell'));
 const ExecutiveTeam = lazy(() => import('../pages/ExecutiveTeam'));
 const ActivityOrganized = lazy(() => import('../pages/ActivityOrganized'));
-const DistinguishedAlumni = lazy(() => import('../pages/DistinguishedAlumni'));
 const AnnualReport = lazy(() => import('../pages/AnnualReport'));
 const Contribution = lazy(() => import('../pages/Contribution'));
+const DistinguishedAlumni = lazy(() => import('../components/DistinguishedAlumni'));
 const Newsletter = lazy(() => import('../pages/Newsletter'));
 const Donation = lazy(() => import('../pages/Donation'));
 const EventRegistration = lazy(() => import('../pages/EventRegistration'));
@@ -90,9 +90,9 @@ export const AppRoutes = () => {
           <Route path="/about/alumni-cell" element={<AlumniCell />} />
           <Route path="/about/executive-team" element={<ExecutiveTeam />} />
           <Route path="/about/activity-organized" element={<ActivityOrganized />} />
-          <Route path="/about/distinguished-alumni" element={<DistinguishedAlumni />} />
           <Route path="/about/annual-report" element={<AnnualReport />} />
           <Route path="/contribution" element={<Contribution />} />
+          <Route path="/distinguished-alumni" element={<DistinguishedAlumni />} />
           <Route path="/newsletter" element={<Newsletter />} />
           <Route path="/donation" element={<Donation />} />
           <Route path="/event/registration" element={<EventRegistration />} />
