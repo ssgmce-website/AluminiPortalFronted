@@ -685,8 +685,8 @@ export const Register = () => {
                               <DatePicker
                                 selected={field.value ? new Date(field.value) : null}
                                 onChange={(date) => field.onChange(date)}
-                                dateFormat="dd/MM/yy"
-                                placeholderText="DD/MM/YY"
+                                dateFormat="dd/MM/yyyy"
+                                placeholderText="DD/MM/YYYY"
                                 className="w-full px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
                                 wrapperClassName="flex-1"
                                 showMonthDropdown
