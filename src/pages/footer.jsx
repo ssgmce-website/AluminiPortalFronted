@@ -19,16 +19,27 @@ const quickLinks = [
 
 export const Footer = () => {
   return (
-    <footer className="bg-slate-950 text-blue-100">
+    <footer className="bg-[#3964C3] text-blue-100">
       <div className="mx-auto max-w-[1425px] px-5 py-12 lg:px-10">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div>
+            <div className="flex items-center gap-3">
+            <div>
+              <img
+                src="/logo.png"
+                alt="SSGMCE Alumni Connect Logo"
+                className="mb-4 h-12 w-auto"
+              />
+            </div>
+            <div>
             <p className="mb-1 text-xs font-semibold uppercase tracking-[0.22em] text-blue-300">
               Alumni Association
             </p>
             <h2 className="mb-3 text-xl font-extrabold text-white">
               SSGMCE Alumni Connect
             </h2>
+            </div>
+            </div>
             <p className="mb-4 text-sm leading-relaxed text-blue-200">
               Shri Sant Gajanan Maharaj College of Engineering, Shegaon
             </p>
