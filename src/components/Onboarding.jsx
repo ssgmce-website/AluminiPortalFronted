@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -26,7 +27,7 @@ const schema = z.object({
   path: ['yearOfPassout'],
 });
 
-const COURSES = ['B.E', 'M.E', 'MBA', 'PhD', 'MCA'];
+const COURSES = ['B.E/B.Tech', 'M.E/M.Tech', 'MBA', 'MCA', 'PhD'];
 const BRANCHES = [
   'Computer Science & Engineering',
   'Information Technology',
@@ -40,10 +41,25 @@ const BRANCHES = [
 export const Onboarding = () => {
   const { setUserProfile } = useAuth();
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, watch, setValue, getValues, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: { yearOfAdmission: '', yearOfPassout: '' },
+    defaultValues: { course: '', branch: '', yearOfAdmission: '', yearOfPassout: '' },
   });
+
+  const selectedCourse = watch('course');
+
+  useEffect(() => {
+    if (selectedCourse === 'MCA') {
+      setValue('branch', 'MCA');
+    } else if (selectedCourse === 'MBA') {
+      setValue('branch', 'MBA');
+    } else {
+      const currentBranch = getValues('branch');
+      if (currentBranch === 'MCA' || currentBranch === 'MBA') {
+        setValue('branch', '');
+      }
+    }
+  }, [selectedCourse, setValue, getValues]);
 
   const onSubmit = async (values) => {
     const { data } = await api.post('/user/onboarding', {
@@ -90,13 +106,28 @@ export const Onboarding = () => {
           {/* Branch */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Branch / Department</label>
-            <select
-              {...register('branch')}
-              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
-            >
-              <option value="">Select branch</option>
-              {BRANCHES.map((b) => <option key={b} value={b}>{b}</option>)}
-            </select>
+            {selectedCourse && (selectedCourse === 'MCA' || selectedCourse === 'MBA') ? (
+              <div>
+                <input
+                  type="text"
+                  value={selectedCourse}
+                  disabled
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm bg-gray-50 text-gray-500 cursor-not-allowed font-semibold"
+                />
+                <input type="hidden" {...register('branch')} />
+              </div>
+            ) : (
+              <select
+                {...register('branch')}
+                disabled={!selectedCourse}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="">{selectedCourse ? 'Select branch' : 'Select course first'}</option>
+                {BRANCHES.filter(b => b !== 'MCA' && b !== 'MBA').map((b) => (
+                  <option key={b} value={b}>{b}</option>
+                ))}
+              </select>
+            )}
             {errors.branch && <p className="text-red-500 text-xs mt-1">{errors.branch.message}</p>}
           </div>
 
