@@ -3,7 +3,13 @@ import { BookOpen, GraduationCap, Layers, Users } from "lucide-react";
 import PageShell from "../components/PageShell";
 import contributions from "../data/contributions.json";
 
+const ALL_YEARS = "all";
+const ALL_BRANCHES = "all-branches";
 const YEARS = Array.from({ length: 10 }, (_, index) => 2017 + index);
+const YEAR_OPTIONS = [
+  { value: ALL_YEARS, label: "All Years" },
+  ...YEARS.map((year) => ({ value: year, label: String(year) })),
+];
 
 const BRANCHES = [
   { value: "cse", label: "CSE" },
@@ -14,6 +20,15 @@ const BRANCHES = [
   { value: "mba", label: "MBA" },
   { value: "mca", label: "MCA" },
 ];
+
+const BRANCH_OPTIONS = [
+  { value: ALL_BRANCHES, label: "All Branches" },
+  ...BRANCHES,
+];
+
+function getBranchLabel(value) {
+  return BRANCHES.find((branch) => branch.value === value)?.label || "-";
+}
 
 const companyWords = new Set([
   "abb",
@@ -140,7 +155,10 @@ function TabButton({ active, children, onClick }) {
 }
 
 function ContributionTable({ data, selectedBranch, selectedYear }) {
-  const branchLabel = BRANCHES.find((branch) => branch.value === selectedBranch)?.label;
+  const showingAllBranches = selectedBranch === ALL_BRANCHES;
+  const branchLabel = showingAllBranches ? "all branches" : getBranchLabel(selectedBranch);
+  const selectedYearLabel = selectedYear === ALL_YEARS ? "all years" : selectedYear;
+  const tableColSpan = showingAllBranches ? 4 : 3;
 
   return (
     <div className="overflow-hidden rounded-lg border border-blue-100 bg-white shadow-sm">
@@ -150,7 +168,7 @@ function ContributionTable({ data, selectedBranch, selectedYear }) {
             Selected List
           </p>
           <h3 className="mt-1 text-lg font-extrabold text-slate-900">
-            {branchLabel} alumni contributions for {selectedYear}
+            Alumni contributions for {branchLabel} in {selectedYearLabel}
           </h3>
         </div>
         <span className="inline-flex w-fit items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-800">
@@ -166,6 +184,11 @@ function ContributionTable({ data, selectedBranch, selectedYear }) {
               <th className="px-4 py-3 text-xs font-extrabold uppercase tracking-wide text-slate-500">
                 Name
               </th>
+              {showingAllBranches && (
+                <th className="px-4 py-3 text-xs font-extrabold uppercase tracking-wide text-slate-500">
+                  Branch
+                </th>
+              )}
               <th className="px-4 py-3 text-xs font-extrabold uppercase tracking-wide text-slate-500">
                 Passout Year
               </th>
@@ -181,6 +204,14 @@ function ContributionTable({ data, selectedBranch, selectedYear }) {
                   <td className="px-4 py-4 text-sm font-bold text-slate-900">
                     {row.name}
                   </td>
+                  {showingAllBranches && (
+                    <td className="px-4 py-4 text-sm text-slate-600">
+                      <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 font-semibold text-blue-800">
+                        <Layers size={14} />
+                        {getBranchLabel(row.branch)}
+                      </span>
+                    </td>
+                  )}
                   <td className="px-4 py-4 text-sm text-slate-600">
                     <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 font-semibold">
                       <GraduationCap size={14} />
@@ -201,8 +232,8 @@ function ContributionTable({ data, selectedBranch, selectedYear }) {
               ))
             ) : (
               <tr>
-                <td colSpan={3} className="px-4 py-10 text-center text-sm font-semibold text-slate-500">
-                  No alumni contributions are available for this year and branch yet.
+                <td colSpan={tableColSpan} className="px-4 py-10 text-center text-sm font-semibold text-slate-500">
+                  No alumni contributions are available for this selection yet.
                 </td>
               </tr>
             )}
@@ -221,7 +252,9 @@ function Contribution() {
     if (!selectedYear || !selectedBranch) return [];
 
     return rows.filter(
-      (item) => item.year === selectedYear && item.branch === selectedBranch,
+      (item) =>
+        (selectedYear === ALL_YEARS || item.year === selectedYear) &&
+        (selectedBranch === ALL_BRANCHES || item.branch === selectedBranch),
     );
   }, [selectedBranch, selectedYear]);
 
@@ -249,16 +282,16 @@ function Contribution() {
         <section>
           <div className="mb-3 flex items-center gap-2 text-sm font-extrabold text-slate-800">
             <GraduationCap size={18} className="text-blue-700" />
-            Passout Year
+            Contribution Year
           </div>
           <div className="flex flex-wrap gap-2">
-            {YEARS.map((year) => (
+            {YEAR_OPTIONS.map((year) => (
               <TabButton
-                key={year}
-                active={selectedYear === year}
-                onClick={() => setSelectedYear(year)}
+                key={year.value}
+                active={selectedYear === year.value}
+                onClick={() => setSelectedYear(year.value)}
               >
-                {year}
+                {year.label}
               </TabButton>
             ))}
           </div>
@@ -270,7 +303,7 @@ function Contribution() {
             Branch
           </div>
           <div className="flex flex-wrap gap-2">
-            {BRANCHES.map((branch) => (
+            {BRANCH_OPTIONS.map((branch) => (
               <TabButton
                 key={branch.value}
                 active={selectedBranch === branch.value}
@@ -290,7 +323,7 @@ function Contribution() {
           />
         ) : (
           <div className="rounded-lg border border-dashed border-blue-200 bg-white px-4 py-8 text-center text-sm font-semibold text-slate-500">
-            Choose one year and one branch to view alumni name, passout year, and contribution.
+            Choose a year option and a branch option to view alumni name, passout year, and contribution.
           </div>
         )}
       </div>
