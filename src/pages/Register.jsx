@@ -28,7 +28,7 @@ import "react-datepicker/dist/react-datepicker.css";
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const currentYear = new Date().getFullYear();
 
-const COURSES = ['B.E', 'PhD', 'M.E', 'MBA', 'MCA'];
+const COURSES = ['B.E/B.Tech', 'M.E/M.Tech', 'MBA', 'MCA', 'PhD'];
 const BRANCHES = [
   'Computer Science & Engineering',
   'Information Technology',
@@ -564,7 +564,7 @@ export const Register = () => {
               {/* Header */}
               <div className="text-center mb-6">
                 <img src={logo} alt="SSGMCE Logo" className="mx-auto h-20 w-24 object-contain" />
-                <h1 className="text-2xl font-extrabold text-[#1a3a75] tracking-tight">Register</h1>
+                <h1 className="text-2xl font-extrabold text-[#1a3a75] tracking-tight">Alumni Register</h1>
                 <p className="mt-1 text-sm text-gray-500 font-semibold">
                   Join our alumni community
                 </p>
@@ -685,8 +685,8 @@ export const Register = () => {
                               <DatePicker
                                 selected={field.value ? new Date(field.value) : null}
                                 onChange={(date) => field.onChange(date)}
-                                dateFormat="dd/MM/yy"
-                                placeholderText="DD/MM/YY"
+                                dateFormat="dd/MM/yyyy"
+                                placeholderText="DD/MM/YYYY"
                                 className="w-full px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
                                 wrapperClassName="flex-1"
                                 showMonthDropdown
