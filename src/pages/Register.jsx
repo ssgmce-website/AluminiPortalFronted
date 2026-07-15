@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, CheckCircle2, RefreshCw, AlertCircle, Mail, ChevronRight, ChevronLeft, Award, Briefcase, GraduationCap, User, Lock, ArrowRight } from 'lucide-react';
+import { Loader2, CheckCircle2, RefreshCw, AlertCircle, Mail, ChevronRight, ChevronLeft, Award, Briefcase, GraduationCap, User, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   googleAuth,
@@ -371,6 +371,7 @@ export const Register = () => {
   const [step, setStep] = useState(0);
   const [emailInput, setEmailInput] = useState('');
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const isVerified = currentUser && currentUser.email;
 
@@ -598,7 +599,7 @@ export const Register = () => {
       if (auth.currentUser && password) {
         await updatePassword(auth.currentUser, password);
       }
-      
+
       // 2) Call backend API to create registration request
       const { user } = await registerWithBackend(details);
       clearAuthIntent();
@@ -799,12 +800,12 @@ export const Register = () => {
               <div className="text-center mb-6">
                 <img src={logo} alt="SSGMCE Logo" className="mx-auto h-20 w-24 object-contain" />
                 <h1 className="text-2xl font-extrabold text-[#1a3a75] tracking-tight">Alumni Registration</h1>
-                <p className="mt-1 text-xs text-gray-500 font-semibold">
+                {/* <p className="mt-1 text-xs text-gray-500 font-semibold">
                   Registering as <span className="text-[#1a3a75] font-bold">{currentUser.email}</span>. Not you?{' '}
                   <button onClick={handleLogoutAndStartOver} className="text-red-500 underline font-bold hover:text-red-700">
                     Start over
                   </button>
-                </p>
+                </p> */}
               </div>
 
               {/* Progress Indicator */}
@@ -895,16 +896,23 @@ export const Register = () => {
 
                       {/* Password */}
                       <div className="md:col-span-2">
-                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                        <div className="flex items-center bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden pr-3">
                           <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
                             Password<span className="text-red-500 ml-0.5">*</span>
                           </span>
                           <input
                             {...register('password')}
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}
                             placeholder="Create account password (min 6 characters)"
                             className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
                           />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className=" bg-[#fafafa] text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
+                          >
+                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                          </button>
                         </div>
                         <FieldError message={errors.password?.message} />
                       </div>

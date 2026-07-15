@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, CheckCircle2, AlertCircle, Mail, Lock } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   googleAuth,
@@ -55,6 +55,7 @@ export const SignIn = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const loginForm = useForm({ resolver: zodResolver(loginSchema) });
 
@@ -72,7 +73,7 @@ export const SignIn = () => {
       setAuthIntent('login');
       // 1) Authenticate on Firebase
       await loginWithEmailPassword(data.email, data.password);
-      
+
       // 2) Authenticate on Backend
       const { user } = await loginWithBackend();
       setUserProfile(user);
@@ -205,16 +206,23 @@ export const SignIn = () => {
 
               {/* Password Field */}
               <div>
-                <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                <div className="flex items-center bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden pr-3">
                   <span className="w-24 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-sm font-bold text-gray-500 py-3.5">
                     Password
                   </span>
                   <input
                     {...loginForm.register('password')}
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
                     className="flex-1 px-4 py-3.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="bg-[#fafafa] text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
                 </div>
                 {loginForm.formState.errors.password && (
                   <p className="mt-1 flex items-center gap-1 text-xs text-red-500 font-semibold">
