@@ -40,9 +40,22 @@ export const AuthCallback = () => {
     if (intent === 'register') {
       const details = getRegistrationDetails();
       if (!details) {
-        clearAuthIntent();
-        await logout();
-        navigate('/register?error=missing_details', { replace: true });
+        // Verification-first flow: the user verified their email, now check if they already exist
+        setStatus('Checking account status…');
+        try {
+          const { user } = await loginWithBackend();
+          clearAuthIntent();
+          finish(user);
+        } catch (err) {
+          if (err?.response?.status === 404) {
+            // Not registered yet. Redirect to /register to fill details.
+            navigate('/register', { replace: true });
+            return;
+          }
+          clearAuthIntent();
+          await logout();
+          navigate('/register?error=verification_failed', { replace: true });
+        }
         return;
       }
 

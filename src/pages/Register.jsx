@@ -3,19 +3,22 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, CheckCircle2, RefreshCw, AlertCircle, Mail, ChevronRight, ChevronLeft, Award, Briefcase, GraduationCap, User } from 'lucide-react';
+import { Loader2, CheckCircle2, RefreshCw, AlertCircle, Mail, ChevronRight, ChevronLeft, Award, Briefcase, GraduationCap, User, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   googleAuth,
   linkedInRedirect,
   requestEmailOtp,
+  verifyEmailOtp,
   registerWithBackend,
   checkEmailRegistered,
   setAuthIntent,
   clearAuthIntent,
   logout,
+  loginWithBackend,
 } from '../services/authService';
 import { auth } from '../firebase/firebase';
+import { updatePassword } from 'firebase/auth';
 import { friendlyAuthError } from '../utils/authErrors';
 import { routeForProfile } from '../utils/authRoutes';
 import { useAuth } from '../contexts/AuthContext';
@@ -24,6 +27,7 @@ import resisterBg from '../assets/REGISITER.png';
 import { Controller } from "react-hook-form";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { uploadProfilePhoto } from '../services/uploadService';
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const currentYear = new Date().getFullYear();
@@ -51,6 +55,7 @@ const schema = z
     // Step 0: Personal
     name: z.string().min(2, 'Enter your full name (at least 2 characters)'),
     email: z.string().email('Enter a valid email address'),
+    password: z.string().min(6, 'Password must be at least 6 characters long'),
     contactNumber: z
       .string()
       .regex(/^\d{10}$/, 'Enter a valid 10-digit mobile number'),
@@ -110,6 +115,9 @@ const schema = z
     universityName: z.string().optional(),
     higherStudiesCourse: z.string().optional(),
     higherStudiesCountry: z.string().optional(),
+    termsAccepted: z.literal(true, {
+      errorMap: () => ({ message: 'You must agree to the Terms of Use to register' }),
+    }),
   })
   .refine((d) => d.yearOfPassout >= d.yearOfAdmission, {
     message: 'Passout year must be ≥ admission year',
@@ -173,11 +181,15 @@ function useResendTimer(initialSeconds = 60) {
 }
 
 // ─── CONFIRMATION SCREEN ─────────────────────────────────────────────────────
-function ConfirmationScreen({ email, onBack }) {
+function ConfirmationScreen({ email, onBack, onVerify }) {
   const { seconds, canResend, reset } = useResendTimer(60);
   const [resendBusy, setResendBusy] = useState(false);
   const [resendError, setResendError] = useState('');
   const [resendDone, setResendDone] = useState(false);
+
+  const [otpCode, setOtpCode] = useState('');
+  const [verifyBusy, setVerifyBusy] = useState(false);
+  const [verifyError, setVerifyError] = useState('');
 
   const handleResend = async () => {
     setResendBusy(true);
@@ -191,6 +203,23 @@ function ConfirmationScreen({ email, onBack }) {
       setResendError(friendlyAuthError(err));
     } finally {
       setResendBusy(false);
+    }
+  };
+
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    if (!otpCode.trim()) {
+      setVerifyError('Please enter the verification code.');
+      return;
+    }
+    setVerifyBusy(true);
+    setVerifyError('');
+    try {
+      await onVerify(otpCode.trim());
+    } catch (err) {
+      setVerifyError(friendlyAuthError(err));
+    } finally {
+      setVerifyBusy(false);
     }
   };
 
@@ -215,10 +244,41 @@ function ConfirmationScreen({ email, onBack }) {
           <span className="text-sm font-bold text-blue-800">{email}</span>
         </div>
         <p className="mt-4 text-xs leading-relaxed text-gray-500">
-          Open the link <strong>on this device</strong> to complete registration.
-          Your account will then be sent to the admin for approval.
+          Open the link <strong>on this device</strong>, OR copy the verification code (the <strong>oobCode</strong> from the email link) and paste it below:
         </p>
       </div>
+
+      {/* OTP verification input form */}
+      <form onSubmit={handleVerify} className="space-y-4 text-left border-t border-gray-200/50 pt-5">
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+            Verification Code / Link
+          </label>
+          <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+            <input
+              type="text"
+              required
+              value={otpCode}
+              onChange={(e) => setOtpCode(e.target.value)}
+              placeholder="Paste code or link here"
+              className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+            />
+          </div>
+          {verifyError && (
+            <p className="mt-2 flex items-center gap-1 text-xs text-red-500 font-semibold">
+              <AlertCircle size={11} /> {verifyError}
+            </p>
+          )}
+        </div>
+        <button
+          type="submit"
+          disabled={verifyBusy}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#1a3a75] hover:bg-[#153470] py-3.5 text-sm font-bold text-white shadow-md transition-all duration-200 cursor-pointer disabled:opacity-60"
+        >
+          {verifyBusy ? <Loader2 size={16} className="animate-spin" /> : null}
+          Verify Code
+        </button>
+      </form>
 
       <div className="border-t border-gray-200 pt-5 text-center">
         {resendError && (
@@ -267,7 +327,7 @@ function ConfirmationScreen({ email, onBack }) {
         onClick={onBack}
         className="text-xs text-gray-400 font-semibold hover:text-gray-600 hover:underline cursor-pointer block w-full text-center"
       >
-        ← Use different email or details
+        ← Use different email
       </button>
     </motion.div>
   );
@@ -293,7 +353,7 @@ const LinkedInIcon = () => (
 function FieldError({ message }) {
   if (!message) return null;
   return (
-    <p className="mt-1 flex items-center gap-1 text-xs text-red-500">
+    <p className="mt-1 flex items-center gap-1 text-xs text-red-500 font-semibold">
       <AlertCircle size={11} /> {message}
     </p>
   );
@@ -303,12 +363,17 @@ function FieldError({ message }) {
 export const Register = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { setUserProfile } = useAuth();
+  const { setUserProfile, currentUser } = useAuth();
 
   const [error, setError] = useState('');
-  const [busy, setBusy] = useState(''); // 'google' | 'linkedin' | 'email' | ''
+  const [busy, setBusy] = useState(''); // 'google' | 'linkedin' | 'email' | 'register' | ''
   const [otpSent, setOtpSent] = useState(''); // email address the link was sent to
   const [step, setStep] = useState(0);
+  const [emailInput, setEmailInput] = useState('');
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const isVerified = currentUser && currentUser.email;
 
   const {
     register,
@@ -323,6 +388,7 @@ export const Register = () => {
     defaultValues: {
       name: '',
       email: '',
+      password: '',
       contactNumber: '',
       profilePhoto: '',
       dob: '',
@@ -356,6 +422,7 @@ export const Register = () => {
       universityName: '',
       higherStudiesCourse: '',
       higherStudiesCountry: '',
+      termsAccepted: false,
     },
   });
 
@@ -365,6 +432,13 @@ export const Register = () => {
   const showCompanyFields = employmentStatus === 'Employed';
 
   const selectedCourse = watch('course');
+
+  // Pre-fill and lock email when user is authenticated with Firebase
+  useEffect(() => {
+    if (isVerified) {
+      setValue('email', currentUser.email);
+    }
+  }, [isVerified, currentUser, setValue]);
 
   useEffect(() => {
     if (selectedCourse === 'MCA') {
@@ -397,7 +471,7 @@ export const Register = () => {
     return {
       // Core fields
       name: v.name.trim(),
-      email: v.email.trim(),
+      email: currentUser.email.toLowerCase().trim(), // enforce email from Firebase session
       course: v.course,
       branch: v.branch,
       yearOfAdmission: Number(v.yearOfAdmission),
@@ -457,24 +531,79 @@ export const Register = () => {
   };
 
   const handleGoogle = async () => {
-    const details = await collectDetails();
-    if (!details) return;
+    setError('');
     setBusy('google');
     try {
-      setAuthIntent('register', details);
+      setAuthIntent('register');
       const popped = await googleAuth();
       if (popped) {
-        const verifiedEmail = auth.currentUser?.email;
-        if (verifiedEmail && verifiedEmail.toLowerCase().trim() !== details.email.toLowerCase().trim()) {
+        // Pop-up flow finished in-page. Check if the authenticated email is already registered.
+        try {
+          const { user } = await loginWithBackend();
           clearAuthIntent();
-          await logout();
-          setError(`The email address of the Google account you signed into (${verifiedEmail}) does not match the email you entered in the registration form (${details.email}). Please use the correct Google account or update the form.`);
-          return;
+          finish(user);
+        } catch (err) {
+          if (err?.response?.status === 409) return handleAlreadyRegistered(err.response.data?.status);
+          if (err?.response?.status === 404) {
+            // Not registered in backend database. Keep Firebase session, page re-renders to show form!
+            clearAuthIntent();
+          } else {
+            throw err;
+          }
         }
-        const { user } = await registerWithBackend(details);
-        clearAuthIntent();
-        finish(user);
       }
+    } catch (err) {
+      setError(friendlyAuthError(err));
+    } finally {
+      setBusy('');
+    }
+  };
+
+  const handleLinkedIn = async () => {
+    setError('');
+    setAuthIntent('register');
+    linkedInRedirect();
+  };
+
+  const handleEmailVerificationRequest = async (e) => {
+    e.preventDefault();
+    setError('');
+    const email = emailInput.trim();
+    if (!email || !email.includes('@')) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    setBusy('email');
+    try {
+      const { exists, status } = await checkEmailRegistered(email);
+      if (exists) return handleAlreadyRegistered(status);
+      setAuthIntent('register');
+      await requestEmailOtp(email);
+      setOtpSent(email);
+    } catch (err) {
+      setError(friendlyAuthError(err));
+    } finally {
+      setBusy('');
+    }
+  };
+
+  const handleRegisterSubmit = async () => {
+    setError('');
+    const details = await collectDetails();
+    if (!details) return;
+
+    setBusy('register');
+    try {
+      // 1) Link/Set password on Firebase first
+      const password = getValues('password');
+      if (auth.currentUser && password) {
+        await updatePassword(auth.currentUser, password);
+      }
+
+      // 2) Call backend API to create registration request
+      const { user } = await registerWithBackend(details);
+      clearAuthIntent();
+      finish(user);
     } catch (err) {
       if (err?.response?.status === 409) return handleAlreadyRegistered(err.response.data?.status);
       setError(friendlyAuthError(err));
@@ -483,28 +612,28 @@ export const Register = () => {
     }
   };
 
-  const handleLinkedIn = async () => {
-    const details = await collectDetails();
-    if (!details) return;
-    setAuthIntent('register', details);
-    linkedInRedirect();
-  };
-
-  const handleEmailLink = async () => {
-    const details = await collectDetails();
-    if (!details) return;
-    const email = getValues('email');
-    setBusy('email');
+  const handleVerifyOtp = async (code) => {
+    setError('');
+    let otp = code.trim();
+    if (otp.startsWith('http')) {
+      try {
+        const url = new URL(otp);
+        otp = url.searchParams.get('oobCode') || otp;
+      } catch (e) {
+        // Ignore parsing error
+      }
+    }
+    await verifyEmailOtp(otpSent, otp);
     try {
-      const { exists, status } = await checkEmailRegistered(email);
-      if (exists) return handleAlreadyRegistered(status);
-      setAuthIntent('register', details);
-      await requestEmailOtp(email);
-      setOtpSent(email);
+      const { user } = await loginWithBackend();
+      handleAlreadyRegistered(user.status);
     } catch (err) {
-      setError(friendlyAuthError(err));
-    } finally {
-      setBusy('');
+      if (err?.response?.status === 404) {
+        // Not registered (expected) -> proceeds to form
+        setOtpSent('');
+      } else {
+        throw err;
+      }
     }
   };
 
@@ -515,6 +644,7 @@ export const Register = () => {
       ok = await trigger([
         'name',
         'email',
+        'password',
         'contactNumber',
         'profilePhoto',
         'dob',
@@ -528,7 +658,7 @@ export const Register = () => {
     } else if (step === 1) {
       ok = await trigger(['course', 'branch', 'yearOfAdmission', 'yearOfPassout']);
     } else if (step === 2) {
-      ok = await trigger(['linkedinUrl']);
+      ok = await trigger(['linkedinUrl', 'termsAccepted']);
     }
     if (ok) {
       setStep((s) => s + 1);
@@ -543,17 +673,115 @@ export const Register = () => {
     setStep((s) => Math.max(0, s - 1));
   };
 
-  // ── Confirmation screen or Registration form ──────────────────────────────
   return (
     <div
       className="min-h-screen w-full flex items-center justify-center lg:justify-start bg-cover bg-center p-4 sm:p-6 md:p-8 lg:pl-[6%] xl:pl-[8%] font-sans overflow-y-auto"
       style={{ backgroundImage: `url(${resisterBg})` }}
     >
-      <div className={`w-full ${otpSent ? 'max-w-[450px]' : 'max-w-3xl'} my-8 transition-all duration-300`}>
+      <div className={`w-full ${otpSent || !isVerified ? 'max-w-[450px]' : 'max-w-3xl'} my-8 transition-all duration-300`}>
         <AnimatePresence mode="wait">
           {otpSent ? (
-            <ConfirmationScreen key="confirm" email={otpSent} onBack={() => setOtpSent('')} />
+            <ConfirmationScreen
+              key="confirm"
+              email={otpSent}
+              onBack={() => setOtpSent('')}
+              onVerify={handleVerifyOtp}
+            />
+          ) : !isVerified ? (
+            /* ─── EMAIL VERIFICATION SCREEN ─── */
+            <motion.div
+              key="verification-screen"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="bg-[#eef2f6]/95 backdrop-blur-md border border-[#cbd5e1]/60 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] p-6 md:p-8"
+            >
+              {/* Header */}
+              <div className="text-center mb-6">
+                <img src={logo} alt="SSGMCE Logo" className="mx-auto h-20 w-24 object-contain" />
+                <h1 className="text-2xl font-extrabold text-[#1a3a75] tracking-tight">Alumni Registration</h1>
+                <p className="mt-1 text-sm text-gray-500 font-semibold">
+                  Verify your email address to get started
+                </p>
+              </div>
+
+              {/* Global error banner */}
+              {error && (
+                <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium">
+                  <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                  {error}
+                </div>
+              )}
+
+              <form onSubmit={handleEmailVerificationRequest} className="space-y-4">
+                <div>
+                  <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                    <span className="w-16 shrink-0 flex items-center justify-center bg-[#fafafa] border-r border-[#cbd5e1] select-none text-gray-400">
+                      <Mail size={18} />
+                    </span>
+                    <input
+                      type="email"
+                      required
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                      placeholder="Enter email address"
+                      className="flex-1 px-4 py-3.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={busy === 'email'}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#1a3a75] hover:bg-[#153470] py-3.5 text-sm font-bold text-white shadow-md transition-all duration-200 cursor-pointer disabled:opacity-60"
+                >
+                  {busy === 'email' ? <Loader2 size={16} className="animate-spin" /> : null}
+                  {busy === 'email' ? 'Sending link…' : 'Verify Email Address'}
+                  {busy !== 'email' && <ArrowRight size={16} />}
+                </button>
+              </form>
+
+              {/* Social Login/Verification Divider */}
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200" />
+                </div>
+                <div className="relative flex justify-center">
+                  <span className="bg-[#eef2f6] px-3 text-xs text-gray-400 font-semibold">Or verify using</span>
+                </div>
+              </div>
+
+              {/* Social Verification Buttons */}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={handleLinkedIn}
+                  disabled={!!busy}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-[#0a66c2] hover:bg-[#004182] py-3 text-sm font-bold text-white shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-60"
+                >
+                  <LinkedInIcon />
+                  Linkedin
+                </button>
+                <button
+                  type="button"
+                  onClick={handleGoogle}
+                  disabled={!!busy}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 py-3 text-sm font-bold text-gray-700 shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-60"
+                >
+                  {busy === 'google' ? <Loader2 size={16} className="animate-spin" /> : <GoogleIcon />}
+                  Google
+                </button>
+              </div>
+
+              <p className="text-center text-xs text-gray-400 mt-6 font-medium">
+                Already have an account?{" "}
+                <Link to="/login" className="text-[#1a3a75] font-bold hover:underline">
+                  Login
+                </Link>
+              </p>
+            </motion.div>
           ) : (
+            /* ─── MULTI-STEP REGISTRATION FORM ─── */
             <motion.div
               key="register-form"
               initial={{ opacity: 0, y: 20 }}
@@ -565,9 +793,6 @@ export const Register = () => {
               <div className="text-center mb-6">
                 <img src={logo} alt="SSGMCE Logo" className="mx-auto h-20 w-24 object-contain" />
                 <h1 className="text-2xl font-extrabold text-[#1a3a75] tracking-tight">Alumni Registration</h1>
-                <p className="mt-1 text-sm text-gray-500 font-semibold">
-                  Join our alumni community
-                </p>
               </div>
 
               {/* Progress Indicator */}
@@ -623,7 +848,7 @@ export const Register = () => {
                   <div className="space-y-4">
                     <p className="text-[11px] font-bold tracking-wider text-gray-400 uppercase mb-2 px-1">Personal Information</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/*Full Name */}
+                      {/* Full Name */}
                       <div>
                         <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
                           <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
@@ -639,20 +864,44 @@ export const Register = () => {
                         <FieldError message={errors.name?.message} />
                       </div>
 
-                      {/* Email */}
+                      {/* Email (Read Only) */}
                       <div>
-                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                        <div className="flex items-stretch bg-gray-50 border border-[#cbd5e1] rounded-xl shadow-sm overflow-hidden opacity-80">
                           <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
                             Email<span className="text-red-500 ml-0.5">*</span>
                           </span>
                           <input
                             {...register('email')}
                             type="email"
+                            readOnly
                             placeholder="Enter email address"
-                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                            className="flex-1 px-4 py-3 text-sm text-gray-500 bg-transparent focus:outline-none cursor-not-allowed font-semibold"
                           />
                         </div>
                         <FieldError message={errors.email?.message} />
+                      </div>
+
+                      {/* Password */}
+                      <div className="md:col-span-2">
+                        <div className="flex items-center bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden pr-3">
+                          <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                            Password<span className="text-red-500 ml-0.5">*</span>
+                          </span>
+                          <input
+                            {...register('password')}
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="Create account password (min 6 characters)"
+                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className=" bg-[#fafafa] text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
+                          >
+                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                          </button>
+                        </div>
+                        <FieldError message={errors.password?.message} />
                       </div>
 
                       {/* Primary Contact */}
@@ -734,11 +983,11 @@ export const Register = () => {
                         <FieldError message={errors.address?.message} />
                       </div>
 
-                      {/* district */}
+                      {/* District */}
                       <div>
                         <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
                           <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                            district<span className="text-red-500 ml-0.5">*</span>
+                            District<span className="text-red-500 ml-0.5">*</span>
                           </span>
                           <input
                             {...register('city')}
@@ -801,31 +1050,39 @@ export const Register = () => {
                       {/* Profile Photo Upload */}
                       <div className="md:col-span-2 flex flex-col items-center gap-3 bg-white/50 border border-[#cbd5e1]/80 rounded-2xl p-4 shadow-sm">
                         <div className="relative group">
-                          <div className="h-24 w-24 overflow-hidden rounded-full border-2 border-[#1a3a75]/20 bg-gray-50 flex items-center justify-center shadow-inner">
-                            {watch('profilePhoto') ? (
+                          <div className="h-24 w-24 overflow-hidden rounded-full border-2 border-[#1a3a75]/20 bg-gray-50 flex items-center justify-center shadow-inner relative">
+                            {isUploadingPhoto ? (
+                              <Loader2 className="h-8 w-8 text-[#1a3a75] animate-spin" />
+                            ) : watch('profilePhoto') ? (
                               <img src={watch('profilePhoto')} alt="Profile Preview" className="h-full w-full object-cover" />
                             ) : (
                               <User size={40} className="text-gray-400" />
                             )}
                           </div>
-                          <label className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-[#1a3a75] hover:bg-[#153470] border-2 border-white flex items-center justify-center cursor-pointer shadow transition text-white">
+                          <label className={`absolute bottom-0 right-0 h-8 w-8 rounded-full bg-[#1a3a75] hover:bg-[#153470] border-2 border-white flex items-center justify-center cursor-pointer shadow transition text-white ${isUploadingPhoto ? 'opacity-50 pointer-events-none' : ''}`}>
                             <span className="text-xs font-bold">+</span>
                             <input
                               type="file"
                               accept="image/*"
                               className="hidden"
-                              onChange={(e) => {
+                              disabled={isUploadingPhoto}
+                              onChange={async (e) => {
                                 const file = e.target.files[0];
                                 if (file) {
                                   if (file.size > 2 * 1024 * 1024) {
                                     setError('Profile photo must be smaller than 2MB.');
                                     return;
                                   }
-                                  const reader = new FileReader();
-                                  reader.onloadend = () => {
-                                    setValue('profilePhoto', reader.result);
-                                  };
-                                  reader.readAsDataURL(file);
+                                  try {
+                                    setIsUploadingPhoto(true);
+                                    setError('');
+                                    const imageUrl = await uploadProfilePhoto(file);
+                                    setValue('profilePhoto', imageUrl, { shouldValidate: true });
+                                  } catch (err) {
+                                    setError(err.message || 'Failed to upload photo.');
+                                  } finally {
+                                    setIsUploadingPhoto(false);
+                                  }
                                 }
                               }}
                             />
@@ -1250,48 +1507,23 @@ export const Register = () => {
                       </div>
                     </div>
 
-                    {/* Verification Method Divider */}
-                    <div className="relative my-5">
-                      <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-gray-200" />
-                      </div>
-                      <div className="relative flex justify-center">
-                        <span className="bg-[#eef2f6] px-3 text-xs text-gray-400 font-semibold">Choose verification method</span>
-                      </div>
-                    </div>
-
-                    {/* Auth buttons */}
-                    <div className="space-y-4">
-                      <button
-                        type="button"
-                        onClick={handleEmailLink}
-                        disabled={!!busy}
-                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#1d4289] hover:bg-[#153470] py-3.5 text-sm font-bold text-white shadow-md transition-all duration-200 cursor-pointer disabled:opacity-60"
-                      >
-                        {busy === 'email' ? <Loader2 size={16} className="animate-spin" /> : null}
-                        {busy === 'email' ? 'Sending link…' : 'Verify with email link'}
-                      </button>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <button
-                          type="button"
-                          onClick={handleLinkedIn}
-                          disabled={!!busy}
-                          className="flex items-center justify-center gap-2 rounded-xl bg-[#0a66c2] hover:bg-[#004182] py-3 text-sm font-bold text-white shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-60"
-                        >
-                          <LinkedInIcon />
-                          Linkedin
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleGoogle}
-                          disabled={!!busy}
-                          className="flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 py-3 text-sm font-bold text-gray-700 shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-60"
-                        >
-                          {busy === 'google' ? <Loader2 size={16} className="animate-spin" /> : <GoogleIcon />}
-                          Google
-                        </button>
-                      </div>
+                    {/* Terms and Conditions Checkbox */}
+                    <div className="mt-6 border-t border-gray-200/50 pt-5">
+                      <label className="flex items-start gap-3 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          {...register('termsAccepted')}
+                          className="mt-1 h-4.5 w-4.5 rounded border-gray-300 text-[#1a3a75] focus:ring-[#1a3a75]/30 cursor-pointer"
+                        />
+                        <span className="text-xs text-gray-500 font-semibold leading-relaxed group-hover:text-gray-700 select-none">
+                          I agree to all the{' '}
+                          <Link to="/terms" target="_blank" className="text-[#1a3a75] underline hover:text-[#153470] font-bold">
+                            Terms of Use
+                          </Link>{' '}
+                          and understand that I would create an alumni account on signup, which is used for authentication.
+                        </span>
+                      </label>
+                      <FieldError message={errors.termsAccepted?.message} />
                     </div>
                   </div>
                 )}
@@ -1320,16 +1552,17 @@ export const Register = () => {
                     Next <ChevronRight size={16} />
                   </button>
                 ) : (
-                  <div />
+                  <button
+                    type="button"
+                    onClick={handleRegisterSubmit}
+                    disabled={!!busy}
+                    className="flex items-center gap-1.5 rounded-xl bg-[#1a3a75] hover:bg-[#153470] px-6 py-2.5 text-sm font-bold text-white shadow transition cursor-pointer disabled:opacity-60"
+                  >
+                    {busy === 'register' ? <Loader2 size={16} className="animate-spin" /> : null}
+                    {busy === 'register' ? 'Registering…' : 'Register'}
+                  </button>
                 )}
               </div>
-
-              <p className="text-center text-xs text-gray-400 mt-6 font-medium">
-                Already have an account?{" "}
-                <Link to="/login" className="text-[#1a3a75] font-bold hover:underline">
-                  Login
-                </Link>
-              </p>
             </motion.div>
           )}
         </AnimatePresence>
