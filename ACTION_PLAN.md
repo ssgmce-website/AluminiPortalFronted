@@ -355,10 +355,10 @@ ADMIN PORTAL — SIDEBAR NAVIGATION
 └──────────────────────────────────────────────────────┘
 ```
 
-### About › Annual Report (`/about/annual-report`)
+### About › Alumni Meet Report (`/about/annual-report`)
 ```
 ┌──────────────────────────────────────────────────────┐
-│  Annual Reports                                     │
+│  Alumni Meet Reports                                     │
 │  ┌───────────────┐  ┌───────────────┐              │
 │  │  [PDF Icon]   │  │  [PDF Icon]   │              │
 │  │  Report 2024  │  │  Report 2023  │              │

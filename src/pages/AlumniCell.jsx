@@ -7,16 +7,16 @@ import {
 
 const collegeImg = '/college-building.jpeg';
 
-const fadeUp  = { hidden: { opacity: 0, y: 28 }, show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: 'easeOut' } } };
+const fadeUp = { hidden: { opacity: 0, y: 28 }, show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: 'easeOut' } } };
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.1 } } };
 
 /* ── Data ───────────────────────────────────────────────────────────────────── */
 
 const STATS = [
-  { value: '15,000+', label: 'Registered Alumni',   icon: GraduationCap },
-  { value: '1983',    label: 'Year Established',     icon: Building2     },
-  { value: '8',       label: 'Departments',          icon: BookOpen      },
-  { value: '40+',     label: 'Years of Excellence',  icon: Star          },
+  { value: '15,000+', label: 'Registered Alumni', icon: GraduationCap },
+  { value: '1983', label: 'Year Established', icon: Building2 },
+  { value: '8', label: 'Departments', icon: BookOpen },
+  { value: '40+', label: 'Years of Excellence', icon: Star },
 ];
 
 const PILLARS = [
@@ -44,12 +44,12 @@ const PILLARS = [
 ];
 
 const ACTIVITIES = [
-  { icon: CalendarDays, title: 'Annual Alumni Meet',     desc: 'A grand reunion that reconnects graduates from every batch and department.' },
-  { icon: BookOpen,     title: 'Guest Lectures',         desc: 'Industry leaders share insights and real-world experience with current students.' },
-  { icon: GraduationCap,title: 'Scholarship Programs',  desc: 'Financial support for meritorious and underprivileged students.' },
-  { icon: Globe,        title: 'Career Guidance',        desc: 'Placement drives, resume workshops, and mock interview sessions.' },
-  { icon: Lightbulb,   title: 'Innovation & Startups',  desc: 'Mentorship and seed support for student entrepreneurs and innovators.' },
-  { icon: Users,        title: 'Mentorship Network',     desc: 'One-on-one mentoring by alumni for academic and career growth.' },
+  { icon: CalendarDays, title: 'Annual Alumni Meet', desc: 'A grand reunion that reconnects graduates from every batch and department.' },
+  { icon: BookOpen, title: 'Guest Lectures', desc: 'Industry leaders share insights and real-world experience with current students.' },
+  { icon: GraduationCap, title: 'Scholarship Programs', desc: 'Financial support for meritorious and underprivileged students.' },
+  { icon: Globe, title: 'Career Guidance', desc: 'Placement drives, resume workshops, and mock interview sessions.' },
+  { icon: Lightbulb, title: 'Innovation & Startups', desc: 'Mentorship and seed support for student entrepreneurs and innovators.' },
+  { icon: Users, title: 'Mentorship Network', desc: 'One-on-one mentoring by alumni for academic and career growth.' },
 ];
 
 const OBJECTIVES = [
@@ -180,6 +180,27 @@ function AlumniCell() {
             </div>
           </motion.div>
         </motion.div>
+        {/* ── Objectives ── */}
+        <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }}>
+          <motion.div variants={fadeUp}>
+            <SectionHeading eyebrow="Our Goals" title="Objectives" />
+          </motion.div>
+          <motion.ul
+            variants={stagger}
+            className="mt-8 grid gap-3 sm:grid-cols-2"
+          >
+            {OBJECTIVES.map((obj, i) => (
+              <motion.li
+                key={obj}
+                variants={fadeUp}
+                className="flex items-start gap-3 rounded-lg border border-slate-100 bg-slate-50 px-4 py-3"
+              >
+                <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-blue-500" />
+                <span className="text-sm leading-6 text-slate-600">{obj}</span>
+              </motion.li>
+            ))}
+          </motion.ul>
+        </motion.div>
 
         {/* ── Pillars ── */}
         <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }}>
@@ -227,76 +248,6 @@ function AlumniCell() {
                 <div>
                   <h4 className="font-bold text-slate-800 text-sm">{title}</h4>
                   <p className="mt-1 text-xs leading-5 text-slate-500">{desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </motion.div>
-
-        {/* ── Objectives ── */}
-        <motion.div variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }}>
-          <motion.div variants={fadeUp}>
-            <SectionHeading eyebrow="Our Goals" title="Objectives" />
-          </motion.div>
-          <motion.ul
-            variants={stagger}
-            className="mt-8 grid gap-3 sm:grid-cols-2"
-          >
-            {OBJECTIVES.map((obj, i) => (
-              <motion.li
-                key={obj}
-                variants={fadeUp}
-                className="flex items-start gap-3 rounded-lg border border-slate-100 bg-slate-50 px-4 py-3"
-              >
-                <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-blue-500" />
-                <span className="text-sm leading-6 text-slate-600">{obj}</span>
-              </motion.li>
-            ))}
-          </motion.ul>
-        </motion.div>
-
-        {/* ── Contact ── */}
-        <motion.div
-          variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }}
-        >
-          <motion.div variants={fadeUp}>
-            <SectionHeading eyebrow="Get In Touch" title="Contact the Alumni Cell" />
-          </motion.div>
-          <motion.div
-            variants={stagger}
-            className="mt-8 grid gap-4 sm:grid-cols-3"
-          >
-            {[
-              {
-                icon: MapPin,
-                label: 'Address',
-                value: 'SSGMCE, Shegaon, Dist. Buldhana, Maharashtra – 444 203',
-                color: 'bg-rose-50 text-rose-600 border-rose-100',
-              },
-              {
-                icon: Mail,
-                label: 'Email',
-                value: 'alumni@ssgmce.ac.in',
-                color: 'bg-blue-50 text-blue-600 border-blue-100',
-              },
-              {
-                icon: Phone,
-                label: 'Phone',
-                value: '+91 72620 00000',
-                color: 'bg-emerald-50 text-emerald-600 border-emerald-100',
-              },
-            ].map(({ icon: Icon, label, value, color }) => (
-              <motion.div
-                key={label}
-                variants={fadeUp}
-                className={`flex items-start gap-4 rounded-xl border p-5 ${color.split(' ')[2]} bg-white shadow-sm`}
-              >
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${color.split(' ')[0]} ${color.split(' ')[1]}`}>
-                  <Icon size={18} />
-                </div>
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-1">{label}</p>
-                  <p className="text-sm font-medium text-slate-700 leading-5">{value}</p>
                 </div>
               </motion.div>
             ))}

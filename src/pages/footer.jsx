@@ -3,9 +3,9 @@ import { Link } from "react-router-dom";
 const aboutLinks = [
   { label: "SSGMCE Alumni Cell", path: "/about/alumni-cell" },
   { label: "Executive Team", path: "/about/executive-team" },
-  { label: "Activity Organized", path: "/about/activity-organized" },
+  { label: "Alumni Cell Activities", path: "/about/activity-organized" },
   { label: "Distinguished Alumni", path: "/about/distinguished-alumni" },
-  { label: "Annual Report", path: "/about/annual-report" },
+  { label: "Alumni Meet Report", path: "/about/annual-report" },
 ];
 
 const quickLinks = [
@@ -24,21 +24,21 @@ export const Footer = () => {
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div>
             <div className="flex items-center gap-3">
-            <div>
-              <img
-                src="/logo.png"
-                alt="SSGMCE Alumni Connect Logo"
-                className="mb-4 h-12 w-auto"
-              />
-            </div>
-            <div>
-            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.22em] text-blue-300">
-              Alumni Association
-            </p>
-            <h2 className="mb-3 text-xl font-extrabold text-white">
-              SSGMCE Alumni Connect
-            </h2>
-            </div>
+              <div>
+                <img
+                  src="/logo.png"
+                  alt="SSGMCE Alumni Connect Logo"
+                  className="mb-4 h-12 w-auto"
+                />
+              </div>
+              <div>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-[0.22em] text-blue-300">
+                  Alumni Cell
+                </p>
+                <h2 className="mb-3 text-xl font-extrabold text-white">
+                  SSGMCE Alumni Connect
+                </h2>
+              </div>
             </div>
             <p className="mb-4 text-sm leading-relaxed text-blue-200">
               Shri Sant Gajanan Maharaj College of Engineering, Shegaon
@@ -121,7 +121,7 @@ export const Footer = () => {
                 </span>
                 +91 9545956114
               </li>
-              
+
             </ul>
           </div>
         </div>
