@@ -5,7 +5,7 @@ import {
   Users,
   ArrowRight, Building2, MapPin, ChevronRight, CalendarDays, UserCheck,
 } from 'lucide-react';
-import HeroSlider from '../components/HeroSlider';
+import HeroSlider from '../components/HeroSlider'; 
 import distinguishedAlumni from '../data/DistinguishedAlumni';
 import Newsletter from '../pages/Newsletter';
 import { fetchNewlyRegisteredAlumni } from '../services/alumniService';
