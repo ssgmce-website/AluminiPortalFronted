@@ -673,6 +673,13 @@ export const Register = () => {
     setStep((s) => Math.max(0, s - 1));
   };
 
+    const handleLogoutAndStartOver = async () => {
+    await logout();
+    setError('');
+    setStep(0);
+    setEmailInput('');
+  };
+
   return (
     <div
       className="min-h-screen w-full flex items-center justify-center lg:justify-start bg-cover bg-center p-4 sm:p-6 md:p-8 lg:pl-[6%] xl:pl-[8%] font-sans overflow-y-auto"
@@ -793,6 +800,12 @@ export const Register = () => {
               <div className="text-center mb-6">
                 <img src={logo} alt="SSGMCE Logo" className="mx-auto h-20 w-24 object-contain" />
                 <h1 className="text-2xl font-extrabold text-[#1a3a75] tracking-tight">Alumni Registration</h1>
+                <p className="mt-1 text-xs text-gray-500 font-semibold">
+                  Registering as <span className="text-[#1a3a75] font-bold">{currentUser.email}</span>. Not you?{' '}
+                  <button onClick={handleLogoutAndStartOver} className="text-red-500 underline font-bold hover:text-red-700">
+                    Start over
+                  </button>
+                </p>
               </div>
 
               {/* Progress Indicator */}
