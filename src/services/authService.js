@@ -1,10 +1,12 @@
 import {
   signInWithPopup,
   signInWithRedirect,
-  sendSignInLinkToEmail,
   isSignInWithEmailLink,
   signInWithEmailLink,
   signOut,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+  signInWithCustomToken,
 } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase/firebase';
 import api from './api';
@@ -70,10 +72,16 @@ const actionCodeSettings = () => ({
  * when the user returns via the link.
  */
 export const requestEmailOtp = async (email) => {
-  const { data } = await api.post('/auth/send-passwordless-email-link', { email });
-  await sendSignInLinkToEmail(auth, email, actionCodeSettings());
+  const { data } = await api.post('/auth/send-otp', { email });
   window.localStorage.setItem(EMAIL_FOR_SIGNIN_KEY, email);
   return data.data; // { success, remaining }
+};
+
+export const verifyEmailOtp = async (email, otpCode) => {
+  const { data } = await api.post('/auth/verify-otp', { email, otpCode });
+  const { customToken } = data.data;
+  const userCredential = await signInWithCustomToken(auth, customToken);
+  return userCredential.user;
 };
 
 /** True if the current URL is a Firebase email sign-in link. */
@@ -135,3 +143,9 @@ export const logout = () => {
   clearAuthIntent();
   return signOut(auth);
 };
+
+export const loginWithEmailPassword = (email, password) =>
+  signInWithEmailAndPassword(auth, email, password);
+
+export const sendPasswordReset = (email) =>
+  sendPasswordResetEmail(auth, email);
