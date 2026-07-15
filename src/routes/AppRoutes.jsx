@@ -51,6 +51,8 @@ const AlumniFeedback = lazy(() => import('../pages/AlumniFeedback'));
 const EventGallery = lazy(() => import('../pages/EventGallery'));
 const Gallery = lazy(() => import('../pages/Gallery'));
 const ContactPage = lazy(() => import('../pages/ContactPage'));
+const TermsOfUse = lazy(() => import('../pages/TermsOfUse').then(m => ({ default: m.TermsOfUse })));
+
 
 // ─── LOADING FALLBACK ─────────────────────────────────────────────────────────
 const PageLoader = () => (
@@ -110,6 +112,7 @@ export const AppRoutes = () => {
           <Route path="/event/gallery" element={<EventGallery />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/terms" element={<TermsOfUse />} />
         </Route>
 
         <Route path="/event/feedback" element={feedbackRoute} />
