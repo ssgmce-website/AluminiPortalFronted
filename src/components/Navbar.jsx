@@ -189,6 +189,18 @@ function Navbar() {
             </NavLink>
 
             <NavLink
+              to="/about/annual-report"
+              onClick={closeMobileMenu}
+              className={({ isActive }) =>
+                `block border-b border-blue-100 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-800 ${
+                  isActive ? "bg-blue-50 text-blue-800" : ""
+                }`
+              }
+            >
+              Annual Report
+            </NavLink>
+
+            <NavLink
               to="/newsletter"
               onClick={closeMobileMenu}
               className={({ isActive }) =>
@@ -246,6 +258,10 @@ function Navbar() {
 
           <NavLink to="/distinguished-alumni" className={navLinkClass}>
             Distinguished Alumni
+          </NavLink>
+
+          <NavLink to="/about/annual-report" className={navLinkClass}>
+            Annual Report
           </NavLink>
 
           <NavLink to="/newsletter" className={navLinkClass}>
