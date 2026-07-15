@@ -1,7 +1,7 @@
 import PageShell from "../components/PageShell";
 
 function Newsletter() {
-  const editions = ["June 2026 Edition", "Annual Alumni Bulletin", "Department Updates"];
+  const editions = ["January 2026 Edition", "January 2025 Edition", "January 2024 Edition"];
 
   return (
     <PageShell eyebrow="Updates" title="Newsletter">
