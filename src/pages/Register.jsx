@@ -27,6 +27,7 @@ import resisterBg from '../assets/REGISITER.png';
 import { Controller } from "react-hook-form";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { uploadProfilePhoto } from '../services/uploadService';
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const currentYear = new Date().getFullYear();
@@ -369,6 +370,7 @@ export const Register = () => {
   const [otpSent, setOtpSent] = useState(''); // email address the link was sent to
   const [step, setStep] = useState(0);
   const [emailInput, setEmailInput] = useState('');
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   const isVerified = currentUser && currentUser.email;
 
@@ -1053,31 +1055,39 @@ export const Register = () => {
                       {/* Profile Photo Upload */}
                       <div className="md:col-span-2 flex flex-col items-center gap-3 bg-white/50 border border-[#cbd5e1]/80 rounded-2xl p-4 shadow-sm">
                         <div className="relative group">
-                          <div className="h-24 w-24 overflow-hidden rounded-full border-2 border-[#1a3a75]/20 bg-gray-50 flex items-center justify-center shadow-inner">
-                            {watch('profilePhoto') ? (
+                          <div className="h-24 w-24 overflow-hidden rounded-full border-2 border-[#1a3a75]/20 bg-gray-50 flex items-center justify-center shadow-inner relative">
+                            {isUploadingPhoto ? (
+                              <Loader2 className="h-8 w-8 text-[#1a3a75] animate-spin" />
+                            ) : watch('profilePhoto') ? (
                               <img src={watch('profilePhoto')} alt="Profile Preview" className="h-full w-full object-cover" />
                             ) : (
                               <User size={40} className="text-gray-400" />
                             )}
                           </div>
-                          <label className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-[#1a3a75] hover:bg-[#153470] border-2 border-white flex items-center justify-center cursor-pointer shadow transition text-white">
+                          <label className={`absolute bottom-0 right-0 h-8 w-8 rounded-full bg-[#1a3a75] hover:bg-[#153470] border-2 border-white flex items-center justify-center cursor-pointer shadow transition text-white ${isUploadingPhoto ? 'opacity-50 pointer-events-none' : ''}`}>
                             <span className="text-xs font-bold">+</span>
                             <input
                               type="file"
                               accept="image/*"
                               className="hidden"
-                              onChange={(e) => {
+                              disabled={isUploadingPhoto}
+                              onChange={async (e) => {
                                 const file = e.target.files[0];
                                 if (file) {
                                   if (file.size > 2 * 1024 * 1024) {
                                     setError('Profile photo must be smaller than 2MB.');
                                     return;
                                   }
-                                  const reader = new FileReader();
-                                  reader.onloadend = () => {
-                                    setValue('profilePhoto', reader.result);
-                                  };
-                                  reader.readAsDataURL(file);
+                                  try {
+                                    setIsUploadingPhoto(true);
+                                    setError('');
+                                    const imageUrl = await uploadProfilePhoto(file);
+                                    setValue('profilePhoto', imageUrl, { shouldValidate: true });
+                                  } catch (err) {
+                                    setError(err.message || 'Failed to upload photo.');
+                                  } finally {
+                                    setIsUploadingPhoto(false);
+                                  }
                                 }
                               }}
                             />
