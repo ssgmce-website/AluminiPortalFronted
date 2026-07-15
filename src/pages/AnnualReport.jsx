@@ -35,7 +35,7 @@ function AnnualReport() {
   }
 
   return (
-    <PageShell eyebrow="About" title="Annual Report">
+    <PageShell eyebrow="About" title="Alumni Meet Report">
       <div className="overflow-hidden rounded-md border border-blue-100">
         {initialReports.map((report) => {
           const uploaded = files[report.year];
@@ -73,11 +73,10 @@ function AnnualReport() {
                   <button
                     onClick={() => handleView(report.year)}
                     disabled={!uploaded}
-                    className={`rounded-md px-4 py-1.5 text-xs font-bold uppercase tracking-wide transition ${
-                      uploaded
+                    className={`rounded-md px-4 py-1.5 text-xs font-bold uppercase tracking-wide transition ${uploaded
                         ? "bg-blue-700 text-white hover:bg-blue-800"
                         : "cursor-not-allowed border border-slate-200 text-slate-400"
-                    }`}
+                      }`}
                   >
                     {viewing === report.year ? "Close" : "View"}
                   </button>
@@ -99,7 +98,7 @@ function AnnualReport() {
                 <div className="border-t border-blue-100">
                   <iframe
                     src={uploaded.url}
-                    title={`Annual Report ${report.year}`}
+                    title={`Alumni Meet Report ${report.year}`}
                     className="h-[600px] w-full"
                   />
                 </div>
