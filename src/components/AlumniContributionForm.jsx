@@ -8,6 +8,7 @@ import {
   Loader2, AlertCircle, Info, Landmark, MailCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import api from '../services/api';
 
 export const AlumniContributionForm = () => {
   const [requestStatus, setRequestStatus] = useState('idle'); // idle, loading, success
@@ -30,11 +31,16 @@ export const AlumniContributionForm = () => {
     }
   });
 
-  const handleRequestDetails = () => {
+  const handleRequestDetails = async () => {
     setRequestStatus('loading');
-    setTimeout(() => {
+    try {
+      await api.post('/user/contribution-details');
       setRequestStatus('success');
-    }, 1500);
+    } catch (err) {
+      console.error('Failed to request bank details:', err);
+      setRequestStatus('idle');
+      alert(err?.response?.data?.message || err?.message || 'Failed to request bank details.');
+    }
   };
 
   const onSubmitContribution = (data) => {
