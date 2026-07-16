@@ -1,5 +1,17 @@
 import { useState } from "react";
-import { MessageSquareText, X, CheckCircle2 } from "lucide-react";
+import { MessageSquareText, X, CheckCircle2, AlertCircle } from "lucide-react";
+import Captcha from "./Captcha";
+import api from "../services/api";
+
+function FieldError({ message }) {
+  if (!message) return null;
+  return (
+    <p className="mt-1 flex items-center gap-1 text-xs text-red-500 font-semibold animate-fade-in">
+      <AlertCircle size={12} className="shrink-0" />
+      <span>{message}</span>
+    </p>
+  );
+}
 
 function PublicFeedback() {
   const [isOpen, setIsOpen] = useState(false);
@@ -8,42 +20,81 @@ function PublicFeedback() {
   const [rating, setRating] = useState("Good");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [recaptchaChecked, setRecaptchaChecked] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
 
-  const handleSubmit = (e) => {
+  const handleCaptchaVerify = (token) => {
+    setCaptchaToken(token || "");
+    if (token && errors.captchaToken) {
+      setErrors((prev) => ({ ...prev, captchaToken: "" }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setErrors({});
+
+    const newErrors = {};
 
     if (!message.trim()) {
-      setError("Please enter your message or feedback.");
+      newErrors.message = "Please enter your message or feedback.";
+    }
+
+    if (!name.trim()) {
+      newErrors.name = "Please enter your name.";
+    }
+
+    if (!email.trim()) {
+      newErrors.email = "Please enter your email.";
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Please enter a valid email address.";
+    }
+
+    if (!captchaToken) {
+      newErrors.captchaToken = "Please verify that you are not a robot.";
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
-    if (email.trim() && !/\S+@\S+\.\S+/.test(email)) {
-      setError("Please enter a valid email address.");
-      return;
-    }
+    setIsLoading(true);
 
-    if (!recaptchaChecked) {
-      setError("Please check the 'I'm not a robot' box.");
-      return;
-    }
+    try {
+      await api.post("/public/feedback", {
+        feedbackType,
+        message,
+        rating,
+        name: name.trim(),
+        email: email.trim(),
+        captchaToken,
+      });
 
-    // Simulate API Submission
-    setIsSubmitted(true);
-    setTimeout(() => {
-      // Reset form and close modal
-      setIsOpen(false);
-      setIsSubmitted(false);
-      setMessage("");
-      setName("");
-      setEmail("");
-      setRecaptchaChecked(false);
-      setFeedbackType("bug");
-      setRating("Good");
-    }, 2500);
+      setIsSubmitted(true);
+      setTimeout(() => {
+        // Reset form and close modal
+        setIsOpen(false);
+        setIsSubmitted(false);
+        setMessage("");
+        setName("");
+        setEmail("");
+        setCaptchaToken("");
+        setFeedbackType("bug");
+        setRating("Good");
+        setErrors({});
+      }, 2500);
+    } catch (err) {
+      console.error("[PublicFeedback] submit error:", err);
+      const errMsg = err?.response?.data?.message || err?.message || "Failed to submit feedback.";
+      setError(errMsg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -68,6 +119,7 @@ function PublicFeedback() {
               <button
                 onClick={() => setIsOpen(false)}
                 className="text-slate-400 hover:text-slate-600 transition p-1 hover:bg-slate-50 rounded"
+                disabled={isLoading}
               >
                 <X className="h-5 w-5" />
               </button>
@@ -104,6 +156,7 @@ function PublicFeedback() {
                           checked={feedbackType === item.value}
                           onChange={() => setFeedbackType(item.value)}
                           className="h-4 w-4 border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          disabled={isLoading}
                         />
                         <span>{item.label}</span>
                       </label>
@@ -115,11 +168,22 @@ function PublicFeedback() {
                     <textarea
                       rows={4}
                       value={message}
-                      onChange={(e) => setMessage(e.target.value)}
+                      onChange={(e) => {
+                        setMessage(e.target.value);
+                        if (errors.message) {
+                          setErrors((prev) => ({ ...prev, message: "" }));
+                        }
+                      }}
                       placeholder="Please write your detailed feedback here..."
-                      className="w-full rounded border border-slate-300 px-3 py-2 text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+                      className={`w-full rounded border px-3 py-2 text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition ${
+                        errors.message
+                          ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                          : "border-slate-300"
+                      }`}
                       required
+                      disabled={isLoading}
                     />
+                    <FieldError message={errors.message} />
                   </div>
 
                   {/* Rating Selector (Radio Group 2) */}
@@ -135,6 +199,7 @@ function PublicFeedback() {
                             checked={rating === opt}
                             onChange={() => setRating(opt)}
                             className="h-4 w-4 border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            disabled={isLoading}
                           />
                           <span>{opt}</span>
                         </label>
@@ -145,56 +210,65 @@ function PublicFeedback() {
                   {/* Contact Info Heading */}
                   <div className="space-y-3">
                     <p className="text-xs font-medium text-slate-500">
-                      Please drop in your name & email, in case you would like us to get back to you.
+                      Please provide your name & email (required).
                     </p>
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <input
-                        type="text"
-                        placeholder="Name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="w-full rounded border border-slate-300 px-3 py-2 text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
-                      />
-                      <input
-                        type="email"
-                        placeholder="Email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="w-full rounded border border-slate-300 px-3 py-2 text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Google reCAPTCHA Simulation Box */}
-                  <div className="flex items-center justify-between rounded border border-[#d3d3d3] bg-[#f9f9f9] p-3 max-w-[300px] shadow-sm select-none">
-                    <label className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={recaptchaChecked}
-                        onChange={(e) => setRecaptchaChecked(e.target.checked)}
-                        className="h-6 w-6 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                      />
-                      <span className="text-xs font-semibold text-slate-700">I'm not a robot</span>
-                    </label>
-                    <div className="flex flex-col items-center">
-                      <img
-                        src="https://www.gstatic.com/recaptcha/api2/logo_48.png"
-                        alt="reCAPTCHA"
-                        className="h-8 w-8 object-contain"
-                      />
-                      <span className="text-[8px] text-slate-500 mt-0.5">reCAPTCHA</span>
-                      <div className="flex gap-1 text-[8px] text-slate-400">
-                        <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="hover:underline">Privacy</a>
-                        <span>•</span>
-                        <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="hover:underline">Terms</a>
+                      <div className="flex flex-col">
+                        <input
+                          type="text"
+                          placeholder="Name *"
+                          value={name}
+                          onChange={(e) => {
+                            setName(e.target.value);
+                            if (errors.name) {
+                              setErrors((prev) => ({ ...prev, name: "" }));
+                            }
+                          }}
+                          className={`w-full rounded border px-3 py-2 text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition ${
+                            errors.name
+                              ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                              : "border-slate-300"
+                          }`}
+                          disabled={isLoading}
+                          required
+                        />
+                        <FieldError message={errors.name} />
+                      </div>
+                      <div className="flex flex-col">
+                        <input
+                          type="email"
+                          placeholder="Email *"
+                          value={email}
+                          onChange={(e) => {
+                            setEmail(e.target.value);
+                            if (errors.email) {
+                              setErrors((prev) => ({ ...prev, email: "" }));
+                            }
+                          }}
+                          className={`w-full rounded border px-3 py-2 text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition ${
+                            errors.email
+                              ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                              : "border-slate-300"
+                          }`}
+                          disabled={isLoading}
+                          required
+                        />
+                        <FieldError message={errors.email} />
                       </div>
                     </div>
                   </div>
 
-                  {/* Error Notification */}
+                  {/* Google reCAPTCHA Verification Box */}
+                  <div className="flex flex-col gap-1 items-start">
+                    <Captcha onVerify={handleCaptchaVerify} />
+                    <FieldError message={errors.captchaToken} />
+                  </div>
+
+                  {/* General Error Notification */}
                   {error && (
-                    <div className="rounded border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-semibold text-red-600">
-                      {error}
+                    <div className="rounded border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-semibold text-red-600 flex items-start gap-2 animate-fade-in">
+                      <AlertCircle size={15} className="mt-0.5 shrink-0" />
+                      <span>{error}</span>
                     </div>
                   )}
                 </>
@@ -206,9 +280,10 @@ function PublicFeedback() {
               <div className="px-6 py-4 border-t border-slate-100 flex justify-between items-center bg-slate-50">
                 <button
                   onClick={handleSubmit}
-                  className="px-6 py-2 rounded-full bg-[#48bb78] hover:bg-[#38a169] text-white font-bold text-sm shadow transition cursor-pointer"
+                  disabled={isLoading}
+                  className="px-6 py-2 rounded-full bg-[#48bb78] hover:bg-[#38a169] disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold text-sm shadow transition cursor-pointer"
                 >
-                  Post Feedback
+                  {isLoading ? "Submitting..." : "Post Feedback"}
                 </button>
               </div>
             )}
