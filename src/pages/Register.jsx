@@ -85,13 +85,13 @@ const schema = z
     yearOfAdmission: z
       .number({ invalid_type_error: 'Enter a valid year' })
       .int()
-      .min(1990, 'Year must be 1990 or later')
-      .max(currentYear, `Year cannot exceed ${currentYear}`),
+      .min(1983, 'Year must be 1983 or later')
+      .max(currentYear, 'Year of admission cannot be in the future'),
     yearOfPassout: z
       .number({ invalid_type_error: 'Enter a valid year' })
       .int()
-      .min(1990, 'Year must be 1990 or later')
-      .max(currentYear + 6, 'Year seems too far in the future'),
+      .min(1986, 'Year must be 1986 or later')
+      .max(currentYear + 6, 'Year of passout is too far in the future'),
 
     // Step 2: Professional
     employmentStatus: z.string().min(1, 'Please select your employment status'),
@@ -122,7 +122,11 @@ const schema = z
     }),
   })
   .refine((d) => d.yearOfPassout >= d.yearOfAdmission, {
-    message: 'Passout year must be ≥ admission year',
+    message: 'Year of passout cannot be before the year of admission',
+    path: ['yearOfPassout'],
+  })
+  .refine((d) => d.yearOfPassout - d.yearOfAdmission >= 2, {
+    message: 'Gap between year of admission and year of passout must be at least 2 years',
     path: ['yearOfPassout'],
   })
   .superRefine((val, ctx) => {
@@ -385,6 +389,7 @@ export const Register = () => {
     watch,
     setValue,
     control,
+    setError: setErrorField,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(schema),
@@ -685,6 +690,23 @@ export const Register = () => {
       ]);
     } else if (step === 1) {
       ok = await trigger(['course', 'branch', 'yearOfAdmission', 'yearOfPassout']);
+      if (ok) {
+        const admission = Number(watch('yearOfAdmission'));
+        const passout = Number(watch('yearOfPassout'));
+        if (passout < admission) {
+          setErrorField('yearOfPassout', {
+            type: 'custom',
+            message: 'Year of passout cannot be before the year of admission',
+          });
+          ok = false;
+        } else if (passout - admission < 2) {
+          setErrorField('yearOfPassout', {
+            type: 'custom',
+            message: 'Gap between year of admission and year of passout must be at least 2 years',
+          });
+          ok = false;
+        }
+      }
     } else if (step === 2) {
       ok = await trigger(['linkedinUrl', 'termsAccepted']);
     }

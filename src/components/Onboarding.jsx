@@ -15,15 +15,18 @@ const schema = z.object({
   yearOfAdmission: z
     .number({ invalid_type_error: 'Enter a valid year' })
     .int()
-    .min(1990, 'Year must be 1990 or later')
-    .max(currentYear, `Year cannot exceed ${currentYear}`),
+    .min(1983, 'Year must be 1983 or later')
+    .max(currentYear, 'Year of admission cannot be in the future'),
   yearOfPassout: z
     .number({ invalid_type_error: 'Enter a valid year' })
     .int()
-    .min(1990, 'Year must be 1990 or later')
-    .max(currentYear + 6, 'Year seems too far in the future'),
+    .min(1985, 'Year must be 1985 or later')
+    .max(currentYear + 6, 'Year of passout is too far in the future'),
 }).refine((d) => d.yearOfPassout >= d.yearOfAdmission, {
-  message: 'Passout year must be after admission year',
+  message: 'Year of passout cannot be before the year of admission',
+  path: ['yearOfPassout'],
+}).refine((d) => d.yearOfPassout - d.yearOfAdmission >= 2, {
+  message: 'Gap between year of admission and year of passout must be at least 2 years',
   path: ['yearOfPassout'],
 });
 
