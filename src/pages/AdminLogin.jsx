@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Loader2, Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { adminLogin } from '../services/adminAuth';
+import Captcha from '../components/Captcha';
 
 // Standalone admin login — email + password checked against the backend env.
 // No registration, no Firebase. On success the admin lands on /admin.
@@ -13,13 +14,20 @@ export const AdminLogin = () => {
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (!captchaToken) {
+      setError('Please verify that you are not a robot.');
+      return;
+    }
+
     setLoading(true);
     try {
-      await adminLogin(email.trim(), password);
+      await adminLogin(email.trim(), password, captchaToken);
       navigate('/admin', { replace: true });
     } catch (err) {
       const msg =
@@ -91,6 +99,11 @@ export const AdminLogin = () => {
                 {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
+          </div>
+
+          {/* reCAPTCHA verification container */}
+          <div className="flex justify-center py-2">
+            <Captcha onVerify={setCaptchaToken} />
           </div>
 
           <button

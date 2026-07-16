@@ -16,7 +16,9 @@ import {
   clearAuthIntent,
   logout,
   loginWithBackend,
+  verifyCaptchaOnBackend,
 } from '../services/authService';
+import Captcha from '../components/Captcha';
 import { auth } from '../firebase/firebase';
 import { updatePassword } from 'firebase/auth';
 import { friendlyAuthError } from '../utils/authErrors';
@@ -372,6 +374,7 @@ export const Register = () => {
   const [emailInput, setEmailInput] = useState('');
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState('');
 
   const isVerified = currentUser && currentUser.email;
 
@@ -532,8 +535,13 @@ export const Register = () => {
 
   const handleGoogle = async () => {
     setError('');
+    if (!captchaToken) {
+      setError('Please verify that you are not a robot first.');
+      return;
+    }
     setBusy('google');
     try {
+      await verifyCaptchaOnBackend(captchaToken);
       setAuthIntent('register');
       const popped = await googleAuth();
       if (popped) {
@@ -553,7 +561,7 @@ export const Register = () => {
         }
       }
     } catch (err) {
-      setError(friendlyAuthError(err));
+      setError(err?.response?.data?.message || friendlyAuthError(err));
     } finally {
       setBusy('');
     }
@@ -561,8 +569,20 @@ export const Register = () => {
 
   const handleLinkedIn = async () => {
     setError('');
-    setAuthIntent('register');
-    linkedInRedirect();
+    if (!captchaToken) {
+      setError('Please verify that you are not a robot first.');
+      return;
+    }
+    setBusy('email');
+    try {
+      await verifyCaptchaOnBackend(captchaToken);
+      setAuthIntent('register');
+      linkedInRedirect();
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Captcha verification failed.');
+    } finally {
+      setBusy('');
+    }
   };
 
   const handleEmailVerificationRequest = async (e) => {
@@ -573,15 +593,19 @@ export const Register = () => {
       setError('Please enter a valid email address.');
       return;
     }
+    if (!captchaToken) {
+      setError('Please verify that you are not a robot first.');
+      return;
+    }
     setBusy('email');
     try {
       const { exists, status } = await checkEmailRegistered(email);
       if (exists) return handleAlreadyRegistered(status);
       setAuthIntent('register');
-      await requestEmailOtp(email);
+      await requestEmailOtp(email, captchaToken);
       setOtpSent(email);
     } catch (err) {
-      setError(friendlyAuthError(err));
+      setError(err?.response?.data?.message || friendlyAuthError(err));
     } finally {
       setBusy('');
     }
@@ -735,6 +759,11 @@ export const Register = () => {
                       className="flex-1 px-4 py-3.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
                     />
                   </div>
+                </div>
+
+                {/* reCAPTCHA verification container */}
+                <div className="flex justify-center py-2">
+                  <Captcha onVerify={setCaptchaToken} />
                 </div>
 
                 <button
