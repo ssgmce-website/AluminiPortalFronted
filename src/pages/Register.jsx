@@ -459,8 +459,14 @@ export const Register = () => {
   // Surface errors bounced back via URL (e.g. LinkedIn cancel / no-email)
   useEffect(() => {
     const urlError = searchParams.get('error');
-    if (urlError) setError(friendlyAuthError(urlError));
-  }, [searchParams]);
+    if (urlError) {
+      setError(friendlyAuthError(urlError));
+      if (urlError === 'already_registered') {
+        const status = searchParams.get('status') || 'approved';
+        setTimeout(() => navigate(status === 'approved' ? '/login' : '/pending'), 2500);
+      }
+    }
+  }, [searchParams, navigate]);
 
   // Validate all fields and return the details payload (or null if invalid)
   const collectDetails = async () => {
@@ -546,19 +552,17 @@ export const Register = () => {
       const popped = await googleAuth();
       if (popped) {
         // Pop-up flow finished in-page. Check if the authenticated email is already registered.
-        try {
-          const { user } = await loginWithBackend();
-          clearAuthIntent();
-          finish(user);
-        } catch (err) {
-          if (err?.response?.status === 409) return handleAlreadyRegistered(err.response.data?.status);
-          if (err?.response?.status === 404) {
-            // Not registered in backend database. Keep Firebase session, page re-renders to show form!
+        const email = auth.currentUser?.email;
+        if (email) {
+          const { exists, status } = await checkEmailRegistered(email);
+          if (exists) {
             clearAuthIntent();
-          } else {
-            throw err;
+            await logout();
+            return handleAlreadyRegistered(status);
           }
         }
+        // Not registered yet. Keep Firebase session, page re-renders to show form!
+        clearAuthIntent();
       }
     } catch (err) {
       setError(err?.response?.data?.message || friendlyAuthError(err));
