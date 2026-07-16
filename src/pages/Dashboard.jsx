@@ -152,6 +152,54 @@ export const Dashboard = () => {
   const saveEdit = async () => {
     setSaving(true);
     setSaveError('');
+
+    if (editSection === 'education') {
+      const yrAdmission = Number(editData.yearOfAdmission);
+      const yrPassout = Number(editData.yearOfPassout);
+      const currentYear = new Date().getFullYear();
+
+      if (!editData.course || !editData.course.trim()) {
+        setSaveError('Course is required.');
+        setSaving(false);
+        return;
+      }
+      if (!editData.branch || !editData.branch.trim()) {
+        setSaveError('Branch is required.');
+        setSaving(false);
+        return;
+      }
+      if (isNaN(yrAdmission) || yrAdmission < 1983) {
+        setSaveError('Year of admission must be 1983 or later.');
+        setSaving(false);
+        return;
+      }
+      if (yrAdmission > currentYear) {
+        setSaveError('Year of admission cannot be in the future.');
+        setSaving(false);
+        return;
+      }
+      if (isNaN(yrPassout) || yrPassout < 1985) {
+        setSaveError('Year of passout must be 1985 or later.');
+        setSaving(false);
+        return;
+      }
+      if (yrPassout > currentYear + 6) {
+        setSaveError('Year of passout is too far in the future.');
+        setSaving(false);
+        return;
+      }
+      if (yrPassout < yrAdmission) {
+        setSaveError('Year of passout cannot be before the year of admission.');
+        setSaving(false);
+        return;
+      }
+      if (yrPassout - yrAdmission < 2) {
+        setSaveError('Gap between year of admission and year of passout must be at least 2 years.');
+        setSaving(false);
+        return;
+      }
+    }
+
     try {
       await updateProfile(editData);
       setUserProfile((prev) => ({ ...prev, ...editData }));
