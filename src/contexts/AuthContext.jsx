@@ -53,6 +53,18 @@ export const AuthProvider = ({ children }) => {
       if (user) {
         try {
           const { data } = await api.post('/auth/sync');
+
+          // If the intent was to register but the backend already has this user:
+          const intent = window.localStorage.getItem('authIntent');
+          if (intent === 'register') {
+            window.localStorage.removeItem('authIntent');
+            window.localStorage.removeItem('registrationDetails');
+            await auth.signOut();
+            const status = data?.data?.user?.status || 'approved';
+            window.location.href = `/register?error=already_registered&status=${status}`;
+            return;
+          }
+
           applySync(null, data);
         } catch (err) {
           applySync(err);
