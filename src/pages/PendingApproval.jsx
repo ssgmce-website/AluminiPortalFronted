@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Clock, ShieldCheck, RefreshCw, LogOut, XCircle, Loader2 } from 'lucide-react';
+import { Clock, ShieldCheck, RefreshCw, LogOut, XCircle, Loader2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { logout } from '../services/authService';
 import { routeForProfile } from '../utils/authRoutes';
@@ -12,6 +12,7 @@ export const PendingApproval = () => {
   const navigate = useNavigate();
   const [checking, setChecking] = useState(false);
   const [justChecked, setJustChecked] = useState(false);
+  const [error, setError] = useState('');
 
   const status = userProfile?.status;
 
@@ -27,6 +28,7 @@ export const PendingApproval = () => {
   const handleCheck = async () => {
     setChecking(true);
     setJustChecked(false);
+    setError('');
     try {
       // Call the check-email API to see if approval status has changed
       const { data } = await api.post('/auth/check-email', { email: currentUser.email });
@@ -38,6 +40,8 @@ export const PendingApproval = () => {
       }
     } catch (err) {
       console.error('Failed to check email status:', err);
+      const errMsg = err?.response?.data?.message || err?.message || 'Failed to check status. Please try again.';
+      setError(errMsg);
       await refreshProfile();
     } finally {
       setChecking(false);
@@ -103,7 +107,14 @@ export const PendingApproval = () => {
               </div>
             </div>
 
-            {justChecked && !checking && (
+            {error && (
+              <div className="mt-4 flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 text-left font-medium animate-fadeIn">
+                <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                {error}
+              </div>
+            )}
+
+            {justChecked && !checking && !error && (
               <p className="text-xs text-gray-500 mt-3">
                 Still pending — we’ll email you the moment you’re approved.
               </p>
