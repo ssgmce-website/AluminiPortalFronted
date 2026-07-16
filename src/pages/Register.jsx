@@ -1559,20 +1559,22 @@ export const Register = () => {
                       )}
 
                       {/* LinkedIn URL */}
-                      <div className="md:col-span-2">
-                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
-                          <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                            LinkedIn URL
-                          </span>
-                          <input
-                            {...register('linkedinUrl')}
-                            type="url"
-                            placeholder="https://linkedin.com/in/..."
-                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
-                          />
+                      {employmentStatus && (
+                        <div className="md:col-span-2">
+                          <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                            <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                              LinkedIn URL
+                            </span>
+                            <input
+                              {...register('linkedinUrl')}
+                              type="url"
+                              placeholder="https://linkedin.com/in/..."
+                              className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                            />
+                          </div>
+                          <FieldError message={errors.linkedinUrl?.message} />
                         </div>
-                        <FieldError message={errors.linkedinUrl?.message} />
-                      </div>
+                      )}
                     </div>
 
                     {/* Terms and Conditions Checkbox */}
