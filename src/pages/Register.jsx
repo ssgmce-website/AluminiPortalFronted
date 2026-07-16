@@ -540,7 +540,7 @@ export const Register = () => {
 
   const handleAlreadyRegistered = (status) => {
     clearAuthIntent();
-    setError('This email is already registered. Redirecting you to sign in…');
+    setError('This email is already registered. Redirecting you to login…');
     setTimeout(() => navigate(status === 'approved' ? '/login' : '/pending'), 1500);
   };
 
