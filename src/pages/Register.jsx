@@ -16,7 +16,9 @@ import {
   clearAuthIntent,
   logout,
   loginWithBackend,
+  verifyCaptchaOnBackend,
 } from '../services/authService';
+import Captcha from '../components/Captcha';
 import { auth } from '../firebase/firebase';
 import { updatePassword } from 'firebase/auth';
 import { friendlyAuthError } from '../utils/authErrors';
@@ -83,13 +85,13 @@ const schema = z
     yearOfAdmission: z
       .number({ invalid_type_error: 'Enter a valid year' })
       .int()
-      .min(1990, 'Year must be 1990 or later')
-      .max(currentYear, `Year cannot exceed ${currentYear}`),
+      .min(1983, 'Year must be 1983 or later')
+      .max(currentYear, 'Year of admission cannot be in the future'),
     yearOfPassout: z
       .number({ invalid_type_error: 'Enter a valid year' })
       .int()
-      .min(1990, 'Year must be 1990 or later')
-      .max(currentYear + 6, 'Year seems too far in the future'),
+      .min(1986, 'Year must be 1986 or later')
+      .max(currentYear + 6, 'Year of passout is too far in the future'),
 
     // Step 2: Professional
     employmentStatus: z.string().min(1, 'Please select your employment status'),
@@ -120,7 +122,11 @@ const schema = z
     }),
   })
   .refine((d) => d.yearOfPassout >= d.yearOfAdmission, {
-    message: 'Passout year must be ≥ admission year',
+    message: 'Year of passout cannot be before the year of admission',
+    path: ['yearOfPassout'],
+  })
+  .refine((d) => d.yearOfPassout - d.yearOfAdmission >= 2, {
+    message: 'Gap between year of admission and year of passout must be at least 2 years',
     path: ['yearOfPassout'],
   })
   .superRefine((val, ctx) => {
@@ -372,6 +378,7 @@ export const Register = () => {
   const [emailInput, setEmailInput] = useState('');
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState('');
 
   const isVerified = currentUser && currentUser.email;
 
@@ -382,6 +389,7 @@ export const Register = () => {
     watch,
     setValue,
     control,
+    setError: setErrorField,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(schema),
@@ -456,8 +464,14 @@ export const Register = () => {
   // Surface errors bounced back via URL (e.g. LinkedIn cancel / no-email)
   useEffect(() => {
     const urlError = searchParams.get('error');
-    if (urlError) setError(friendlyAuthError(urlError));
-  }, [searchParams]);
+    if (urlError) {
+      setError(friendlyAuthError(urlError));
+      if (urlError === 'already_registered') {
+        const status = searchParams.get('status') || 'approved';
+        setTimeout(() => navigate(status === 'approved' ? '/login' : '/pending'), 2500);
+      }
+    }
+  }, [searchParams, navigate]);
 
   // Validate all fields and return the details payload (or null if invalid)
   const collectDetails = async () => {
@@ -532,28 +546,31 @@ export const Register = () => {
 
   const handleGoogle = async () => {
     setError('');
+    if (!captchaToken) {
+      setError('Please verify that you are not a robot first.');
+      return;
+    }
     setBusy('google');
     try {
+      await verifyCaptchaOnBackend(captchaToken);
       setAuthIntent('register');
       const popped = await googleAuth();
       if (popped) {
         // Pop-up flow finished in-page. Check if the authenticated email is already registered.
-        try {
-          const { user } = await loginWithBackend();
-          clearAuthIntent();
-          finish(user);
-        } catch (err) {
-          if (err?.response?.status === 409) return handleAlreadyRegistered(err.response.data?.status);
-          if (err?.response?.status === 404) {
-            // Not registered in backend database. Keep Firebase session, page re-renders to show form!
+        const email = auth.currentUser?.email;
+        if (email) {
+          const { exists, status } = await checkEmailRegistered(email);
+          if (exists) {
             clearAuthIntent();
-          } else {
-            throw err;
+            await logout();
+            return handleAlreadyRegistered(status);
           }
         }
+        // Not registered yet. Keep Firebase session, page re-renders to show form!
+        clearAuthIntent();
       }
     } catch (err) {
-      setError(friendlyAuthError(err));
+      setError(err?.response?.data?.message || friendlyAuthError(err));
     } finally {
       setBusy('');
     }
@@ -561,8 +578,20 @@ export const Register = () => {
 
   const handleLinkedIn = async () => {
     setError('');
-    setAuthIntent('register');
-    linkedInRedirect();
+    if (!captchaToken) {
+      setError('Please verify that you are not a robot first.');
+      return;
+    }
+    setBusy('email');
+    try {
+      await verifyCaptchaOnBackend(captchaToken);
+      setAuthIntent('register');
+      linkedInRedirect();
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Captcha verification failed.');
+    } finally {
+      setBusy('');
+    }
   };
 
   const handleEmailVerificationRequest = async (e) => {
@@ -573,15 +602,19 @@ export const Register = () => {
       setError('Please enter a valid email address.');
       return;
     }
+    if (!captchaToken) {
+      setError('Please verify that you are not a robot first.');
+      return;
+    }
     setBusy('email');
     try {
       const { exists, status } = await checkEmailRegistered(email);
       if (exists) return handleAlreadyRegistered(status);
       setAuthIntent('register');
-      await requestEmailOtp(email);
+      await requestEmailOtp(email, captchaToken);
       setOtpSent(email);
     } catch (err) {
-      setError(friendlyAuthError(err));
+      setError(err?.response?.data?.message || friendlyAuthError(err));
     } finally {
       setBusy('');
     }
@@ -657,6 +690,23 @@ export const Register = () => {
       ]);
     } else if (step === 1) {
       ok = await trigger(['course', 'branch', 'yearOfAdmission', 'yearOfPassout']);
+      if (ok) {
+        const admission = Number(watch('yearOfAdmission'));
+        const passout = Number(watch('yearOfPassout'));
+        if (passout < admission) {
+          setErrorField('yearOfPassout', {
+            type: 'custom',
+            message: 'Year of passout cannot be before the year of admission',
+          });
+          ok = false;
+        } else if (passout - admission < 2) {
+          setErrorField('yearOfPassout', {
+            type: 'custom',
+            message: 'Gap between year of admission and year of passout must be at least 2 years',
+          });
+          ok = false;
+        }
+      }
     } else if (step === 2) {
       ok = await trigger(['linkedinUrl', 'termsAccepted']);
     }
@@ -735,6 +785,11 @@ export const Register = () => {
                       className="flex-1 px-4 py-3.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
                     />
                   </div>
+                </div>
+
+                {/* reCAPTCHA verification container */}
+                <div className="flex justify-center py-2">
+                  <Captcha onVerify={setCaptchaToken} />
                 </div>
 
                 <button
@@ -1504,20 +1559,22 @@ export const Register = () => {
                       )}
 
                       {/* LinkedIn URL */}
-                      <div className="md:col-span-2">
-                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
-                          <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
-                            LinkedIn URL
-                          </span>
-                          <input
-                            {...register('linkedinUrl')}
-                            type="url"
-                            placeholder="https://linkedin.com/in/..."
-                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
-                          />
+                      {employmentStatus && (
+                        <div className="md:col-span-2">
+                          <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                            <span className="w-40 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                              LinkedIn URL
+                            </span>
+                            <input
+                              {...register('linkedinUrl')}
+                              type="url"
+                              placeholder="https://linkedin.com/in/..."
+                              className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                            />
+                          </div>
+                          <FieldError message={errors.linkedinUrl?.message} />
                         </div>
-                        <FieldError message={errors.linkedinUrl?.message} />
-                      </div>
+                      )}
                     </div>
 
                     {/* Terms and Conditions Checkbox */}

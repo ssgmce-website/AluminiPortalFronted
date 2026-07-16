@@ -17,8 +17,8 @@ export const getAdminToken = () => {
 export const isAdminAuthed = () => !!getAdminToken();
 
 // POST the credentials; on success persist the session token.
-export const adminLogin = async (email, password) => {
-  const { data } = await axios.post(`${API_BASE}/auth/admin/login`, { email, password });
+export const adminLogin = async (email, password, captchaToken) => {
+  const { data } = await axios.post(`${API_BASE}/auth/admin/login`, { email, password, captchaToken });
   try {
     window.localStorage.setItem(TOKEN_KEY, data.data.token);
   } catch { /* storage unavailable — token just won't persist */ }

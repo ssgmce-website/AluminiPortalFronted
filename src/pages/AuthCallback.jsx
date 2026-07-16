@@ -13,6 +13,7 @@ import {
   registerWithBackend,
   loginWithBackend,
   logout,
+  checkEmailRegistered,
 } from '../services/authService';
 import { friendlyAuthError } from '../utils/authErrors';
 import { routeForProfile } from '../utils/authRoutes';
@@ -43,15 +44,20 @@ export const AuthCallback = () => {
         // Verification-first flow: the user verified their email, now check if they already exist
         setStatus('Checking account status…');
         try {
-          const { user } = await loginWithBackend();
-          clearAuthIntent();
-          finish(user);
-        } catch (err) {
-          if (err?.response?.status === 404) {
-            // Not registered yet. Redirect to /register to fill details.
-            navigate('/register', { replace: true });
+          const email = auth.currentUser?.email;
+          if (!email) {
+            throw new Error('Email not found in auth provider.');
+          }
+          const { exists, status: alumniStatus } = await checkEmailRegistered(email);
+          if (exists) {
+            clearAuthIntent();
+            await logout();
+            navigate(alumniStatus === 'approved' ? '/login?error=already_registered' : '/pending', { replace: true });
             return;
           }
+          // Not registered yet. Redirect to /register to fill details.
+          navigate('/register', { replace: true });
+        } catch (err) {
           clearAuthIntent();
           await logout();
           navigate('/register?error=verification_failed', { replace: true });

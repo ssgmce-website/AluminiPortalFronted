@@ -57,6 +57,10 @@ export const registerWithBackend = (details) =>
 export const checkEmailRegistered = (email) =>
   api.post('/auth/check-email', { email }).then((r) => r.data.data);
 
+// Verify a captcha token explicitly from the frontend before proceeding with login/registration
+export const verifyCaptchaOnBackend = (captchaToken) =>
+  api.post('/public/verify-captcha', { captchaToken }).then((r) => r.data.data);
+
 // ── Email OTP (Firebase passwordless email link) ───────────────────────────────
 
 // Where Firebase sends the user back to after they click the email link.
@@ -71,8 +75,8 @@ const actionCodeSettings = () => ({
  * (login/register) beforehand. We stash the email so we can complete sign-in
  * when the user returns via the link.
  */
-export const requestEmailOtp = async (email) => {
-  const { data } = await api.post('/auth/send-otp', { email });
+export const requestEmailOtp = async (email, captchaToken) => {
+  const { data } = await api.post('/auth/send-otp', { email, captchaToken });
   window.localStorage.setItem(EMAIL_FOR_SIGNIN_KEY, email);
   return data.data; // { success, remaining }
 };

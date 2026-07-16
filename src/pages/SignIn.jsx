@@ -13,12 +13,14 @@ import {
   loginWithBackend,
   setAuthIntent,
   logout,
+  verifyCaptchaOnBackend,
 } from '../services/authService';
 import { friendlyAuthError } from '../utils/authErrors';
 import { routeForProfile } from '../utils/authRoutes';
 import { useAuth } from '../contexts/AuthContext';
 import logo from '../assets/logo.png';
 import loginBg from '../assets/REGISITER.png';
+import Captcha from '../components/Captcha';
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const NOT_REGISTERED_MSG = 'This email is not registered. Please register first.';
@@ -56,6 +58,7 @@ export const SignIn = () => {
   const [resetSent, setResetSent] = useState(false);
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState('');
 
   const loginForm = useForm({ resolver: zodResolver(loginSchema) });
 
@@ -69,12 +72,18 @@ export const SignIn = () => {
   const onSubmit = async (data) => {
     setError('');
     setResetSent(false);
+    if (!captchaToken) {
+      setError('Please verify that you are not a robot first.');
+      return;
+    }
     try {
       setAuthIntent('login');
-      // 1) Authenticate on Firebase
+      // 1) Verify Captcha with Backend
+      await verifyCaptchaOnBackend(captchaToken);
+      // 2) Authenticate on Firebase
       await loginWithEmailPassword(data.email, data.password);
 
-      // 2) Authenticate on Backend
+      // 3) Authenticate on Backend
       const { user } = await loginWithBackend();
       setUserProfile(user);
       navigate(routeForProfile(user));
@@ -84,7 +93,7 @@ export const SignIn = () => {
         setError(NOT_REGISTERED_MSG);
         await logout();
       } else {
-        setError(friendlyAuthError(err));
+        setError(err?.response?.data?.message || friendlyAuthError(err));
       }
     }
   };
@@ -111,8 +120,13 @@ export const SignIn = () => {
   const handleGoogle = async () => {
     setError('');
     setResetSent(false);
+    if (!captchaToken) {
+      setError('Please verify that you are not a robot first.');
+      return;
+    }
     setGoogleLoading(true);
     try {
+      await verifyCaptchaOnBackend(captchaToken);
       setAuthIntent('login');
       const popped = await googleAuth();
       if (popped) {
@@ -125,18 +139,27 @@ export const SignIn = () => {
         setError(NOT_REGISTERED_MSG);
         await logout();
       } else {
-        setError(friendlyAuthError(err));
+        setError(err?.response?.data?.message || friendlyAuthError(err));
       }
     } finally {
       setGoogleLoading(false);
     }
   };
 
-  const handleLinkedIn = () => {
+  const handleLinkedIn = async () => {
     setError('');
     setResetSent(false);
-    setAuthIntent('login');
-    linkedInRedirect();
+    if (!captchaToken) {
+      setError('Please verify that you are not a robot first.');
+      return;
+    }
+    try {
+      await verifyCaptchaOnBackend(captchaToken);
+      setAuthIntent('login');
+      linkedInRedirect();
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Captcha verification failed.');
+    }
   };
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -242,6 +265,11 @@ export const SignIn = () => {
                 >
                   {forgotPasswordLoading ? 'Sending reset email...' : 'Forgot password?'}
                 </button>
+              </div>
+
+              {/* reCAPTCHA verification container */}
+              <div className="flex justify-center py-2">
+                <Captcha onVerify={setCaptchaToken} />
               </div>
 
               {/* Primary CTA */}
