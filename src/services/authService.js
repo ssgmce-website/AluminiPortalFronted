@@ -75,8 +75,8 @@ const actionCodeSettings = () => ({
  * (login/register) beforehand. We stash the email so we can complete sign-in
  * when the user returns via the link.
  */
-export const requestEmailOtp = async (email, captchaToken) => {
-  const { data } = await api.post('/auth/send-otp', { email, captchaToken });
+export const requestEmailOtp = async (email, captchaToken, isReauth = false) => {
+  const { data } = await api.post('/auth/send-otp', { email, captchaToken, isReauth });
   window.localStorage.setItem(EMAIL_FOR_SIGNIN_KEY, email);
   return data.data; // { success, remaining }
 };

@@ -196,7 +196,7 @@ function ConfirmationScreen({ email, onBack, onVerify }) {
     setResendError('');
     setResendDone(false);
     try {
-      await requestEmailOtp(email);
+      await requestEmailOtp(email, undefined, true);
       reset();
       setResendDone(true);
     } catch (err) {
@@ -374,6 +374,12 @@ export const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [captchaToken, setCaptchaToken] = useState('');
   const [phone, setPhone] = useState("");
+  const [reauthEmail, setReauthEmail] = useState('');
+  const [reauthOtpSent, setReauthOtpSent] = useState(false);
+  const [reauthOtpCode, setReauthOtpCode] = useState('');
+  const [reauthError, setReauthError] = useState('');
+  const [reauthBusy, setReauthBusy] = useState(false);
+  const { seconds: reauthSeconds, canResend: reauthCanResend, reset: reauthResetTimer } = useResendTimer(60);
 
   const isVerified = currentUser && currentUser.email;
 
@@ -626,10 +632,22 @@ export const Register = () => {
 
     setBusy('register');
     try {
-      // 1) Link/Set password on Firebase first
+      // 1) Link/Set password on Firebase (if session is fresh, or fallback)
       const password = getValues('password');
       if (auth.currentUser && password) {
-        await updatePassword(auth.currentUser, password);
+        try {
+          await updatePassword(auth.currentUser, password);
+        } catch (err) {
+          if (err?.code === 'auth/requires-recent-login') {
+            setReauthEmail(getValues('email') || currentUser?.email);
+            setReauthOtpSent(false);
+            setReauthOtpCode('');
+            setReauthError('');
+            setBusy('');
+            return; // Stop final submission until re-verified
+          }
+          throw err;
+        }
       }
 
       // 2) Call backend API to create registration request
@@ -667,6 +685,57 @@ export const Register = () => {
         throw err;
       }
     }
+  };
+
+  const handleSendReauthOtp = async () => {
+    setReauthError('');
+    setReauthBusy(true);
+    try {
+      await requestEmailOtp(reauthEmail, undefined, true);
+      setReauthOtpSent(true);
+      reauthResetTimer();
+    } catch (err) {
+      setReauthError(friendlyAuthError(err));
+    } finally {
+      setReauthBusy(false);
+    }
+  };
+
+  const handleVerifyReauthOtp = async () => {
+    setReauthError('');
+    setReauthBusy(true);
+    try {
+      await verifyEmailOtp(reauthEmail, reauthOtpCode);
+      setReauthEmail('');
+      // Now that they are authenticated again, proceed with submit
+      handleRegisterSubmit();
+    } catch (err) {
+      setReauthError(friendlyAuthError(err));
+    } finally {
+      setReauthBusy(false);
+    }
+  };
+
+  const handleGoogleReauth = async () => {
+    setReauthError('');
+    setReauthBusy(true);
+    try {
+      await googleAuth();
+      setReauthEmail('');
+      handleRegisterSubmit();
+    } catch (err) {
+      setReauthError(friendlyAuthError(err));
+    } finally {
+      setReauthBusy(false);
+    }
+  };
+
+  const handleLinkedInReauth = async () => {
+    const details = await collectDetails();
+    if (details) {
+      setAuthIntent('register', details);
+    }
+    linkedInRedirect();
   };
 
   const validateAndGoNext = async () => {
@@ -1645,6 +1714,170 @@ export const Register = () => {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Re-authentication modal */}
+      {reauthEmail && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-[#eef2f6]/95 backdrop-blur-md border border-[#cbd5e1]/60 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] p-6 md:p-8 max-w-[450px] w-full relative">
+            
+            {/* Header */}
+            <div className="text-center mb-6">
+              <h2 className="text-xl font-extrabold text-[#1a3a75] tracking-tight">Session Expired</h2>
+              <p className="mt-2 text-sm text-gray-500 font-semibold leading-relaxed">
+                Your session has expired. Please verify your email once again. Your registration details are already saved.
+              </p>
+            </div>
+
+            {/* Error message inside modal */}
+            {reauthError && (
+              <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium">
+                <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                {reauthError}
+              </div>
+            )}
+
+            {!reauthOtpSent ? (
+              <div className="space-y-4">
+                <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm pr-3">
+                  <span className="w-16 shrink-0 flex items-center justify-center bg-[#fafafa] border-r border-[#cbd5e1] select-none text-gray-400">
+                    <Mail size={18} />
+                  </span>
+                  <input
+                    type="email"
+                    readOnly
+                    value={reauthEmail}
+                    className="flex-1 px-4 py-3.5 text-sm text-gray-500 bg-transparent focus:outline-none cursor-not-allowed font-semibold"
+                  />
+                </div>
+
+
+
+                <button
+                  type="button"
+                  onClick={handleSendReauthOtp}
+                  disabled={reauthBusy}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#1a3a75] hover:bg-[#153470] py-3.5 text-sm font-bold text-white shadow-md transition-all duration-200 cursor-pointer disabled:opacity-60"
+                >
+                  {reauthBusy ? <Loader2 size={16} className="animate-spin" /> : null}
+                  {reauthBusy ? 'Sending code…' : 'Verify Email Again'}
+                  {reauthBusy !== 'reauth' && <ArrowRight size={16} />}
+                </button>
+
+                {/* Social Login option (optional re-auth path) */}
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200" />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="bg-[#eef2f6] px-3 text-xs text-gray-400 font-semibold">Or verify using</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={handleLinkedInReauth}
+                    className="flex items-center justify-center gap-2 rounded-xl bg-[#0a66c2] hover:bg-[#004182] py-3 text-sm font-bold text-white shadow-sm transition-all duration-200 cursor-pointer"
+                  >
+                    Linkedin
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleGoogleReauth}
+                    disabled={reauthBusy}
+                    className="flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 py-3 text-sm font-bold text-gray-700 shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-60"
+                  >
+                    Google
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="text-sm text-[#1a3a75] font-semibold text-center mb-2">
+                  Enter the verification code sent to {reauthEmail}
+                </div>
+                <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm pr-3">
+                  <span className="w-16 shrink-0 flex items-center justify-center bg-[#fafafa] border-r border-[#cbd5e1] select-none text-gray-400">
+                    <Lock size={18} />
+                  </span>
+                  <input
+                    type="text"
+                    required
+                    value={reauthOtpCode}
+                    onChange={(e) => setReauthOtpCode(e.target.value)}
+                    placeholder="Enter code"
+                    className="flex-1 px-4 py-3.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                  />
+                </div>
+
+                {/* Resend OTP timer/button */}
+                <div className="text-center pt-2">
+                  <AnimatePresence mode="wait">
+                    {reauthCanResend ? (
+                      <motion.button
+                        key="reauth-resend-btn"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        type="button"
+                        onClick={handleSendReauthOtp}
+                        disabled={reauthBusy}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-blue-300 bg-blue-50 py-2.5 text-xs font-bold text-blue-700 transition hover:bg-blue-100 disabled:opacity-60 cursor-pointer"
+                      >
+                        {reauthBusy ? (
+                          <><Loader2 size={14} className="animate-spin" /> Resending…</>
+                        ) : (
+                          <><RefreshCw size={14} /> Resend verification code</>
+                        )}
+                      </motion.button>
+                    ) : (
+                      <motion.p
+                        key="reauth-countdown"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-xs text-gray-400 font-medium"
+                      >
+                        Resend available in{' '}
+                        <span className="font-bold tabular-nums text-gray-600">
+                          0:{String(reauthSeconds).padStart(2, '0')}
+                        </span>
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setReauthOtpSent(false)}
+                    className="flex-1 rounded-xl border border-gray-300 bg-white py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 transition cursor-pointer"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleVerifyReauthOtp}
+                    disabled={reauthBusy}
+                    className="flex-[2] flex items-center justify-center gap-2 rounded-xl bg-[#1a3a75] hover:bg-[#153470] py-3 text-sm font-bold text-white shadow-md transition-all duration-200 cursor-pointer disabled:opacity-60"
+                  >
+                    {reauthBusy ? <Loader2 size={16} className="animate-spin" /> : null}
+                    Confirm & Register
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {/* Close modal button */}
+            <button
+              type="button"
+              onClick={() => setReauthEmail('')}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 cursor-pointer font-bold text-lg"
+            >
+              &times;
+            </button>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 };
