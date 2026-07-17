@@ -30,20 +30,13 @@ import { Controller } from "react-hook-form";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { uploadProfilePhoto } from '../services/uploadService';
+import PhoneInput from "../components/PhoneInput";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const currentYear = new Date().getFullYear();
 
 const COURSES = ['B.E/B.Tech', 'M.E/M.Tech', 'MBA', 'MCA', 'PhD'];
-const BRANCHES = [
-  'Computer Science & Engineering',
-  'Information Technology',
-  'Electronics & Telecommunication',
-  'Electrical Engineering',
-  'Mechanical Engineering',
-  'MBA',
-  'MCA',
-];
 
 const EMPLOYMENT_STATUSES = [
   'Employed',
@@ -58,9 +51,10 @@ const schema = z
     name: z.string().min(2, 'Enter your full name (at least 2 characters)'),
     email: z.string().email('Enter a valid email address'),
     password: z.string().min(6, 'Password must be at least 6 characters long'),
-    contactNumber: z
+    nationalNumber: z
       .string()
-      .regex(/^\d{10}$/, 'Enter a valid 10-digit mobile number'),
+      .regex(/^\d{7,15}$/, 'Enter a valid phone number'),
+    countryCode: z.string().min(2, 'Country code is required'),
     profilePhoto: z.string().min(1, 'Profile photo is required'),
     dob: z.union([
       z.date(),
@@ -379,6 +373,7 @@ export const Register = () => {
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [captchaToken, setCaptchaToken] = useState('');
+  const [phone, setPhone] = useState("");
 
   const isVerified = currentUser && currentUser.email;
 
@@ -397,7 +392,8 @@ export const Register = () => {
       name: '',
       email: '',
       password: '',
-      contactNumber: '',
+      nationalNumber: '',
+      countryCode: '',
       profilePhoto: '',
       dob: '',
       gender: '',
@@ -473,6 +469,8 @@ export const Register = () => {
     }
   }, [searchParams, navigate]);
 
+
+
   // Validate all fields and return the details payload (or null if invalid)
   const collectDetails = async () => {
     setError('');
@@ -492,7 +490,8 @@ export const Register = () => {
       yearOfPassout: Number(v.yearOfPassout),
 
       // Personal
-      contactNumber: v.contactNumber.trim(),
+      nationalNumber: v.nationalNumber.trim(),
+      countryCode: v.countryCode,
       profilePhoto: v.profilePhoto,
       dob: v.dob,
       gender: v.gender,
@@ -678,7 +677,8 @@ export const Register = () => {
         'name',
         'email',
         'password',
-        'contactNumber',
+        'nationalNumber',
+        'countryCode',
         'profilePhoto',
         'dob',
         'gender',
@@ -723,7 +723,7 @@ export const Register = () => {
     setStep((s) => Math.max(0, s - 1));
   };
 
-    const handleLogoutAndStartOver = async () => {
+  const handleLogoutAndStartOver = async () => {
     await logout();
     setError('');
     setStep(0);
@@ -974,19 +974,27 @@ export const Register = () => {
 
                       {/* Primary Contact */}
                       <div>
-                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
-                          <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5">
+                        <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition">
+                          <span className="w-28 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-xs md:text-sm font-bold text-gray-500 py-3.5 rounded-l-xl">
                             Mobile<span className="text-red-500 ml-0.5">*</span>
                           </span>
-                          <input
-                            {...register('contactNumber')}
-                            type="tel"
-                            placeholder="10-digit number"
-                            maxLength={10}
-                            className="flex-1 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                          <PhoneInput
+                            value={phone}
+                            onChange={(val) => {
+                              setPhone(val || '');
+                              const parsed = parsePhoneNumberFromString(val || '');
+                              if (parsed && parsed.isValid()) {
+                                setValue('nationalNumber', parsed.nationalNumber, { shouldValidate: true });
+                                setValue('countryCode', parsed.country, { shouldValidate: true });
+                              } else {
+                                setValue('nationalNumber', '', { shouldValidate: true });
+                                setValue('countryCode', '', { shouldValidate: true });
+                              }
+                            }}
+                            placeholder="Enter your phone number"
                           />
                         </div>
-                        <FieldError message={errors.contactNumber?.message} />
+                        <FieldError message={errors.nationalNumber?.message || errors.countryCode?.message} />
                       </div>
 
                       {/* Date of Birth */}
