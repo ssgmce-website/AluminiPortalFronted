@@ -13,12 +13,23 @@ import { uploadProfilePhoto } from '../services/uploadService';
 import { Onboarding } from '../components/Onboarding';
 import { EventRegistrationForm } from '../components/EventRegistrationForm';
 import { AlumniContributionForm } from '../components/AlumniContributionForm';
+import PhoneInput from '../components/PhoneInput';
+import { parsePhoneNumberFromString, getCountryCallingCode } from 'libphonenumber-js';
+
+const getCallingCode = (countryCode) => {
+  if (!countryCode) return '';
+  try {
+    return getCountryCallingCode(countryCode.toUpperCase());
+  } catch (e) {
+    return '';
+  }
+};
 
 // ─── constants ────────────────────────────────────────────────────────────────
 const TABS = ['Overview', 'Events', 'Contributions', 'Connections', 'Activity'];
 
 const COMPLETION_FIELDS = [
-  { key: 'contactNumber', label: 'Contact Number' },
+  { key: 'nationalNumber', label: 'Contact Number' },
   { key: 'dob', label: 'Date of Birth' },
   { key: 'about', label: 'About Me' },
   { key: 'companyName', label: 'Company' },
@@ -422,7 +433,9 @@ export const Dashboard = () => {
                   onEdit={() =>
                     startEdit('basic', {
                       name: p.name || '',
-                      contactNumber: p.contactNumber || '',
+                      phone: p.countryCode && p.nationalNumber ? `+${getCallingCode(p.countryCode)}${p.nationalNumber}` : '',
+                      nationalNumber: p.nationalNumber || '',
+                      countryCode: p.countryCode || '',
                       alternateEmail: p.alternateEmail || '',
                       dob: dobISO,
                     })
@@ -432,16 +445,42 @@ export const Dashboard = () => {
                     <>
                       <div className="grid gap-4 sm:grid-cols-2">
                         <Input label="Full Name" name="name" value={editData.name || ''} onChange={handleChange} placeholder="Your full name" />
-                        <Input label="Contact Number" name="contactNumber" value={editData.contactNumber || ''} onChange={handleChange} placeholder="10-digit mobile" maxLength={10} />
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs font-semibold text-slate-500">Contact Number</label>
+                          <div className="flex items-stretch bg-white border border-slate-200 rounded-md focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition overflow-hidden h-[38px] w-full">
+                            <PhoneInput
+                              value={editData.phone || ''}
+                              onChange={(val) => {
+                                setEditData((prev) => {
+                                  const updated = { ...prev, phone: val || '' };
+                                  const parsed = parsePhoneNumberFromString(val || '');
+                                  if (parsed && parsed.isValid()) {
+                                    updated.nationalNumber = parsed.nationalNumber;
+                                    updated.countryCode = parsed.country;
+                                  } else {
+                                    updated.nationalNumber = '';
+                                    updated.countryCode = '';
+                                  }
+                                  return updated;
+                                });
+                              }}
+                              placeholder="Enter your phone number"
+                            />
+                          </div>
+                        </div>
                         <Input label="Alternate Email" name="alternateEmail" value={editData.alternateEmail || ''} onChange={handleChange} placeholder="Other email address" type="email" />
                         <Input label="Date of Birth" name="dob" value={editData.dob || ''} onChange={handleChange} type="date" />
                       </div>
                       <SaveBar saving={saving} onSave={saveEdit} onCancel={cancelEdit} />
                     </>
-                  ) : p.name || p.contactNumber || p.alternateEmail || p.dob ? (
+                  ) : p.name || p.nationalNumber || p.contactNumber || p.alternateEmail || p.dob ? (
                     <div className="space-y-3">
                       {p.name && <Field label="Full Name" value={p.name} />}
-                      {p.contactNumber && <Field label="Contact" value={`+91 ${p.contactNumber}`} />}
+                      {p.nationalNumber && p.countryCode ? (
+                        <Field label="Contact" value={`+${getCallingCode(p.countryCode)} ${p.nationalNumber}`} />
+                      ) : p.contactNumber ? (
+                        <Field label="Contact" value={p.contactNumber} />
+                      ) : null}
                       {p.alternateEmail && <Field label="Alternate Email" value={p.alternateEmail} />}
                       {p.dob && <Field label="Date of Birth" value={dobFormatted} />}
                       <Field label="Primary Email" value={p.email} />
