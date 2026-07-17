@@ -22,7 +22,7 @@ export const AuthCallback = () => {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const { setUserProfile } = useAuth();
-  const [status, setStatus] = useState('Completing sign in…');
+  const [status, setStatus] = useState('Completing registration…');
   const [error, setError] = useState('');
   const [retrying, setRetrying] = useState(false);
   const [needEmail, setNeedEmail] = useState(false); // email-link opened on another device
@@ -80,7 +80,7 @@ export const AuthCallback = () => {
         finish(user);
       } catch (err) {
         if (err?.response?.status === 409) {
-          // Already registered — send them to sign in (or pending).
+          // Already registered — send them to login (or pending).
           clearAuthIntent();
           const st = err.response.data?.status;
           navigate(st === 'approved' ? '/login?error=already_registered' : '/pending', { replace: true });
@@ -138,14 +138,14 @@ export const AuthCallback = () => {
       }
 
       // 3) Google — returning from a signInWithRedirect fallback
-      setStatus('Completing Google sign-in…');
+      setStatus('Completing Google registration…');
       const result = await getRedirectResult(auth);
       if (result?.user) {
         await completeBackend();
         return;
       }
 
-      // Nothing to complete here — go back to sign in.
+      // Nothing to complete here — go back to login.
       navigate('/login', { replace: true });
     } catch (err) {
       if (err?.code === 'auth/missing-email') {
@@ -154,7 +154,7 @@ export const AuthCallback = () => {
         setStatus('');
         return;
       }
-      console.error('[AuthCallback] Sign-in failed:', err?.code || err?.message, err);
+      console.error('[AuthCallback] Registration failed:', err?.code || err?.message, err);
       setError(friendlyAuthError(err));
       setStatus('');
     }
@@ -172,7 +172,7 @@ export const AuthCallback = () => {
         <Mail size={40} className="text-primary-200" />
         <h2 className="text-xl font-bold">Confirm your email</h2>
         <p className="text-sm text-primary-200 max-w-sm text-center">
-          For your security, please re-enter the email address you requested the sign-in link for.
+          For your security, please re-enter the email address you requested the registration code .
         </p>
         <form
           onSubmit={(e) => { e.preventDefault(); setNeedEmail(false); setStatus('Verifying…'); handle(emailInput); }}
@@ -198,7 +198,7 @@ export const AuthCallback = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700 flex flex-col items-center justify-center text-white gap-6 p-4">
         <AlertTriangle size={40} className="text-yellow-300" />
-        <h2 className="text-xl font-bold">Sign-in failed</h2>
+        <h2 className="text-xl font-bold">Registration failed</h2>
         <p className="text-sm text-primary-200 max-w-sm text-center break-all">{error}</p>
         <div className="flex gap-3 mt-2">
           <button
@@ -212,7 +212,7 @@ export const AuthCallback = () => {
             onClick={() => navigate('/signin')}
             className="border border-white text-white font-semibold px-5 py-2 rounded-lg text-sm hover:bg-white/10 transition-colors"
           >
-            Back to Sign In
+            Back to Register
           </button>
         </div>
       </div>
