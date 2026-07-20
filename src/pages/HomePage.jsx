@@ -6,8 +6,8 @@ import {
   ArrowRight, Building2, MapPin, ChevronRight, CalendarDays, UserCheck,
 } from 'lucide-react';
 import HeroSlider from '../components/HeroSlider';
+import distinguishedAlumni from '../data/distinguishedAlumni.js';
 import Newsletter from '../pages/Newsletter';
-import distinguishedAlumni from '../data/distinguishedAlumni';
 import { fetchNewlyRegisteredAlumni } from '../services/alumniService';
 import meet2026Guest from '../assets/gallery/AlumniMeet2026.jpeg';
 import meet2026Faculty from '../assets/gallery/AM2026.jpeg';
@@ -30,28 +30,28 @@ import AlumniContributions from '../components/AlumniContributions';
 // ─── ANIMATION VARIANTS ───────────────────────────────────────────────────────
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
-  show:   { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
 };
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.09 } } };
 
 // ─── COUNT-UP HOOK ────────────────────────────────────────────────────────────
 function useCountUp(target, duration = 2000) {
-  const [count,   setCount]   = useState(0);
-  const ref       = useRef(null);
-  const started   = useRef(false);
-  const inView    = useInView(ref, { once: true, margin: '-60px' });
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const started = useRef(false);
+  const inView = useInView(ref, { once: true, margin: '-60px' });
 
   useEffect(() => {
     if (!inView || started.current) return;
     started.current = true;
     let frame;
     const start = performance.now();
-    const tick  = (now) => {
-      const t     = Math.min((now - start) / duration, 1);
+    const tick = (now) => {
+      const t = Math.min((now - start) / duration, 1);
       const eased = 1 - Math.pow(1 - t, 3);
       setCount(Math.floor(eased * target));
       if (t < 1) frame = requestAnimationFrame(tick);
-      else        setCount(target);
+      else setCount(target);
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
@@ -115,30 +115,30 @@ const SectionHeader = memo(function SectionHeader({ eyebrow, title, cta, href })
 // ─── STATIC DATA ──────────────────────────────────────────────────────────────
 // Shown until real registrations load, and as a fallback if the API call fails.
 const FALLBACK_ALUMNI = [
-  { name: "Ankush Gawande",         branch: "Computer Science & Engineering",  batch: "2024", company: "Infosys, Pune",         photo: ankushGawandeImg },
-  { name: "Chetan Ambalkar",        branch: "Information Technology",          batch: "2023", company: "TCS, Mumbai",            photo: chetanAmbalkarImg },
-  { name: "Dnyaneshwari Chatarkar", branch: "Electronics & Telecommunication", batch: "2024", company: "Wipro Technologies",     photo: dnyaneshwariChatarkarImg },
-  { name: "Kalyani Raut",           branch: "Computer Science & Engineering",  batch: "2023", company: "Persistent Systems",     photo: kalyaniRautImg },
-  { name: "Nayan Chandankhede",     branch: "Mechanical Engineering",          batch: "2022", company: "Bajaj Auto, Pune",       photo: nayanChandankhedeImg },
-  { name: "Riya Dangra",            branch: "Information Technology",          batch: "2024", company: "Cognizant, Pune",        photo: riyaDangraImg },
-  { name: "Sakshi Sondkar",         branch: "Electrical Engineering",          batch: "2024", company: "Siemens India, Nashik",  photo: sakshiSondkarImg },
-  { name: "Surabhi Lahoti",         branch: "Computer Science & Engineering",  batch: "2023", company: "L&T Construction",       photo: surabhiLahotiImg },
+  { name: "Ankush Gawande", branch: "Computer Science & Engineering", batch: "2024", company: "Infosys, Pune", photo: ankushGawandeImg },
+  { name: "Chetan Ambalkar", branch: "Information Technology", batch: "2023", company: "TCS, Mumbai", photo: chetanAmbalkarImg },
+  { name: "Dnyaneshwari Chatarkar", branch: "Electronics & Telecommunication", batch: "2024", company: "Wipro Technologies", photo: dnyaneshwariChatarkarImg },
+  { name: "Kalyani Raut", branch: "Computer Science & Engineering", batch: "2023", company: "Persistent Systems", photo: kalyaniRautImg },
+  { name: "Nayan Chandankhede", branch: "Mechanical Engineering", batch: "2022", company: "Bajaj Auto, Pune", photo: nayanChandankhedeImg },
+  { name: "Riya Dangra", branch: "Information Technology", batch: "2024", company: "Cognizant, Pune", photo: riyaDangraImg },
+  { name: "Sakshi Sondkar", branch: "Electrical Engineering", batch: "2024", company: "Siemens India, Nashik", photo: sakshiSondkarImg },
+  { name: "Surabhi Lahoti", branch: "Computer Science & Engineering", batch: "2023", company: "L&T Construction", photo: surabhiLahotiImg },
 ];
 
 const galleryRow1 = [
-  { src: meet2026Group,        alt: 'Grand Alumni Meet 2026 Group Photo' },
-  { src: meet2026Guest,        alt: 'Guest Interaction Session — Alumni Meet 2026' },
-  { src: meet2026Library,      alt: 'Library Inauguration — Alumni Meet 2026' },
+  { src: meet2026Group, alt: 'Grand Alumni Meet 2026 Group Photo' },
+  { src: meet2026Guest, alt: 'Guest Interaction Session — Alumni Meet 2026' },
+  { src: meet2026Library, alt: 'Library Inauguration — Alumni Meet 2026' },
 ];
 
 const galleryRow2 = [
-  { src: meet2026Faculty,      alt: 'Alumni Faculty Interaction — Alumni Meet 2026' },
-  { src: meet2026Auditorium,   alt: 'Alumni Meet Auditorium Session 2026' },
+  { src: meet2026Faculty, alt: 'Alumni Faculty Interaction — Alumni Meet 2026' },
+  { src: meet2026Auditorium, alt: 'Alumni Meet Auditorium Session 2026' },
 ];
 
 const galleryRow3 = [
   { src: meet2026Inauguration, alt: 'Inauguration Ceremony — Alumni Meet 2026' },
-  { src: meet2026Session,      alt: 'Student Interaction Session — Alumni Meet 2026' },
+  { src: meet2026Session, alt: 'Student Interaction Session — Alumni Meet 2026' },
 ];
 
 // ─── HOME PAGE ────────────────────────────────────────────────────────────────
@@ -169,10 +169,10 @@ export default function HomePage() {
       <section className="mx-auto max-w-[1425px]">
         <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
           <div className="grid grid-cols-2 divide-x divide-y divide-slate-100 md:grid-cols-4 md:divide-y-0">
-            <StatCard icon={UserCheck}    label="Registered Alumni" value={15000} suffix="+" />
-            <StatCard icon={Building2}    label="Companies"         value={350}   suffix="+" />
-            <StatCard icon={CalendarDays} label="Events Organised"  value={200}   suffix="+" />
-            <StatCard icon={Users}        label="Active Mentors"    value={1000}  suffix="+" />
+            <StatCard icon={UserCheck} label="Registered Alumni" value={15000} suffix="+" />
+            <StatCard icon={Building2} label="Companies" value={350} suffix="+" />
+            <StatCard icon={CalendarDays} label="Events Organised" value={200} suffix="+" />
+            <StatCard icon={Users} label="Active Mentors" value={1000} suffix="+" />
           </div>
         </div>
       </section>
@@ -225,11 +225,11 @@ export default function HomePage() {
             <div className="mt-2.5 h-1 w-10 rounded-full bg-amber-400" />
             <div className="mt-7 space-y-5">
               {[
-                { label: 'Established',   value: '1983' },
-                { label: 'Location',      value: 'Shegaon, Dist. Buldhana, MH' },
+                { label: 'Established', value: '1983' },
+                { label: 'Location', value: 'Shegaon, Dist. Buldhana, MH' },
                 { label: 'Total Members', value: '1,200+' },
-                { label: 'Annual Meet',   value: 'Every December, SSGMCE Campus' },
-                { label: 'Departments',   value: '6 Engineering Branches' },
+                { label: 'Annual Meet', value: 'Every December, SSGMCE Campus' },
+                { label: 'Departments', value: '6 Engineering Branches' },
               ].map(({ label, value }) => (
                 <div key={label} className="border-b border-white/15 pb-4 last:border-0 last:pb-0">
                   <span className="text-[11px] font-bold uppercase tracking-widest text-blue-300">{label}</span>
