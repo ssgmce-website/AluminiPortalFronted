@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import api from "../services/api";
 
 const aboutLinks = [
   { label: "SSGMCE Alumni Cell", path: "/about/alumni-cell" },
@@ -17,7 +19,21 @@ const quickLinks = [
   { label: "Contact", path: "/contact" },
 ];
 
+let visitorCountRequested = false;
+
 export const Footer = () => {
+  const [visitorCount, setVisitorCount] = useState(null);
+
+  useEffect(() => {
+    if (visitorCountRequested) return;
+    visitorCountRequested = true;
+
+    api
+      .post("/public/visitor-count")
+      .then((res) => setVisitorCount(res.data?.data?.count ?? null))
+      .catch(() => setVisitorCount(null));
+  }, []);
+
   return (
     <footer className="bg-[#3964C3] text-blue-100">
       <div className="mx-auto max-w-[1425px] px-5 py-12 lg:px-10">
@@ -128,12 +144,18 @@ export const Footer = () => {
       </div>
 
       <div className="border-t border-blue-900">
-        <div className="mx-auto flex max-w-[1425px] flex-col items-center justify-between gap-3 px-5 py-4 text-center text-xs text-blue-400 md:flex-row lg:px-10">
-          <p>
-            Copyright {new Date().getFullYear()} SSGMCE Alumni Connect. All
-            rights reserved.
+        <div className="mx-auto grid max-w-[1425px] grid-cols-1 items-center gap-3 px-5 py-4 text-center text-xs text-blue-400 md:grid-cols-3 lg:px-10">
+          <p className="md:text-left">
+            Copyright {new Date().getFullYear()} SSGMCE Alumni Connect. All rights reserved.
           </p>
-          <p>Shri Sant Gajanan Maharaj College of Engineering, Shegaon</p>
+
+          <p className="font-semibold text-blue-200">
+            Visitors Count: {visitorCount ?? "--"}
+          </p>
+
+          <p className="md:text-right">
+            Shri Sant Gajanan Maharaj College of Engineering, Shegaon
+          </p>
         </div>
       </div>
     </footer>
