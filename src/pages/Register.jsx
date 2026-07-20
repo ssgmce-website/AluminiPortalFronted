@@ -804,7 +804,7 @@ export const Register = () => {
       className="min-h-screen w-full flex items-center justify-center lg:justify-start bg-cover bg-center p-4 sm:p-6 md:p-8 lg:pl-[6%] xl:pl-[8%] font-sans overflow-y-auto"
       style={{ backgroundImage: `url(${resisterBg})` }}
     >
-      <div className={`w-full ${otpSent || !isVerified ? 'max-w-[450px]' : 'max-w-3xl'} my-8 transition-all duration-300`}>
+      <div className={`w-full ${otpSent || !isVerified ? 'max-w-[450px]' : 'max-w-5xl'} my-8 transition-all duration-300`}>
         <AnimatePresence mode="wait">
           {otpSent ? (
             <ConfirmationScreen
