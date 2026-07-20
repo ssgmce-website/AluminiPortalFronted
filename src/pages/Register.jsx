@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, CheckCircle2, RefreshCw, AlertCircle, Mail, ChevronRight, ChevronLeft, Award, Briefcase, GraduationCap, User, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Loader2, CheckCircle2, RefreshCw, AlertCircle, Mail, ChevronRight, ChevronLeft, User, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   googleAuth,
@@ -669,7 +669,7 @@ export const Register = () => {
       try {
         const url = new URL(otp);
         otp = url.searchParams.get('oobCode') || otp;
-      } catch (e) {
+      } catch {
         // Ignore parsing error
       }
     }
@@ -1049,8 +1049,11 @@ export const Register = () => {
                           </span>
                           <PhoneInput
                             value={phone}
-                            onChange={(val) => {
+                            onChange={(val, countryData) => {
                               setPhone(val || '');
+                              if (countryData?.name) {
+                                setValue('country', countryData.name.trim(), { shouldValidate: true, shouldDirty: true });
+                              }
                               const parsed = parsePhoneNumberFromString(val || '');
                               if (parsed && parsed.isValid()) {
                                 setValue('nationalNumber', parsed.nationalNumber, { shouldValidate: true });

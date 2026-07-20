@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import PhoneInput2 from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 
@@ -10,16 +10,16 @@ const PhoneInputComponent = PhoneInput2.default || PhoneInput2;
  * Wrapped in React.memo to prevent unnecessary re-renders when parent states change.
  */
 const PhoneInput = ({ value, onChange, placeholder }) => {
-  const handleChange = (val) => {
+  const handleChange = (val, countryData) => {
     // If value is empty, notify parent with an empty string
     if (!val) {
-      onChange('');
+      onChange('', countryData);
       return;
     }
     // react-phone-input-2 values do not start with a '+' by default.
     // We prepend '+' so that parser libraries (like libphonenumber-js) can parse it correctly.
     const formatted = val.startsWith('+') ? val : `+${val}`;
-    onChange(formatted);
+    onChange(formatted, countryData);
   };
 
   return (
