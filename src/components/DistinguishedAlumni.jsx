@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion';
 import { MapPin } from 'lucide-react';
 import PageShell from '../components/PageShell';
-import distinguishedAlumni from '../data/DistinguishedAlumni';
+import distinguishedAlumni from '../data/distinguishedAlumni.js';
 
-const fadeUp  = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } } };
+const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } } };
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
 
 function DistinguishedAlumni() {
