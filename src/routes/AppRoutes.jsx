@@ -11,6 +11,7 @@ import ScrollToTop from '../components/ScrollToTop';
 import Header from '../components/Header';
 import Navbar from '../components/Navbar';
 import FeedbackButton from '../components/FeedbackButton';
+import PublicFeedback from '../components/PublicFeedback';
 import { Footer } from '../pages/footer';
 
 // ─── CODE-SPLIT: every page is a separate JS chunk ────────────────────────────
@@ -51,6 +52,8 @@ const AlumniFeedback = lazy(() => import('../pages/AlumniFeedback'));
 const EventGallery = lazy(() => import('../pages/EventGallery'));
 const Gallery = lazy(() => import('../pages/Gallery'));
 const ContactPage = lazy(() => import('../pages/ContactPage'));
+const TermsOfUse = lazy(() => import('../pages/TermsOfUse').then(m => ({ default: m.TermsOfUse })));
+
 
 // ─── LOADING FALLBACK ─────────────────────────────────────────────────────────
 const PageLoader = () => (
@@ -60,19 +63,22 @@ const PageLoader = () => (
 );
 
 // ─── LAYOUTS ─────────────────────────────────────────────────────────────────
-const MainLayout = () => (
-  <div className="min-h-screen bg-slate-50">
-    <Header />
-    <Navbar />
-    <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-      <Suspense fallback={<PageLoader />}>
-        <Outlet />
-      </Suspense>
-    </main>
-    <Footer />
-    <FeedbackButton />
-  </div>
-);
+const MainLayout = () => {
+  const { currentUser } = useAuth();
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <Header />
+      <Navbar />
+      <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+        <Suspense fallback={<PageLoader />}>
+          <Outlet />
+        </Suspense>
+      </main>
+      <Footer />
+      {!currentUser && <PublicFeedback />}
+    </div>
+  );
+};
 
 // ─── ROUTES ───────────────────────────────────────────────────────────────────
 export const AppRoutes = () => {
@@ -111,6 +117,7 @@ export const AppRoutes = () => {
           <Route path="/event/gallery" element={<EventGallery />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/terms" element={<TermsOfUse />} />
         </Route>
 
         <Route path="/event/feedback" element={feedbackRoute} />

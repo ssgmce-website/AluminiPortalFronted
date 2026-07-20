@@ -1,10 +1,12 @@
 import {
   signInWithPopup,
   signInWithRedirect,
-  sendSignInLinkToEmail,
   isSignInWithEmailLink,
   signInWithEmailLink,
   signOut,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+  signInWithCustomToken,
 } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase/firebase';
 import api from './api';
@@ -55,6 +57,10 @@ export const registerWithBackend = (details) =>
 export const checkEmailRegistered = (email) =>
   api.post('/auth/check-email', { email }).then((r) => r.data.data);
 
+// Verify a captcha token explicitly from the frontend before proceeding with login/registration
+export const verifyCaptchaOnBackend = (captchaToken) =>
+  api.post('/public/verify-captcha', { captchaToken }).then((r) => r.data.data);
+
 // ── Email OTP (Firebase passwordless email link) ───────────────────────────────
 
 // Where Firebase sends the user back to after they click the email link.
@@ -69,11 +75,17 @@ const actionCodeSettings = () => ({
  * (login/register) beforehand. We stash the email so we can complete sign-in
  * when the user returns via the link.
  */
-export const requestEmailOtp = async (email) => {
-  const { data } = await api.post('/auth/send-passwordless-email-link', { email });
-  await sendSignInLinkToEmail(auth, email, actionCodeSettings());
+export const requestEmailOtp = async (email, captchaToken) => {
+  const { data } = await api.post('/auth/send-otp', { email, captchaToken });
   window.localStorage.setItem(EMAIL_FOR_SIGNIN_KEY, email);
   return data.data; // { success, remaining }
+};
+
+export const verifyEmailOtp = async (email, otpCode) => {
+  const { data } = await api.post('/auth/verify-otp', { email, otpCode });
+  const { customToken } = data.data;
+  const userCredential = await signInWithCustomToken(auth, customToken);
+  return userCredential.user;
 };
 
 /** True if the current URL is a Firebase email sign-in link. */
@@ -135,3 +147,9 @@ export const logout = () => {
   clearAuthIntent();
   return signOut(auth);
 };
+
+export const loginWithEmailPassword = (email, password) =>
+  signInWithEmailAndPassword(auth, email, password);
+
+export const sendPasswordReset = (email) =>
+  sendPasswordResetEmail(auth, email);

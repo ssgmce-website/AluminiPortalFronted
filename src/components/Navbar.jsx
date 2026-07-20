@@ -85,8 +85,7 @@ function MobileDropdown({ name, label, mainPath, items, openMenu, setOpenMenu, a
               to={item.path}
               onClick={onNavigate}
               className={({ isActive }) =>
-                `block border-t border-blue-100 px-6 py-3 text-sm font-medium text-slate-700 transition hover:bg-blue-50 hover:text-blue-800 ${
-                  isActive ? "bg-blue-50 text-blue-800" : ""
+                `block border-t border-blue-100 px-6 py-3 text-sm font-medium text-slate-700 transition hover:bg-blue-50 hover:text-blue-800 ${isActive ? "bg-blue-50 text-blue-800" : ""
                 }`
               }
             >
@@ -105,10 +104,10 @@ function Navbar() {
   const location = useLocation();
 
   const aboutItems = [
-    { label: "ALUMNI CELL", path: "/about/alumni-cell" },
+    { label: "Alumni Cell", path: "/about/alumni-cell" },
     { label: "Executive Team", path: "/about/executive-team" },
-    { label: "Activity Organized", path: "/about/activity-organized" },
-, ];
+    { label: "Alumni Cell Activities", path: "/about/activity-organized" },
+    ,];
 
   const eventItems = [
     { label: "Event Registration", path: "/event/registration" },
@@ -156,8 +155,7 @@ function Navbar() {
               to="/gallery"
               onClick={closeMobileMenu}
               className={({ isActive }) =>
-                `block border-b border-blue-100 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-800 ${
-                  isActive ? "bg-blue-50 text-blue-800" : ""
+                `block border-b border-blue-100 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-800 ${isActive ? "bg-blue-50 text-blue-800" : ""
                 }`
               }
             >
@@ -168,8 +166,7 @@ function Navbar() {
               to="/contribution"
               onClick={closeMobileMenu}
               className={({ isActive }) =>
-                `block border-b border-blue-100 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-800 ${
-                  isActive ? "bg-blue-50 text-blue-800" : ""
+                `block border-b border-blue-100 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-800 ${isActive ? "bg-blue-50 text-blue-800" : ""
                 }`
               }
             >
@@ -204,8 +201,7 @@ function Navbar() {
               to="/newsletter"
               onClick={closeMobileMenu}
               className={({ isActive }) =>
-                `block border-b border-blue-100 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-800 ${
-                  isActive ? "bg-blue-50 text-blue-800" : ""
+                `block border-b border-blue-100 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-800 ${isActive ? "bg-blue-50 text-blue-800" : ""
                 }`
               }
             >
@@ -222,13 +218,12 @@ function Navbar() {
               active={location.pathname.startsWith("/event")}
               onNavigate={closeMobileMenu}
             />
-            
+
             <NavLink
               to="/contact"
               onClick={closeMobileMenu}
               className={({ isActive }) =>
-                `block px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-800 ${
-                  isActive ? "bg-blue-50 text-blue-800" : ""
+                `block px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-800 ${isActive ? "bg-blue-50 text-blue-800" : ""
                 }`
               }
             >

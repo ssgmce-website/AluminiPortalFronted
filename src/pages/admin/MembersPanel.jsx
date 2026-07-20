@@ -140,7 +140,6 @@ const MemberCard = ({ u, onApprove, onReject, actingId }) => {
               <DetailItem label="Gender" value={u.gender} />
               <DetailItem label="Date of Birth" value={u.dob ? new Date(u.dob).toLocaleDateString('en-IN') : '—'} />
               <DetailItem label="Contact Number" value={u.contactNumber ? `+91 ${u.contactNumber}` : '—'} />
-              <DetailItem label="WhatsApp Number" value={u.whatsappNo ? `+91 ${u.whatsappNo}` : '—'} />
               <DetailItem label="Location" value={[u.address, u.city, u.state, u.country, u.pinCode].filter(Boolean).join(', ') || '—'} />
             </div>
           </div>
@@ -155,7 +154,7 @@ const MemberCard = ({ u, onApprove, onReject, actingId }) => {
               <DetailItem label="Employment Status" value={u.employmentStatus} />
               
               {/* Employed conditional info */}
-              {['Employed', 'Government Service', 'Self-Employed'].includes(u.employmentStatus) && (
+              {u.employmentStatus === 'Employed' && (
                 <>
                   <DetailItem label="Company / Organisation" value={u.companyName} />
                   <DetailItem label="Work Email" value={u.workEmail} />
@@ -193,8 +192,6 @@ const MemberCard = ({ u, onApprove, onReject, actingId }) => {
                 </>
               )}
 
-              <DetailItem label="Key Skills" value={u.skills} />
-              
               <DetailItem
                 label="LinkedIn Profile"
                 value={

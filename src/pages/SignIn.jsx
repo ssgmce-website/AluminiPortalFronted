@@ -3,29 +3,33 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, CheckCircle2, RefreshCw, AlertCircle, Mail } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   googleAuth,
   linkedInRedirect,
-  requestEmailOtp,
+  loginWithEmailPassword,
+  sendPasswordReset,
   loginWithBackend,
-  checkEmailRegistered,
   setAuthIntent,
   logout,
+  verifyCaptchaOnBackend,
 } from '../services/authService';
 import { friendlyAuthError } from '../utils/authErrors';
 import { routeForProfile } from '../utils/authRoutes';
 import { useAuth } from '../contexts/AuthContext';
 import logo from '../assets/logo.png';
 import loginBg from '../assets/REGISITER.png';
+import Captcha from '../components/Captcha';
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const NOT_REGISTERED_MSG = 'This email is not registered. Please register first.';
-const RESEND_COOLDOWN = 60; // seconds
 
 // ─── VALIDATION SCHEMA ────────────────────────────────────────────────────────
-const otpSchema = z.object({ email: z.string().email('Enter a valid email address') });
+const loginSchema = z.object({
+  email: z.string().email('Enter a valid email address'),
+  password: z.string().min(1, 'Password is required'),
+});
 
 // ─── INLINE SVG ICONS ────────────────────────────────────────────────────────
 const GoogleIcon = () => (
@@ -43,104 +47,6 @@ const LinkedInIcon = () => (
   </svg>
 );
 
-// ─── CONFIRMATION SCREEN ──────────────────────────────────────────────────────
-function ConfirmationScreen({ email, onResend, onBack, lockedOut }) {
-  const [cooldown, setCooldown] = useState(RESEND_COOLDOWN);
-  const [resendBusy, setResendBusy] = useState(false);
-
-  useEffect(() => {
-    if (cooldown <= 0) return;
-    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
-    return () => clearTimeout(t);
-  }, [cooldown]);
-
-  const handleResend = async () => {
-    setResendBusy(true);
-    await onResend(email);
-    setCooldown(RESEND_COOLDOWN);
-    setResendBusy(false);
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      className="bg-[#eef2f6]/95 backdrop-blur-md border border-[#cbd5e1]/60 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] w-full max-w-[450px] p-8 text-center space-y-5"
-    >
-      {/* Icon */}
-      <div className="flex justify-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 shadow-inner">
-          <CheckCircle2 size={32} className="text-green-600" />
-        </div>
-      </div>
-
-      {/* Heading */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Check your inbox</h2>
-        <p className="mt-1 text-sm text-gray-500 font-medium">We sent a sign-in link to</p>
-        <div className="mt-3 flex items-center justify-center gap-2 rounded-xl border border-blue-100 bg-white px-4 py-2.5 shadow-sm">
-          <Mail size={15} className="shrink-0 text-blue-600" />
-          <span className="text-sm font-bold text-blue-800">{email}</span>
-        </div>
-        <p className="mt-4 text-xs leading-relaxed text-gray-500">
-          Open the link <strong>on this device</strong> to finish signing in.
-          No password needed — the link is your secure key.
-        </p>
-      </div>
-
-      {/* Resend section */}
-      <div className="border-t border-gray-200 pt-5 text-center">
-        {lockedOut ? (
-          <p className="text-xs text-red-600 font-semibold flex items-center justify-center gap-1.5">
-            <AlertCircle size={13} />
-            You've reached the max of 3 requests/hour. Try again later or use Google / LinkedIn.
-          </p>
-        ) : (
-          <AnimatePresence mode="wait">
-            {cooldown === 0 ? (
-              <motion.button
-                key="resend-btn"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                type="button"
-                onClick={handleResend}
-                disabled={resendBusy}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-blue-300 bg-blue-50 py-3 text-sm font-bold text-blue-700 transition hover:bg-blue-100 disabled:opacity-60 cursor-pointer"
-              >
-                {resendBusy
-                  ? <><Loader2 size={15} className="animate-spin" /> Resending…</>
-                  : <><RefreshCw size={15} /> Resend sign-in link</>
-                }
-              </motion.button>
-            ) : (
-              <motion.p
-                key="countdown"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-sm text-gray-400 font-medium"
-              >
-                Resend available in{' '}
-                <span className="font-bold tabular-nums text-gray-600">
-                  0:{String(cooldown).padStart(2, '0')}
-                </span>
-              </motion.p>
-            )}
-          </AnimatePresence>
-        )}
-      </div>
-
-      <button
-        type="button"
-        onClick={onBack}
-        className="text-xs text-gray-400 font-semibold hover:text-gray-600 hover:underline cursor-pointer block w-full text-center"
-      >
-        ← Use a different email
-      </button>
-    </motion.div>
-  );
-}
-
 // ─── SIGN IN ─────────────────────────────────────────────────────────────────
 export const SignIn = () => {
   const navigate = useNavigate();
@@ -149,10 +55,12 @@ export const SignIn = () => {
 
   const [error, setError] = useState('');
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [otpSent, setOtpSent] = useState('');   // email the link was sent to
-  const [lockedOut, setLockedOut] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+  const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState('');
 
-  const otpForm = useForm({ resolver: zodResolver(otpSchema) });
+  const loginForm = useForm({ resolver: zodResolver(loginSchema) });
 
   // Surface errors bounced back via URL (e.g. LinkedIn cancel / no-email)
   useEffect(() => {
@@ -161,25 +69,64 @@ export const SignIn = () => {
   }, [searchParams]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
-  const sendLink = async (email) => {
+  const onSubmit = async (data) => {
     setError('');
+    setResetSent(false);
+    if (!captchaToken) {
+      setError('Please verify that you are not a robot first.');
+      return;
+    }
     try {
-      const { exists } = await checkEmailRegistered(email);
-      if (!exists) { setError(NOT_REGISTERED_MSG); return; }
       setAuthIntent('login');
-      const { remaining } = await requestEmailOtp(email);
-      setOtpSent(email);
-      if (remaining === 0) setLockedOut(true);
+      // 1) Verify Captcha with Backend
+      await verifyCaptchaOnBackend(captchaToken);
+      // 2) Authenticate on Firebase
+      await loginWithEmailPassword(data.email, data.password);
+
+      // 3) Authenticate on Backend
+      const { user } = await loginWithBackend();
+      setUserProfile(user);
+      navigate(routeForProfile(user));
     } catch (err) {
-      if (err?.response?.status === 429) setLockedOut(true);
+      // If user is not registered in backend database, log out of Firebase too.
+      if (err?.response?.status === 404) {
+        setError(NOT_REGISTERED_MSG);
+        await logout();
+      } else {
+        setError(err?.response?.data?.message || friendlyAuthError(err));
+      }
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    const email = loginForm.getValues('email');
+    if (!email || !email.includes('@')) {
+      setError('Please enter your email address in the Email field first to receive the reset link.');
+      return;
+    }
+    setError('');
+    setResetSent(false);
+    setForgotPasswordLoading(true);
+    try {
+      await sendPasswordReset(email);
+      setResetSent(true);
+    } catch (err) {
       setError(friendlyAuthError(err));
+    } finally {
+      setForgotPasswordLoading(false);
     }
   };
 
   const handleGoogle = async () => {
     setError('');
+    setResetSent(false);
+    if (!captchaToken) {
+      setError('Please verify that you are not a robot first.');
+      return;
+    }
     setGoogleLoading(true);
     try {
+      await verifyCaptchaOnBackend(captchaToken);
       setAuthIntent('login');
       const popped = await googleAuth();
       if (popped) {
@@ -192,20 +139,28 @@ export const SignIn = () => {
         setError(NOT_REGISTERED_MSG);
         await logout();
       } else {
-        setError(friendlyAuthError(err));
+        setError(err?.response?.data?.message || friendlyAuthError(err));
       }
     } finally {
       setGoogleLoading(false);
     }
   };
 
-  const handleLinkedIn = () => {
+  const handleLinkedIn = async () => {
     setError('');
-    setAuthIntent('login');
-    linkedInRedirect();
+    setResetSent(false);
+    if (!captchaToken) {
+      setError('Please verify that you are not a robot first.');
+      return;
+    }
+    try {
+      await verifyCaptchaOnBackend(captchaToken);
+      setAuthIntent('login');
+      linkedInRedirect();
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Captcha verification failed.');
+    }
   };
-
-  const resetOtp = () => { setOtpSent(''); setLockedOut(false); setError(''); };
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -215,126 +170,164 @@ export const SignIn = () => {
     >
       <div className="w-full max-w-[450px] my-8">
         <AnimatePresence mode="wait">
-          {otpSent ? (
-            <ConfirmationScreen
-              key="confirm"
-              email={otpSent}
-              onResend={sendLink}
-              onBack={resetOtp}
-              lockedOut={lockedOut}
-            />
-          ) : (
-            <motion.div
-              key="signin-form"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="bg-[#eef2f6]/95 backdrop-blur-md border border-[#cbd5e1]/60 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] p-6 md:p-8"
+          <motion.div
+            key="signin-form"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="bg-[#eef2f6]/95 backdrop-blur-md border border-[#cbd5e1]/60 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.12)] p-6 md:p-8"
+          >
+            {/* ── Header ──────────────────────────────────────────────────── */}
+            <div className="text-center mb-6">
+              <img src={logo} alt="SSGMCE Alumni Logo" className="mx-auto h-30 w-35 object-cover" />
+              <h1 className="text-3xl font-extrabold text-[#1a3a75] tracking-tight">Welcome</h1>
+              <p className="mt-1 text-sm text-gray-500 font-semibold">
+                Login to SSGMCE Alumni Portal
+              </p>
+            </div>
+
+            {/* ── Error / Info banner ────────────────────────────────────────── */}
+            {error && (
+              <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium">
+                <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                {error}
+              </div>
+            )}
+
+            {resetSent && (
+              <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 font-medium">
+                <CheckCircle2 size={16} className="mt-0.5 shrink-0" />
+                A password reset link has been sent to your email address.
+              </div>
+            )}
+
+            {/* ── Credentials Form ────────────────────────────────────────── */}
+            <form
+              onSubmit={loginForm.handleSubmit(onSubmit)}
+              className="space-y-4"
             >
-              {/* ── Header ──────────────────────────────────────────────────── */}
-              <div className="text-center mb-6">
-                <img src={logo} alt="SSGMCE Alumni Logo" className="mx-auto h-30 w-35 object-cover" />
-                <h1 className="text-3xl font-extrabold text-[#1a3a75] tracking-tight">Welcome</h1>
-                <p className="mt-1 text-sm text-gray-500 font-semibold">
-                  Login to SSGMCE Alumni Portal
-                </p>
-              </div>
-
-              {/* ── Error banner ─────────────────────────────────────────────── */}
-              {error && (
-                <div className="mb-5 flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium">
-                  <AlertCircle size={16} className="mt-0.5 shrink-0" />
-                  {error}
-                </div>
-              )}
-
-              {/* ── Email Form ───────────────────────────────────────────────── */}
-              <form
-                onSubmit={otpForm.handleSubmit(({ email }) => sendLink(email))}
-                className="space-y-4"
-              >
-                {/* Email Field */}
-                <div>
-                  <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
-                    <span className="w-24 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-sm font-bold text-gray-500 py-3.5">
-                      Email
-                    </span>
-                    <input
-                      {...otpForm.register('email')}
-                      type="email"
-                      placeholder="you@example.com"
-                      className="flex-1 px-4 py-3.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
-                    />
-                  </div>
-                  {otpForm.formState.errors.email && (
-                    <p className="mt-1 flex items-center gap-1 text-xs text-red-500">
-                      <AlertCircle size={11} />
-                      {otpForm.formState.errors.email.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* Primary CTA */}
-                <button
-                  type="submit"
-                  disabled={otpForm.formState.isSubmitting}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#1d4289] hover:bg-[#153470] py-3.5 text-sm font-bold text-white shadow-md transition-all duration-200 cursor-pointer disabled:opacity-60"
-                >
-                  {otpForm.formState.isSubmitting
-                    ? <><Loader2 size={16} className="animate-spin" /> Sending link…</>
-                    : 'Email me a sign-in link'
-                  }
-                </button>
-              </form>
-
-              {/* No password note */}
-              <p className="text-center text-xs text-gray-400 font-medium mt-3">
-                No password needed — we'll email you a secure link.
-              </p>
-
-              {/* ── Divider ──────────────────────────────────────────────────── */}
-              <div className="relative my-5">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200" />
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-[#eef2f6] px-3 text-xs text-gray-400 font-medium">
-                    Or continue with
+              {/* Email Field */}
+              <div>
+                <div className="flex items-stretch bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden">
+                  <span className="w-24 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-sm font-bold text-gray-500 py-3.5">
+                    Email
                   </span>
+                  <input
+                    {...loginForm.register('email')}
+                    type="email"
+                    placeholder="you@example.com"
+                    className="flex-1 px-4 py-3.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                  />
                 </div>
+                {loginForm.formState.errors.email && (
+                  <p className="mt-1 flex items-center gap-1 text-xs text-red-500 font-semibold">
+                    <AlertCircle size={11} />
+                    {loginForm.formState.errors.email.message}
+                  </p>
+                )}
               </div>
 
-              {/* ── OAuth Buttons ────────────────────────────────────────────── */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Password Field */}
+              <div>
+                <div className="flex items-center bg-white border border-[#cbd5e1] rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-[#1a3a75]/30 focus-within:border-[#1a3a75] transition overflow-hidden pr-3">
+                  <span className="w-24 shrink-0 flex items-center pl-4 bg-[#fafafa] border-r border-[#cbd5e1] select-none text-sm font-bold text-gray-500 py-3.5">
+                    Password
+                  </span>
+                  <input
+                    {...loginForm.register('password')}
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    className="flex-1 px-4 py-3.5 text-sm text-gray-800 placeholder-gray-300 focus:outline-none bg-transparent"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="bg-[#fafafa] text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+                {loginForm.formState.errors.password && (
+                  <p className="mt-1 flex items-center gap-1 text-xs text-red-500 font-semibold">
+                    <AlertCircle size={11} />
+                    {loginForm.formState.errors.password.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Forgot Password Link */}
+              <div className="flex justify-end">
                 <button
                   type="button"
-                  onClick={handleLinkedIn}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-[#0a66c2] hover:bg-[#004182] py-3 text-sm font-bold text-white shadow-sm transition-all duration-200 cursor-pointer"
+                  onClick={handleForgotPassword}
+                  disabled={forgotPasswordLoading}
+                  className="text-xs font-bold text-[#1a3a75] hover:underline cursor-pointer disabled:opacity-60"
                 >
-                  <LinkedInIcon />
-                  Linkedin
-                </button>
-                <button
-                  type="button"
-                  onClick={handleGoogle}
-                  disabled={googleLoading}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 py-3 text-sm font-bold text-gray-700 shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-60"
-                >
-                  {googleLoading ? <Loader2 size={16} className="animate-spin" /> : <GoogleIcon />}
-                  Google
+                  {forgotPasswordLoading ? 'Sending reset email...' : 'Forgot password?'}
                 </button>
               </div>
 
-              {/* ── Footer ───────────────────────────────────────────────────── */}
-              <p className="text-center text-xs text-gray-400 mt-6 font-medium">
-                New here?{' '}
-                <Link to="/register" className="text-[#1a3a75] font-bold hover:underline">
-                  Register as alumni
-                </Link>{' '}
-                – your account needs admin approval before you can sign in
-              </p>
-            </motion.div>
-          )}
+              {/* reCAPTCHA verification container */}
+              <div className="flex justify-center py-2">
+                <Captcha onVerify={setCaptchaToken} />
+              </div>
+
+              {/* Primary CTA */}
+              <button
+                type="submit"
+                disabled={loginForm.formState.isSubmitting}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#1d4289] hover:bg-[#153470] py-3.5 text-sm font-bold text-white shadow-md transition-all duration-200 cursor-pointer disabled:opacity-60"
+              >
+                {loginForm.formState.isSubmitting ? (
+                  <><Loader2 size={16} className="animate-spin" /> Logging in…</>
+                ) : (
+                  'Login'
+                )}
+              </button>
+            </form>
+
+            {/* ── Divider ──────────────────────────────────────────────────── */}
+            <div className="relative my-5">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center">
+                <span className="bg-[#eef2f6] px-3 text-xs text-gray-400 font-semibold">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            {/* ── OAuth Buttons ────────────────────────────────────────────── */}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={handleLinkedIn}
+                className="flex items-center justify-center gap-2 rounded-xl bg-[#0a66c2] hover:bg-[#004182] py-3 text-sm font-bold text-white shadow-sm transition-all duration-200 cursor-pointer"
+              >
+                <LinkedInIcon />
+                Linkedin
+              </button>
+              <button
+                type="button"
+                onClick={handleGoogle}
+                disabled={googleLoading}
+                className="flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 py-3 text-sm font-bold text-gray-700 shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-60"
+              >
+                {googleLoading ? <Loader2 size={16} className="animate-spin" /> : <GoogleIcon />}
+                Google
+              </button>
+            </div>
+
+            {/* ── Footer ───────────────────────────────────────────────────── */}
+            <p className="text-center text-xs text-gray-400 mt-6 font-medium">
+              New here?{' '}
+              <Link to="/register" className="text-[#1a3a75] font-bold hover:underline">
+                Register as alumni
+              </Link>{' '}
+              – your account needs admin approval before you can sign in
+            </p>
+          </motion.div>
         </AnimatePresence>
       </div>
     </div>
