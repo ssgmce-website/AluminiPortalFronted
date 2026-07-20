@@ -20,3 +20,10 @@ export const updateEventAttendance = (id, attendanceStatus) =>
 
 export const fetchDeptWiseAlumni = () =>
   adminApi.get('/admin/dept-wise').then((r) => r.data.data);
+
+export const fetchAlumniFeedbacks = () =>
+  adminApi.get('/admin/alumni-feedbacks').then((r) => r.data.data);
+
+export const fetchPublicFeedbacks = () =>
+  adminApi.get('/admin/public-feedbacks').then((r) => r.data.data);
+
