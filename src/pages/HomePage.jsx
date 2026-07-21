@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
 import {
   Users,
-  ArrowRight, Building2, MapPin, ChevronRight, CalendarDays, UserCheck,
+  ArrowRight, Building2, MapPin, ChevronRight, ChevronLeft, X, CalendarDays, UserCheck,
 } from 'lucide-react';
 import HeroSlider from '../components/HeroSlider';
 import distinguishedAlumni from '../data/distinguishedAlumni.js';
@@ -119,7 +119,7 @@ const FALLBACK_ALUMNI = [
   { name: "Surabhi Lahoti", branch: "Computer Science & Engineering", batch: "2023", company: "L&T Construction", photo: surabhiLahotiImg },
 ];
 
-function HomeGalleryMarqueeRow({ images, direction = "left", speed = 70 }) {
+function HomeGalleryMarqueeRow({ images, direction = "left", speed = 70, onImageClick }) {
   const duplicated = useMemo(() => {
     if (!images.length) return [];
 
@@ -153,7 +153,12 @@ function HomeGalleryMarqueeRow({ images, direction = "left", speed = 70 }) {
         style={{ "--marquee-speed": `${dynamicDuration}s` }}
       >
         {duplicated.map((img) => (
-          <div key={img._key} className="gallery-marquee-item">
+          <button
+            key={img._key}
+            type="button"
+            onClick={() => onImageClick && onImageClick(img)}
+            className="gallery-marquee-item cursor-pointer text-left"
+          >
             <img
               src={img.url || img.src}
               alt={img.title || img.alt}
@@ -167,8 +172,68 @@ function HomeGalleryMarqueeRow({ images, direction = "left", speed = 70 }) {
             <div className="gallery-marquee-item-overlay" aria-hidden="true">
               <span>{img.title || img.alt}</span>
             </div>
-          </div>
+          </button>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function HomeLightbox({ image, onClose, onPrev, onNext, hasPrev, hasNext }) {
+  if (!image) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="relative max-h-[90vh] max-w-5xl w-full overflow-hidden rounded-2xl shadow-2xl flex items-center justify-center bg-slate-950"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <img
+          src={image.url || image.src}
+          alt={image.title || image.alt || 'Gallery Image'}
+          className="max-h-[85vh] w-auto max-w-full object-contain mx-auto"
+        />
+
+        {/* Previous Button */}
+        {hasPrev && (
+          <button
+            onClick={onPrev}
+            className="absolute left-4 top-1/2 -translate-y-1/2 bg-slate-900/80 hover:bg-blue-600 text-white rounded-full p-3 transition-all cursor-pointer shadow-lg hover:scale-110 flex items-center justify-center border border-white/10"
+            aria-label="Previous image"
+          >
+            <ChevronLeft size={24} />
+          </button>
+        )}
+
+        {/* Next Button */}
+        {hasNext && (
+          <button
+            onClick={onNext}
+            className="absolute right-4 top-1/2 -translate-y-1/2 bg-slate-900/80 hover:bg-blue-600 text-white rounded-full p-3 transition-all cursor-pointer shadow-lg hover:scale-110 flex items-center justify-center border border-white/10"
+            aria-label="Next image"
+          >
+            <ChevronRight size={24} />
+          </button>
+        )}
+
+        <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-slate-950/90 via-slate-950/60 to-transparent px-6 py-4 flex items-end justify-between pointer-events-none">
+          <div>
+            <p className="text-white font-bold text-base">{image.title || image.alt}</p>
+            {image.year && <p className="text-blue-300 text-xs font-semibold mt-0.5">{image.year}</p>}
+          </div>
+        </div>
+
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 bg-slate-900/80 hover:bg-red-600 text-white rounded-full p-2 transition cursor-pointer border border-white/10"
+          aria-label="Close"
+        >
+          <X size={18} />
+        </button>
       </div>
     </div>
   );
@@ -224,6 +289,36 @@ export default function HomePage() {
     });
     return [r1, r2, r3];
   }, [dbGallery]);
+
+  const [lightboxIndex, setLightboxIndex] = useState(null);
+
+  const handleImageClick = (img) => {
+    const idx = dbGallery.findIndex((item) => item.id === img.id || item.url === img.url);
+    if (idx !== -1) setLightboxIndex(idx);
+  };
+
+  const handleClose = () => setLightboxIndex(null);
+
+  const handlePrev = () => {
+    setLightboxIndex((prev) => (prev > 0 ? prev - 1 : dbGallery.length - 1));
+  };
+
+  const handleNext = () => {
+    setLightboxIndex((prev) => (prev < dbGallery.length - 1 ? prev + 1 : 0));
+  };
+
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowLeft') handlePrev();
+      else if (e.key === 'ArrowRight') handleNext();
+      else if (e.key === 'Escape') handleClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxIndex, dbGallery]);
+
+  const lightboxImage = lightboxIndex !== null ? dbGallery[lightboxIndex] : null;
 
   return (
     <div className="space-y-14 pb-14">
@@ -444,11 +539,20 @@ export default function HomePage() {
           <SectionHeader eyebrow="Memories" title="Alumni Meet 2026" cta="Full Gallery" href="/gallery" />
         </div>
         <div className="flex flex-col gap-4 overflow-hidden pb-8" aria-label="Alumni meet photo gallery">
-          <HomeGalleryMarqueeRow images={galleryRow1} direction="left" speed={65} />
-          <HomeGalleryMarqueeRow images={galleryRow2} direction="right" speed={55} />
-          <HomeGalleryMarqueeRow images={galleryRow3} direction="left" speed={75} />
+          <HomeGalleryMarqueeRow images={galleryRow1} direction="left" speed={65} onImageClick={handleImageClick} />
+          <HomeGalleryMarqueeRow images={galleryRow2} direction="right" speed={55} onImageClick={handleImageClick} />
+          <HomeGalleryMarqueeRow images={galleryRow3} direction="left" speed={75} onImageClick={handleImageClick} />
         </div>
       </section>
+
+      <HomeLightbox
+        image={lightboxImage}
+        onClose={handleClose}
+        onPrev={handlePrev}
+        onNext={handleNext}
+        hasPrev={dbGallery.length > 1}
+        hasNext={dbGallery.length > 1}
+      />
 
     </div>
   );
