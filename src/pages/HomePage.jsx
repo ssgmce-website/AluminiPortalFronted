@@ -3,19 +3,13 @@ import { Link } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
 import {
   Users,
-  ArrowRight, Building2, MapPin, ChevronRight, CalendarDays, UserCheck,
+  ArrowRight, Building2, MapPin, ChevronRight, ChevronLeft, X, CalendarDays, UserCheck,
 } from 'lucide-react';
 import HeroSlider from '../components/HeroSlider';
 import distinguishedAlumni from '../data/distinguishedAlumni.js';
 import Newsletter from '../pages/Newsletter';
 import { fetchNewlyRegisteredAlumni } from '../services/alumniService';
-import meet2026Guest from '../assets/gallery/AlumniMeet2026.jpeg';
-import meet2026Faculty from '../assets/gallery/AM2026.jpeg';
-import meet2026Library from '../assets/gallery/A_M2026.jpeg';
-import meet2026Auditorium from '../assets/gallery/_A_M2026.jpeg';
-import meet2026Group from '../assets/gallery/_Alumni_M2026.jpeg';
-import meet2026Inauguration from '../assets/gallery/_A-m2026.jpeg';
-import meet2026Session from '../assets/gallery/Alumni_Meet2026.jpeg';
+import api from '../services/api';
 import ankushGawandeImg from '../assets/newly-registered-alumni/ankush-gawande.jpg';
 import chetanAmbalkarImg from '../assets/newly-registered-alumni/chetan-ambalkar.jpg';
 import dnyaneshwariChatarkarImg from '../assets/newly-registered-alumni/dnyaneshwari-chatarkar.jpg';
@@ -125,24 +119,7 @@ const FALLBACK_ALUMNI = [
   { name: "Surabhi Lahoti", branch: "Computer Science & Engineering", batch: "2023", company: "L&T Construction", photo: surabhiLahotiImg },
 ];
 
-const galleryRow1 = [
-  { src: meet2026Group, alt: 'Grand Alumni Meet 2026 Group Photo' },
-  { src: meet2026Guest, alt: 'Guest Interaction Session — Alumni Meet 2026' },
-  { src: meet2026Library, alt: 'Library Inauguration — Alumni Meet 2026' },
-];
-
-const galleryRow2 = [
-  { src: meet2026Faculty, alt: 'Alumni Faculty Interaction — Alumni Meet 2026' },
-  { src: meet2026Auditorium, alt: 'Alumni Meet Auditorium Session 2026' },
-];
-
-const galleryRow3 = [
-  { src: meet2026Inauguration, alt: 'Inauguration Ceremony — Alumni Meet 2026' },
-  { src: meet2026Session, alt: 'Student Interaction Session — Alumni Meet 2026' },
-];
-
-
-function HomeGalleryMarqueeRow({ images, direction = "left", speed = 70 }) {
+function HomeGalleryMarqueeRow({ images, direction = "left", speed = 70, onImageClick }) {
   const duplicated = useMemo(() => {
     if (!images.length) return [];
 
@@ -176,13 +153,87 @@ function HomeGalleryMarqueeRow({ images, direction = "left", speed = 70 }) {
         style={{ "--marquee-speed": `${dynamicDuration}s` }}
       >
         {duplicated.map((img) => (
-          <div key={img._key} className="gallery-marquee-item">
-            <img src={img.src} alt={img.alt} loading="lazy" draggable="false" />
+          <button
+            key={img._key}
+            type="button"
+            onClick={() => onImageClick && onImageClick(img)}
+            className="gallery-marquee-item cursor-pointer text-left"
+          >
+            <img
+              src={img.url || img.src}
+              alt={img.title || img.alt}
+              loading="lazy"
+              draggable="false"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "https://placehold.co/400x300?text=Gallery+Image";
+              }}
+            />
             <div className="gallery-marquee-item-overlay" aria-hidden="true">
-              <span>{img.alt}</span>
+              <span>{img.title || img.alt}</span>
             </div>
-          </div>
+          </button>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function HomeLightbox({ image, onClose, onPrev, onNext, hasPrev, hasNext }) {
+  if (!image) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="relative max-h-[90vh] max-w-5xl w-full overflow-hidden rounded-2xl shadow-2xl flex items-center justify-center bg-slate-950"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <img
+          src={image.url || image.src}
+          alt={image.title || image.alt || 'Gallery Image'}
+          className="max-h-[85vh] w-auto max-w-full object-contain mx-auto"
+        />
+
+        {/* Previous Button */}
+        {hasPrev && (
+          <button
+            onClick={onPrev}
+            className="absolute left-4 top-1/2 -translate-y-1/2 bg-slate-900/80 hover:bg-blue-600 text-white rounded-full p-3 transition-all cursor-pointer shadow-lg hover:scale-110 flex items-center justify-center border border-white/10"
+            aria-label="Previous image"
+          >
+            <ChevronLeft size={24} />
+          </button>
+        )}
+
+        {/* Next Button */}
+        {hasNext && (
+          <button
+            onClick={onNext}
+            className="absolute right-4 top-1/2 -translate-y-1/2 bg-slate-900/80 hover:bg-blue-600 text-white rounded-full p-3 transition-all cursor-pointer shadow-lg hover:scale-110 flex items-center justify-center border border-white/10"
+            aria-label="Next image"
+          >
+            <ChevronRight size={24} />
+          </button>
+        )}
+
+        <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-slate-950/90 via-slate-950/60 to-transparent px-6 py-4 flex items-end justify-between pointer-events-none">
+          <div>
+            <p className="text-white font-bold text-base">{image.title || image.alt}</p>
+            {image.year && <p className="text-blue-300 text-xs font-semibold mt-0.5">{image.year}</p>}
+          </div>
+        </div>
+
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 bg-slate-900/80 hover:bg-red-600 text-white rounded-full p-2 transition cursor-pointer border border-white/10"
+          aria-label="Close"
+        >
+          <X size={18} />
+        </button>
       </div>
     </div>
   );
@@ -192,6 +243,7 @@ function HomeGalleryMarqueeRow({ images, direction = "left", speed = 70 }) {
 // ─── HOME PAGE ────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const [newAlumni, setNewAlumni] = useState(FALLBACK_ALUMNI);
+  const [dbGallery, setDbGallery] = useState([]);
 
   // Pull the most recently approved registrations; keep the fallback list
   // showing (rather than an empty section) if the API fails or is still empty.
@@ -206,6 +258,67 @@ export default function HomePage() {
       });
     return () => { cancelled = true; };
   }, []);
+
+  // Fetch dynamic gallery photos from backend API
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .get("/public/gallery")
+      .then((res) => {
+        const list = res.data?.data?.gallery || [];
+        const formatted = list.map((item) => ({
+          id: item._id,
+          url: item.imageUrl,
+          title: item.title,
+          year: String(item.year),
+        }));
+        if (!cancelled) setDbGallery(formatted);
+      })
+      .catch((err) => console.error("[HomePage] Gallery fetch error:", err));
+    return () => { cancelled = true; };
+  }, []);
+
+  // Split gallery images across 3 marquee rows
+  const [galleryRow1, galleryRow2, galleryRow3] = useMemo(() => {
+    if (!dbGallery.length) return [[], [], []];
+    const r1 = [], r2 = [], r3 = [];
+    dbGallery.forEach((img, i) => {
+      if (i % 3 === 0) r1.push(img);
+      else if (i % 3 === 1) r2.push(img);
+      else r3.push(img);
+    });
+    return [r1, r2, r3];
+  }, [dbGallery]);
+
+  const [lightboxIndex, setLightboxIndex] = useState(null);
+
+  const handleImageClick = (img) => {
+    const idx = dbGallery.findIndex((item) => item.id === img.id || item.url === img.url);
+    if (idx !== -1) setLightboxIndex(idx);
+  };
+
+  const handleClose = () => setLightboxIndex(null);
+
+  const handlePrev = () => {
+    setLightboxIndex((prev) => (prev > 0 ? prev - 1 : dbGallery.length - 1));
+  };
+
+  const handleNext = () => {
+    setLightboxIndex((prev) => (prev < dbGallery.length - 1 ? prev + 1 : 0));
+  };
+
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowLeft') handlePrev();
+      else if (e.key === 'ArrowRight') handleNext();
+      else if (e.key === 'Escape') handleClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxIndex, dbGallery]);
+
+  const lightboxImage = lightboxIndex !== null ? dbGallery[lightboxIndex] : null;
 
   return (
     <div className="space-y-14 pb-14">
@@ -299,11 +412,11 @@ export default function HomePage() {
               variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }}
               className="flex gap-5"
             >
-              {newAlumni.map((a) => (
+              {newAlumni.map((a, idx) => (
                 <motion.div
-                  key={a.name}
+                  key={a.name + idx}
                   variants={fadeUp}
-                  className="group min-w-[200px] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-shadow hover:shadow-md"
+                  className="group min-w-[200px] max-w-[220px] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-shadow hover:shadow-md"
                 >
                   {/* Portrait photo */}
                   <div className="aspect-[4/5] overflow-hidden bg-slate-100">
@@ -316,16 +429,16 @@ export default function HomePage() {
 
                   {/* Info */}
                   <div className="p-4">
-                    <p className="font-bold text-slate-800">{a.name}</p>
-                    {a.batch && (
+                    <p className="font-bold text-slate-800 line-clamp-1">{a.name}</p>
+                    {a.batch && a.batch !== 'N/A' && (
                       <p className="mt-0.5 text-[11px] font-bold uppercase tracking-widest text-slate-400">
                         Batch {a.batch}
                       </p>
                     )}
-                    {a.branch && (
-                      <p className="mt-1 text-xs text-slate-500">{a.branch}</p>
+                    {a.branch && a.branch !== 'N/A' && (
+                      <p className="mt-1 text-xs text-slate-500 capitalize line-clamp-1">{a.branch}</p>
                     )}
-                    {a.company && (
+                    {a.company && a.company !== 'N/A' && (
                       <p className="mt-2 flex items-center gap-1 text-xs text-slate-400">
                         <Building2 size={11} className="shrink-0" />
                         <span className="truncate">{a.company}</span>
@@ -344,7 +457,7 @@ export default function HomePage() {
 
       {/* ── DISTINGUISHED ALUMNI — Prestigious-Alumni quote style ───────────── */}
       <section className="mx-auto max-w-[1425px] rounded-2xl border border-slate-200 bg-white p-8 shadow-sm md:p-10">
-        <SectionHeader eyebrow="Pride of SSGMCE" title="Distinguished Alumni" cta="View All" href="/about/distinguished-alumni" />
+        <SectionHeader eyebrow="Pride of SSGMCE" title="Distinguished Alumni" cta="View All" href="/distinguished-alumni" />
 
         <motion.div
           variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }}
@@ -426,11 +539,20 @@ export default function HomePage() {
           <SectionHeader eyebrow="Memories" title="Alumni Meet 2026" cta="Full Gallery" href="/gallery" />
         </div>
         <div className="flex flex-col gap-4 overflow-hidden pb-8" aria-label="Alumni meet photo gallery">
-          <HomeGalleryMarqueeRow images={galleryRow1} direction="left" speed={65} />
-          <HomeGalleryMarqueeRow images={galleryRow2} direction="right" speed={55} />
-          <HomeGalleryMarqueeRow images={galleryRow3} direction="left" speed={75} />
+          <HomeGalleryMarqueeRow images={galleryRow1} direction="left" speed={65} onImageClick={handleImageClick} />
+          <HomeGalleryMarqueeRow images={galleryRow2} direction="right" speed={55} onImageClick={handleImageClick} />
+          <HomeGalleryMarqueeRow images={galleryRow3} direction="left" speed={75} onImageClick={handleImageClick} />
         </div>
       </section>
+
+      <HomeLightbox
+        image={lightboxImage}
+        onClose={handleClose}
+        onPrev={handlePrev}
+        onNext={handleNext}
+        hasPrev={dbGallery.length > 1}
+        hasNext={dbGallery.length > 1}
+      />
 
     </div>
   );
