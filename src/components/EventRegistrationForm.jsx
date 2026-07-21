@@ -754,9 +754,9 @@ export const EventRegistrationForm = () => {
                     className="w-full border border-[#cbd5e1] rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0A3287]/20 focus:border-[#0A3287] outline-none bg-white"
                   >
                     <option value={0}>0 (Alone)</option>
-                    <option value={1}>1 Guest</option>
-                    <option value={2}>2 Guests</option>
-                    <option value={3}>3 Guests (Max)</option>
+                    <option value={1}>1 </option>
+                    <option value={2}>2 </option>
+                    <option value={3}>3 (Max)</option>
                   </select>
                 </div>
               </div>

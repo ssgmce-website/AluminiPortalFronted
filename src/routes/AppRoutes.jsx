@@ -32,9 +32,11 @@ const AdminLogin = lazy(() => import('../pages/AdminLogin').then(m => ({ default
 const AdminOverview = lazy(() => import('../pages/admin/AdminOverview').then(m => ({ default: m.AdminOverview })));
 const MembersPanel = lazy(() => import('../pages/admin/MembersPanel').then(m => ({ default: m.MembersPanel })));
 const EventsPanel = lazy(() => import('../pages/admin/EventsPanel').then(m => ({ default: m.EventsPanel })));
+const FeedbacksPanel = lazy(() => import('../pages/admin/FeedbacksPanel').then(m => ({ default: m.FeedbacksPanel })));
 const FinancesPanel = lazy(() => import('../pages/admin/FinancesPanel').then(m => ({ default: m.FinancesPanel })));
 const TravelPanel = lazy(() => import('../pages/admin/TravelPanel').then(m => ({ default: m.TravelPanel })));
 const PostsPanel = lazy(() => import('../pages/admin/PostsPanel').then(m => ({ default: m.PostsPanel })));
+
 
 
 // Public pages
@@ -187,6 +189,11 @@ export const AppRoutes = () => {
           {/* Events */}
           <Route path="events/current" element={<Suspense fallback={<PageLoader />}><EventsPanel tab="current" /></Suspense>} />
           <Route path="events/old" element={<Suspense fallback={<PageLoader />}><EventsPanel tab="old" /></Suspense>} />
+
+          {/* Feedbacks */}
+          <Route path="feedbacks/alumni" element={<Suspense fallback={<PageLoader />}><FeedbacksPanel tab="alumni" /></Suspense>} />
+          <Route path="feedbacks/public" element={<Suspense fallback={<PageLoader />}><FeedbacksPanel tab="public" /></Suspense>} />
+
 
           {/* Finances */}
           <Route path="finances/donations" element={<Suspense fallback={<PageLoader />}><FinancesPanel tab="donations" /></Suspense>} />
