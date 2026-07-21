@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useCallback, useEffect } from "react";
-import { X, ZoomIn, Image as ImageIcon } from "lucide-react";
+import { X, ZoomIn, Image as ImageIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import PageShell from "../components/PageShell";
 import api from "../services/api";
 
@@ -65,29 +65,57 @@ function MarqueeRow({ images, direction = "left", speed = 70, onImageClick }) {
 }
 
 /* ── Lightbox ── */
-function Lightbox({ image, onClose }) {
+function Lightbox({ image, onClose, onPrev, onNext, hasPrev, hasNext }) {
   if (!image) return null;
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="relative max-h-[90vh] max-w-4xl w-full overflow-hidden rounded-2xl shadow-2xl"
+        className="relative max-h-[90vh] max-w-5xl w-full overflow-hidden rounded-2xl shadow-2xl flex items-center justify-center bg-slate-950"
         onClick={(e) => e.stopPropagation()}
       >
         <img
           src={image.url}
           alt={image.title}
-          className="h-full w-full object-contain bg-slate-900"
+          className="max-h-[85vh] w-auto max-w-full object-contain mx-auto"
         />
-        <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-slate-950/80 to-transparent px-6 py-5">
-          <p className="text-white font-semibold text-base">{image.title}</p>
-          <p className="text-blue-200 text-sm">{image.year}</p>
+
+        {/* Previous Button */}
+        {hasPrev && (
+          <button
+            onClick={onPrev}
+            className="absolute left-4 top-1/2 -translate-y-1/2 bg-slate-900/80 hover:bg-blue-600 text-white rounded-full p-3 transition-all cursor-pointer shadow-lg hover:scale-110 flex items-center justify-center border border-white/10"
+            aria-label="Previous image"
+          >
+            <ChevronLeft size={24} />
+          </button>
+        )}
+
+        {/* Next Button */}
+        {hasNext && (
+          <button
+            onClick={onNext}
+            className="absolute right-4 top-1/2 -translate-y-1/2 bg-slate-900/80 hover:bg-blue-600 text-white rounded-full p-3 transition-all cursor-pointer shadow-lg hover:scale-110 flex items-center justify-center border border-white/10"
+            aria-label="Next image"
+          >
+            <ChevronRight size={24} />
+          </button>
+        )}
+
+        <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-slate-950/90 via-slate-950/60 to-transparent px-6 py-4 flex items-end justify-between pointer-events-none">
+          <div>
+            <p className="text-white font-bold text-base">{image.title}</p>
+            {image.year && <p className="text-blue-300 text-xs font-semibold mt-0.5">{image.year}</p>}
+          </div>
         </div>
+
+        {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 bg-slate-900/70 hover:bg-slate-800 text-white rounded-full p-1.5 transition cursor-pointer"
+          className="absolute top-4 right-4 bg-slate-900/80 hover:bg-red-600 text-white rounded-full p-2 transition cursor-pointer border border-white/10"
           aria-label="Close"
         >
           <X size={18} />
@@ -100,7 +128,7 @@ function Lightbox({ image, onClose }) {
 /* ── Gallery page ── */
 function Gallery() {
   const [selectedYear, setSelectedYear]   = useState("All");
-  const [lightboxImage, setLightboxImage] = useState(null);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
   const [dbImages, setDbImages]           = useState([]);
   const [loading, setLoading]             = useState(true);
 
@@ -145,8 +173,36 @@ function Gallery() {
     return [r1, r2, r3];
   }, [filteredImages]);
 
-  const handleImageClick = useCallback((img) => setLightboxImage(img), []);
-  const handleClose      = useCallback(() => setLightboxImage(null), []);
+  const handleImageClick = useCallback((img) => {
+    const idx = filteredImages.findIndex((item) => item.id === img.id || item.url === img.url);
+    if (idx !== -1) {
+      setLightboxIndex(idx);
+    }
+  }, [filteredImages]);
+
+  const handleClose = useCallback(() => setLightboxIndex(null), []);
+
+  const handlePrev = useCallback(() => {
+    setLightboxIndex((prev) => (prev > 0 ? prev - 1 : filteredImages.length - 1));
+  }, [filteredImages]);
+
+  const handleNext = useCallback(() => {
+    setLightboxIndex((prev) => (prev < filteredImages.length - 1 ? prev + 1 : 0));
+  }, [filteredImages]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "ArrowLeft") handlePrev();
+      else if (e.key === "ArrowRight") handleNext();
+      else if (e.key === "Escape") handleClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxIndex, handlePrev, handleNext, handleClose]);
+
+  const lightboxImage = lightboxIndex !== null ? filteredImages[lightboxIndex] : null;
 
   return (
     <>
@@ -158,7 +214,10 @@ function Gallery() {
               <button
                 key={year}
                 type="button"
-                onClick={() => setSelectedYear(year)}
+                onClick={() => {
+                  setSelectedYear(year);
+                  setLightboxIndex(null);
+                }}
                 className={`rounded-full px-5 py-2 text-sm font-bold transition cursor-pointer ${
                   selectedYear === year
                     ? "bg-blue-700 text-white shadow-sm"
@@ -208,7 +267,14 @@ function Gallery() {
         )}
       </PageShell>
 
-      <Lightbox image={lightboxImage} onClose={handleClose} />
+      <Lightbox
+        image={lightboxImage}
+        onClose={handleClose}
+        onPrev={handlePrev}
+        onNext={handleNext}
+        hasPrev={filteredImages.length > 1}
+        hasNext={filteredImages.length > 1}
+      />
     </>
   );
 }

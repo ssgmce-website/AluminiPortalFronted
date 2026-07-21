@@ -344,6 +344,59 @@ const TAB_META = {
   'dept-wise': { label: 'Department-wise Members', icon: LayoutGrid },
 };
 
+const downloadMembersCSV = (membersList, statusName) => {
+  const headers = [
+    'Alumni ID',
+    'Name',
+    'Email',
+    'Contact Number',
+    'Gender',
+    'DOB',
+    'Course',
+    'Branch',
+    'Year of Admission',
+    'Year of Passout',
+    'Status',
+    'Employment Status',
+    'Company / Organisation',
+    'Designation',
+    'Address',
+    'City',
+    'State',
+    'Country',
+  ];
+
+  const rows = membersList.map(u => [
+    `"${(u.alumniId || '').replace(/"/g, '""')}"`,
+    `"${(u.name || '').replace(/"/g, '""')}"`,
+    `"${(u.email || '').replace(/"/g, '""')}"`,
+    `"${u.contactNumber ? '+91 ' + u.contactNumber : ''}"`,
+    `"${(u.gender || '').replace(/"/g, '""')}"`,
+    `"${u.dob ? new Date(u.dob).toLocaleDateString('en-IN') : ''}"`,
+    `"${(u.course || '').replace(/"/g, '""')}"`,
+    `"${(u.branch || '').replace(/"/g, '""')}"`,
+    `"${u.yearOfAdmission || ''}"`,
+    `"${u.yearOfPassout || ''}"`,
+    `"${(u.status || '').replace(/"/g, '""')}"`,
+    `"${(u.employmentStatus || '').replace(/"/g, '""')}"`,
+    `"${(u.companyName || u.startupName || u.universityName || '').replace(/"/g, '""')}"`,
+    `"${(u.designation || u.higherStudiesCourse || '').replace(/"/g, '""')}"`,
+    `"${(u.address || '').replace(/"/g, '""')}"`,
+    `"${(u.city || '').replace(/"/g, '""')}"`,
+    `"${(u.state || '').replace(/"/g, '""')}"`,
+    `"${(u.country || '').replace(/"/g, '""')}"`,
+  ]);
+
+  const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `alumni-${statusName}-members.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
 export const MembersPanel = ({ tab }) => {
   const [members, setMembers]   = useState([]);
   const [deptGroups, setDeptGroups] = useState({});
@@ -422,12 +475,22 @@ export const MembersPanel = ({ tab }) => {
               : 'Manage alumni account requests.'}
           </p>
         </div>
-        <button
-          onClick={load}
-          className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors"
-        >
-          <RefreshCw size={15} /> Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          {tab !== 'dept-wise' && members.length > 0 && (
+            <button
+              onClick={() => downloadMembersCSV(members, tab)}
+              className="flex items-center gap-2 text-sm font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg px-3.5 py-2 transition-colors cursor-pointer"
+            >
+              <Download size={15} /> Download CSV
+            </button>
+          )}
+          <button
+            onClick={load}
+            className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors"
+          >
+            <RefreshCw size={15} /> Refresh
+          </button>
+        </div>
       </div>
 
       {/* Stat cards */}
