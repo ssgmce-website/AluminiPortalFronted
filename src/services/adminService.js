@@ -72,3 +72,27 @@ export const uploadNewsletterPdf = async (file) => {
   });
   return data.data;
 };
+
+// Gallery Management
+export const fetchGalleryAdmin = () =>
+  adminApi.get('/admin/gallery').then((r) => r.data.data);
+
+export const createGalleryImage = (data) =>
+  adminApi.post('/admin/gallery', data).then((r) => r.data.data);
+
+export const updateGalleryImage = (id, data) =>
+  adminApi.put(`/admin/gallery/${id}`, data).then((r) => r.data.data);
+
+export const deleteGalleryImage = (id) =>
+  adminApi.delete(`/admin/gallery/${id}`).then((r) => r.data.data);
+
+export const uploadGalleryImage = async (file, year) => {
+  const formData = new FormData();
+  formData.append('gallery-file', file);
+
+  const { data } = await adminApi.post(`/upload/gallery-file/${year || ''}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data.data;
+};
+
