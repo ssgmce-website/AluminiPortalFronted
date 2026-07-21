@@ -37,6 +37,8 @@ export const EventRegistrationForm = () => {
     handleSubmit,
     control,
     watch,
+    getValues,
+    trigger,
     reset,
     formState: { errors },
   } = useForm({
@@ -460,11 +462,34 @@ export const EventRegistrationForm = () => {
                     <Controller
                       control={control}
                       name="arrivalDate"
-                      rules={{ required: 'Arrival date is required' }}
+                      rules={{
+                        required: 'Arrival date is required',
+                        validate: (val) => {
+                          const departure = getValues('departureDate');
+                          if (departure && val) {
+                            const arr = new Date(val);
+                            const dep = new Date(departure);
+                            const diffMs = dep.getTime() - arr.getTime();
+                            if (diffMs < 0) {
+                              return 'Arrival date cannot be after departure date';
+                            }
+                            const diffDays = diffMs / (1000 * 60 * 60 * 24);
+                            if (diffDays > 3) {
+                              return 'Stay duration cannot exceed 3 days';
+                            }
+                          }
+                          return true;
+                        }
+                      }}
                       render={({ field }) => (
                         <DatePicker
                           selected={field.value}
-                          onChange={(date) => field.onChange(date)}
+                          onChange={(date) => {
+                            field.onChange(date);
+                            if (getValues('departureDate')) {
+                              trigger('departureDate');
+                            }
+                          }}
                           dateFormat="dd/MM/yyyy"
                           placeholderText="dd/mm/yyyy"
                           className="w-full border border-[#cbd5e1] rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0A3287]/20 focus:border-[#0A3287] outline-none"
@@ -484,7 +509,7 @@ export const EventRegistrationForm = () => {
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-600 block mb-2">Arrival Time (Approx) *</label>
+                  <label className="text-xs font-bold text-slate-600 block mb-2">Arrival Time *</label>
                   <div className="grid grid-cols-3 gap-2">
                     <select
                       {...register('arrivalHour', { required: 'Hour is required' })}
@@ -527,8 +552,9 @@ export const EventRegistrationForm = () => {
 
             {/* Departure Information */}
             <div className="space-y-4">
-              <h3 className="text-sm font-bold text-slate-700 border-b border-slate-100 pb-2">
-                2. Departure Details
+              <h3 className="text-sm font-bold text-slate-700 border-b border-slate-100 pb-2 flex items-center justify-between">
+                <span>2. Departure Details</span>
+                <span className="text-[11px] font-normal text-slate-400">Max 3 days stay from Arrival Date</span>
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -537,11 +563,40 @@ export const EventRegistrationForm = () => {
                     <Controller
                       control={control}
                       name="departureDate"
-                      rules={{ required: 'Departure date is required' }}
+                      rules={{
+                        required: 'Departure date is required',
+                        validate: (val) => {
+                          const arrival = getValues('arrivalDate');
+                          if (arrival && val) {
+                            const arr = new Date(arrival);
+                            const dep = new Date(val);
+                            const diffMs = dep.getTime() - arr.getTime();
+                            if (diffMs < 0) {
+                              return 'Departure date cannot be before arrival date';
+                            }
+                            const diffDays = diffMs / (1000 * 60 * 60 * 24);
+                            if (diffDays > 3) {
+                              return 'Departure date cannot be more than 3 days after arrival date';
+                            }
+                          }
+                          return true;
+                        }
+                      }}
                       render={({ field }) => (
                         <DatePicker
                           selected={field.value}
-                          onChange={(date) => field.onChange(date)}
+                          onChange={(date) => {
+                            field.onChange(date);
+                            if (getValues('arrivalDate')) {
+                              trigger('arrivalDate');
+                            }
+                          }}
+                          minDate={watch('arrivalDate') || undefined}
+                          maxDate={
+                            watch('arrivalDate')
+                              ? new Date(new Date(watch('arrivalDate')).getTime() + 3 * 24 * 60 * 60 * 1000)
+                              : undefined
+                          }
                           dateFormat="dd/MM/yyyy"
                           placeholderText="dd/mm/yyyy"
                           className="w-full border border-[#cbd5e1] rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0A3287]/20 focus:border-[#0A3287] outline-none"
@@ -561,7 +616,7 @@ export const EventRegistrationForm = () => {
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-600 block mb-2">Departure Time (Approx) *</label>
+                  <label className="text-xs font-bold text-slate-600 block mb-2">Departure Time *</label>
                   <div className="grid grid-cols-3 gap-2">
                     <select
                       {...register('departureHour', { required: 'Hour is required' })}

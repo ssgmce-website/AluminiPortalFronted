@@ -27,3 +27,72 @@ export const fetchAlumniFeedbacks = () =>
 export const fetchPublicFeedbacks = () =>
   adminApi.get('/admin/public-feedbacks').then((r) => r.data.data);
 
+// Annual Reports Management
+export const fetchAnnualReportsAdmin = () =>
+  adminApi.get('/admin/annual-reports').then((r) => r.data.data);
+
+export const createAnnualReport = (data) =>
+  adminApi.post('/admin/annual-reports', data).then((r) => r.data.data);
+
+export const updateAnnualReport = (id, data) =>
+  adminApi.put(`/admin/annual-reports/${id}`, data).then((r) => r.data.data);
+
+export const deleteAnnualReport = (id) =>
+  adminApi.delete(`/admin/annual-reports/${id}`).then((r) => r.data.data);
+
+export const uploadAnnualReportPdf = async (file) => {
+  const formData = new FormData();
+  formData.append('pdf-file', file);
+
+  const { data } = await adminApi.post('/upload/pdf-file/anual report', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data.data;
+};
+
+// Newsletters Management
+export const fetchNewslettersAdmin = () =>
+  adminApi.get('/admin/newsletters').then((r) => r.data.data);
+
+export const createNewsletter = (data) =>
+  adminApi.post('/admin/newsletters', data).then((r) => r.data.data);
+
+export const updateNewsletter = (id, data) =>
+  adminApi.put(`/admin/newsletters/${id}`, data).then((r) => r.data.data);
+
+export const deleteNewsletter = (id) =>
+  adminApi.delete(`/admin/newsletters/${id}`).then((r) => r.data.data);
+
+export const uploadNewsletterPdf = async (file) => {
+  const formData = new FormData();
+  formData.append('pdf-file', file);
+
+  const { data } = await adminApi.post('/upload/pdf-file/newsletters', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data.data;
+};
+
+// Gallery Management
+export const fetchGalleryAdmin = () =>
+  adminApi.get('/admin/gallery').then((r) => r.data.data);
+
+export const createGalleryImage = (data) =>
+  adminApi.post('/admin/gallery', data).then((r) => r.data.data);
+
+export const updateGalleryImage = (id, data) =>
+  adminApi.put(`/admin/gallery/${id}`, data).then((r) => r.data.data);
+
+export const deleteGalleryImage = (id) =>
+  adminApi.delete(`/admin/gallery/${id}`).then((r) => r.data.data);
+
+export const uploadGalleryImage = async (file, year) => {
+  const formData = new FormData();
+  formData.append('gallery-file', file);
+
+  const { data } = await adminApi.post(`/upload/gallery-file/${year || ''}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data.data;
+};
+
