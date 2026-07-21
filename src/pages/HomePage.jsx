@@ -457,7 +457,7 @@ export default function HomePage() {
 
       {/* ── DISTINGUISHED ALUMNI — Prestigious-Alumni quote style ───────────── */}
       <section className="mx-auto max-w-[1425px] rounded-2xl border border-slate-200 bg-white p-8 shadow-sm md:p-10">
-        <SectionHeader eyebrow="Pride of SSGMCE" title="Distinguished Alumni" cta="View All" href="/about/distinguished-alumni" />
+        <SectionHeader eyebrow="Pride of SSGMCE" title="Distinguished Alumni" cta="View All" href="/distinguished-alumni" />
 
         <motion.div
           variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }}
