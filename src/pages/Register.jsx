@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, CheckCircle2, RefreshCw, AlertCircle, Mail, ChevronRight, ChevronLeft, Award, Briefcase, GraduationCap, User, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Loader2, CheckCircle2, RefreshCw, AlertCircle, Mail, ChevronRight, ChevronLeft, User, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   googleAuth,
@@ -669,7 +669,7 @@ export const Register = () => {
       try {
         const url = new URL(otp);
         otp = url.searchParams.get('oobCode') || otp;
-      } catch (e) {
+      } catch {
         // Ignore parsing error
       }
     }
@@ -804,7 +804,7 @@ export const Register = () => {
       className="min-h-screen w-full flex items-center justify-center lg:justify-start bg-cover bg-center p-4 sm:p-6 md:p-8 lg:pl-[6%] xl:pl-[8%] font-sans overflow-y-auto"
       style={{ backgroundImage: `url(${resisterBg})` }}
     >
-      <div className={`w-full ${otpSent || !isVerified ? 'max-w-[450px]' : 'max-w-3xl'} my-8 transition-all duration-300`}>
+      <div className={`w-full ${otpSent || !isVerified ? 'max-w-[450px]' : 'max-w-5xl'} my-8 transition-all duration-300`}>
         <AnimatePresence mode="wait">
           {otpSent ? (
             <ConfirmationScreen
@@ -1049,8 +1049,11 @@ export const Register = () => {
                           </span>
                           <PhoneInput
                             value={phone}
-                            onChange={(val) => {
+                            onChange={(val, countryData) => {
                               setPhone(val || '');
+                              if (countryData?.name) {
+                                setValue('country', countryData.name.trim(), { shouldValidate: true, shouldDirty: true });
+                              }
                               const parsed = parsePhoneNumberFromString(val || '');
                               if (parsed && parsed.isValid()) {
                                 setValue('nationalNumber', parsed.nationalNumber, { shouldValidate: true });

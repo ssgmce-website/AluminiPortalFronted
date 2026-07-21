@@ -4,6 +4,7 @@ import {
   LogOut, Clock, CheckCircle2, XCircle, LayoutGrid, CalendarClock, History,
   Heart, TrendingUp, Navigation, Hotel, Briefcase, Activity,
   GraduationCap, LayoutDashboard, Search, Bell, Sun, Moon, User,
+  MessageSquareQuote, MessageSquare,
 } from 'lucide-react';
 import { adminLogout } from '../services/adminAuth';
 import { fetchRequests } from '../services/adminService';
@@ -34,6 +35,13 @@ const NAV_SECTIONS = [
     ],
   },
   {
+    label: 'Feedbacks',
+    items: [
+      { label: 'Alumni Feedbacks', icon: MessageSquareQuote, to: '/admin/feedbacks/alumni' },
+      { label: 'Public Feedbacks', icon: MessageSquare, to: '/admin/feedbacks/public' },
+    ],
+  },
+  {
     label: 'Finances',
     items: [
       { label: 'Donations', icon: Heart, to: '/admin/finances/donations' },
@@ -56,6 +64,7 @@ const NAV_SECTIONS = [
     ],
   },
 ];
+
 
 export const AdminLayout = () => {
   const navigate = useNavigate();

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, memo } from 'react';
+import { useState, useEffect, useRef, memo, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
 import {
@@ -140,6 +140,54 @@ const galleryRow3 = [
   { src: meet2026Inauguration, alt: 'Inauguration Ceremony — Alumni Meet 2026' },
   { src: meet2026Session, alt: 'Student Interaction Session — Alumni Meet 2026' },
 ];
+
+
+function HomeGalleryMarqueeRow({ images, direction = "left", speed = 70 }) {
+  const duplicated = useMemo(() => {
+    if (!images.length) return [];
+
+    let copies = Math.max(4, Math.ceil(20 / images.length));
+    if (copies % 2 !== 0) copies += 1;
+
+    const result = [];
+    for (let c = 0; c < copies; c++) {
+      images.forEach((img, i) => {
+        result.push({ ...img, _key: `${c}-${i}` });
+      });
+    }
+
+    return result;
+  }, [images]);
+
+  if (!images.length) return null;
+
+  const itemsShifted = duplicated.length / 2;
+  const dynamicDuration = itemsShifted * (speed / 12);
+
+  const animClass =
+    direction === "left"
+      ? "gallery-marquee-track-left"
+      : "gallery-marquee-track-right";
+
+  return (
+    <div className="gallery-marquee-row">
+      <div
+        className={`gallery-marquee-track ${animClass}`}
+        style={{ "--marquee-speed": `${dynamicDuration}s` }}
+      >
+        {duplicated.map((img) => (
+          <div key={img._key} className="gallery-marquee-item">
+            <img src={img.src} alt={img.alt} loading="lazy" draggable="false" />
+            <div className="gallery-marquee-item-overlay" aria-hidden="true">
+              <span>{img.alt}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 
 // ─── HOME PAGE ────────────────────────────────────────────────────────────────
 export default function HomePage() {
@@ -377,43 +425,10 @@ export default function HomePage() {
         <div className="p-8 md:p-10">
           <SectionHeader eyebrow="Memories" title="Alumni Meet 2026" cta="Full Gallery" href="/gallery" />
         </div>
-        <div className="space-y-3 pb-8" aria-label="Alumni meet photo gallery">
-          <div className="gallery-marquee-row">
-            <div className="gallery-marquee-track gallery-marquee-track-left" style={{ '--marquee-speed': '65s' }}>
-              {[...galleryRow1, ...galleryRow1].map((img, i) => (
-                <div key={`r1-${i}`} className="gallery-marquee-item">
-                  <img src={img.src} alt={img.alt} loading="lazy" />
-                  <div className="gallery-marquee-item-overlay" aria-hidden="true">
-                    <span>{img.alt}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="gallery-marquee-row">
-            <div className="gallery-marquee-track gallery-marquee-track-right" style={{ '--marquee-speed': '55s' }}>
-              {[...galleryRow2, ...galleryRow2].map((img, i) => (
-                <div key={`r2-${i}`} className="gallery-marquee-item">
-                  <img src={img.src} alt={img.alt} loading="lazy" />
-                  <div className="gallery-marquee-item-overlay" aria-hidden="true">
-                    <span>{img.alt}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="gallery-marquee-row">
-            <div className="gallery-marquee-track gallery-marquee-track-left" style={{ '--marquee-speed': '75s' }}>
-              {[...galleryRow3, ...galleryRow3].map((img, i) => (
-                <div key={`r3-${i}`} className="gallery-marquee-item">
-                  <img src={img.src} alt={img.alt} loading="lazy" />
-                  <div className="gallery-marquee-item-overlay" aria-hidden="true">
-                    <span>{img.alt}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+        <div className="flex flex-col gap-4 overflow-hidden pb-8" aria-label="Alumni meet photo gallery">
+          <HomeGalleryMarqueeRow images={galleryRow1} direction="left" speed={65} />
+          <HomeGalleryMarqueeRow images={galleryRow2} direction="right" speed={55} />
+          <HomeGalleryMarqueeRow images={galleryRow3} direction="left" speed={75} />
         </div>
       </section>
 
