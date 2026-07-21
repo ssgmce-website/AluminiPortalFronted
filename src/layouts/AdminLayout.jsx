@@ -4,7 +4,7 @@ import {
   LogOut, Clock, CheckCircle2, XCircle, LayoutGrid, CalendarClock, History,
   Heart, TrendingUp, Navigation, Hotel, Briefcase, Activity,
   GraduationCap, LayoutDashboard, Search, Bell, Sun, Moon, User,
-  MessageSquareQuote, MessageSquare,
+  MessageSquareQuote, MessageSquare, FileText, Newspaper, Image as ImageIcon,
 } from 'lucide-react';
 import { adminLogout } from '../services/adminAuth';
 import { fetchRequests } from '../services/adminService';
@@ -35,6 +35,14 @@ const NAV_SECTIONS = [
     ],
   },
   {
+    label: 'Reports & Media',
+    items: [
+      { label: 'Annual Reports', icon: FileText, to: '/admin/reports/annual' },
+      { label: 'Newsletters', icon: Newspaper, to: '/admin/reports/newsletters' },
+      { label: 'Gallery', icon: ImageIcon, to: '/admin/gallery' },
+    ],
+  },
+  {
     label: 'Feedbacks',
     items: [
       { label: 'Alumni Feedbacks', icon: MessageSquareQuote, to: '/admin/feedbacks/alumni' },
@@ -51,19 +59,13 @@ const NAV_SECTIONS = [
   {
     label: 'Travel',
     items: [
-      { label: 'Plans', icon: Navigation, to: '/admin/travel/plans' },
+      { label: 'Alumni Travel Plans', icon: Navigation, to: '/admin/travel/plans' },
       { label: 'Accommodation', icon: Hotel, to: '/admin/travel/accommodation' },
     ],
   },
-  {
-    label: 'Posts',
-    items: [
-      { label: 'Jobs', icon: Briefcase, to: '/admin/posts/jobs' },
-      { label: 'Activities', icon: Activity, to: '/admin/posts/activities' },
-      { label: 'Guest Lectures', icon: GraduationCap, to: '/admin/posts/guest-lectures' },
-    ],
-  },
 ];
+
+
 
 
 export const AdminLayout = () => {
@@ -358,13 +360,13 @@ export const AdminLayout = () => {
                           const base = 'flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-all duration-200';
                           if (isActive) {
                             return `${base} font-semibold ${isDark
-                                ? 'bg-white text-[#13152c] shadow-sm'
-                                : 'bg-[#1b1e36] text-white shadow-sm'
+                              ? 'bg-white text-[#13152c] shadow-sm'
+                              : 'bg-[#1b1e36] text-white shadow-sm'
                               }`;
                           }
                           return `${base} ${isDark
-                              ? 'text-[#9da0be] hover:bg-white/10 hover:text-white hover:shadow-[0_2px_10px_rgba(0,0,0,0.35)]'
-                              : 'text-gray-500 hover:bg-white hover:text-gray-900 hover:shadow-md'
+                            ? 'text-[#9da0be] hover:bg-white/10 hover:text-white hover:shadow-[0_2px_10px_rgba(0,0,0,0.35)]'
+                            : 'text-gray-500 hover:bg-white hover:text-gray-900 hover:shadow-md'
                             }`;
                         }}
                       >
