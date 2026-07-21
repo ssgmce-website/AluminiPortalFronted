@@ -6,7 +6,9 @@ import {
   ArrowRight, Building2, MapPin, ChevronRight, ChevronLeft, X, CalendarDays, UserCheck,
 } from 'lucide-react';
 import HeroSlider from '../components/HeroSlider';
+import NewsTicker from '../components/NewsTicker';
 import distinguishedAlumni from '../data/distinguishedAlumni.js';
+import newsItems from '../data/newsItems.js';
 import Newsletter from '../pages/Newsletter';
 import { fetchNewlyRegisteredAlumni } from '../services/alumniService';
 import api from '../services/api';
@@ -338,7 +340,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── NEWSLETTER ─────────────────────────────────────────────────────────── */}
+      <NewsTicker items={newsItems} />
+
+      {/* NEWSLETTER */}
       <Newsletter />
 
       {/* ── ABOUT ALUMNI CELL ───────────────────────────────────────────────── */}
