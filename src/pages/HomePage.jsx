@@ -317,11 +317,11 @@ export default function HomePage() {
               variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }}
               className="flex gap-5"
             >
-              {newAlumni.map((a) => (
+              {newAlumni.map((a, idx) => (
                 <motion.div
-                  key={a.name}
+                  key={a.name + idx}
                   variants={fadeUp}
-                  className="group min-w-[200px] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-shadow hover:shadow-md"
+                  className="group min-w-[200px] max-w-[220px] overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-shadow hover:shadow-md"
                 >
                   {/* Portrait photo */}
                   <div className="aspect-[4/5] overflow-hidden bg-slate-100">
@@ -334,16 +334,16 @@ export default function HomePage() {
 
                   {/* Info */}
                   <div className="p-4">
-                    <p className="font-bold text-slate-800">{a.name}</p>
-                    {a.batch && (
+                    <p className="font-bold text-slate-800 line-clamp-1">{a.name}</p>
+                    {a.batch && a.batch !== 'N/A' && (
                       <p className="mt-0.5 text-[11px] font-bold uppercase tracking-widest text-slate-400">
                         Batch {a.batch}
                       </p>
                     )}
-                    {a.branch && (
-                      <p className="mt-1 text-xs text-slate-500">{a.branch}</p>
+                    {a.branch && a.branch !== 'N/A' && (
+                      <p className="mt-1 text-xs text-slate-500 capitalize line-clamp-1">{a.branch}</p>
                     )}
-                    {a.company && (
+                    {a.company && a.company !== 'N/A' && (
                       <p className="mt-2 flex items-center gap-1 text-xs text-slate-400">
                         <Building2 size={11} className="shrink-0" />
                         <span className="truncate">{a.company}</span>
