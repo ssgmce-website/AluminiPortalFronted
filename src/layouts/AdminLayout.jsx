@@ -4,7 +4,7 @@ import {
   LogOut, Clock, CheckCircle2, XCircle, LayoutGrid, CalendarClock, History,
   Heart, TrendingUp, Navigation, Hotel, Briefcase, Activity,
   GraduationCap, LayoutDashboard, Search, Bell, Sun, Moon, User,
-  MessageSquareQuote, MessageSquare,
+  MessageSquareQuote, MessageSquare, FileText, Newspaper, Image as ImageIcon,
 } from 'lucide-react';
 import { adminLogout } from '../services/adminAuth';
 import { fetchRequests } from '../services/adminService';
@@ -32,6 +32,14 @@ const NAV_SECTIONS = [
     items: [
       { label: 'Current Meet Reg', icon: CalendarClock, to: '/admin/events/current' },
       { label: 'Old Meet Reg', icon: History, to: '/admin/events/old' },
+    ],
+  },
+  {
+    label: 'Reports & Media',
+    items: [
+      { label: 'Annual Reports', icon: FileText, to: '/admin/reports/annual' },
+      { label: 'Newsletters', icon: Newspaper, to: '/admin/reports/newsletters' },
+      { label: 'Gallery', icon: ImageIcon, to: '/admin/gallery' },
     ],
   },
   {
@@ -64,6 +72,7 @@ const NAV_SECTIONS = [
     ],
   },
 ];
+
 
 
 export const AdminLayout = () => {

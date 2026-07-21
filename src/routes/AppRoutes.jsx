@@ -36,6 +36,10 @@ const FeedbacksPanel = lazy(() => import('../pages/admin/FeedbacksPanel').then(m
 const FinancesPanel = lazy(() => import('../pages/admin/FinancesPanel').then(m => ({ default: m.FinancesPanel })));
 const TravelPanel = lazy(() => import('../pages/admin/TravelPanel').then(m => ({ default: m.TravelPanel })));
 const PostsPanel = lazy(() => import('../pages/admin/PostsPanel').then(m => ({ default: m.PostsPanel })));
+const AnnualReportsPanel = lazy(() => import('../pages/admin/AnnualReportsPanel').then(m => ({ default: m.AnnualReportsPanel })));
+const NewslettersPanel = lazy(() => import('../pages/admin/NewslettersPanel').then(m => ({ default: m.NewslettersPanel })));
+const GalleryPanel = lazy(() => import('../pages/admin/GalleryPanel'));
+
 
 
 
@@ -51,7 +55,6 @@ const AnnualReport = lazy(() => import('../pages/AnnualReport'));
 const Donation = lazy(() => import('../pages/Donation'));
 const EventRegistration = lazy(() => import('../pages/EventRegistration'));
 const AlumniFeedback = lazy(() => import('../pages/AlumniFeedback'));
-const EventGallery = lazy(() => import('../pages/EventGallery'));
 const Gallery = lazy(() => import('../pages/Gallery'));
 const ContactPage = lazy(() => import('../pages/ContactPage'));
 const TermsOfUse = lazy(() => import('../pages/TermsOfUse').then(m => ({ default: m.TermsOfUse })));
@@ -116,7 +119,7 @@ export const AppRoutes = () => {
           <Route path="/newsletter" element={<Newsletter />} />
           <Route path="/donation" element={<Donation />} />
           <Route path="/event/registration" element={<EventRegistration />} />
-          <Route path="/event/gallery" element={<EventGallery />} />
+          <Route path="/event/gallery" element={<Navigate to="/gallery" replace />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/terms" element={<TermsOfUse />} />
@@ -207,7 +210,16 @@ export const AppRoutes = () => {
           <Route path="posts/jobs" element={<Suspense fallback={<PageLoader />}><PostsPanel tab="jobs" /></Suspense>} />
           <Route path="posts/activities" element={<Suspense fallback={<PageLoader />}><PostsPanel tab="activities" /></Suspense>} />
           <Route path="posts/guest-lectures" element={<Suspense fallback={<PageLoader />}><PostsPanel tab="guest-lectures" /></Suspense>} />
+
+          {/* Reports & Newsletters & Gallery */}
+          <Route path="reports/annual" element={<Suspense fallback={<PageLoader />}><AnnualReportsPanel /></Suspense>} />
+          <Route path="annual-reports" element={<Suspense fallback={<PageLoader />}><AnnualReportsPanel /></Suspense>} />
+          <Route path="newsletters" element={<Suspense fallback={<PageLoader />}><NewslettersPanel /></Suspense>} />
+          <Route path="reports/newsletters" element={<Suspense fallback={<PageLoader />}><NewslettersPanel /></Suspense>} />
+          <Route path="gallery" element={<Suspense fallback={<PageLoader />}><GalleryPanel /></Suspense>} />
+          <Route path="media/gallery" element={<Suspense fallback={<PageLoader />}><GalleryPanel /></Suspense>} />
         </Route>
+
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
