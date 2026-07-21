@@ -4,7 +4,7 @@ import {
   LogOut, Clock, CheckCircle2, XCircle, LayoutGrid, CalendarClock, History,
   Heart, TrendingUp, Navigation, Hotel, Briefcase, Activity,
   GraduationCap, LayoutDashboard, Search, Bell, Sun, Moon, User,
-  MessageSquareQuote, MessageSquare, FileText,
+  MessageSquareQuote, MessageSquare, FileText, Newspaper,
 } from 'lucide-react';
 import { adminLogout } from '../services/adminAuth';
 import { fetchRequests } from '../services/adminService';
@@ -35,9 +35,10 @@ const NAV_SECTIONS = [
     ],
   },
   {
-    label: 'Reports',
+    label: 'Reports & Publications',
     items: [
       { label: 'Annual Reports', icon: FileText, to: '/admin/reports/annual' },
+      { label: 'Newsletters', icon: Newspaper, to: '/admin/reports/newsletters' },
     ],
   },
   {

@@ -50,4 +50,25 @@ export const uploadAnnualReportPdf = async (file) => {
   return data.data;
 };
 
+// Newsletters Management
+export const fetchNewslettersAdmin = () =>
+  adminApi.get('/admin/newsletters').then((r) => r.data.data);
 
+export const createNewsletter = (data) =>
+  adminApi.post('/admin/newsletters', data).then((r) => r.data.data);
+
+export const updateNewsletter = (id, data) =>
+  adminApi.put(`/admin/newsletters/${id}`, data).then((r) => r.data.data);
+
+export const deleteNewsletter = (id) =>
+  adminApi.delete(`/admin/newsletters/${id}`).then((r) => r.data.data);
+
+export const uploadNewsletterPdf = async (file) => {
+  const formData = new FormData();
+  formData.append('pdf-file', file);
+
+  const { data } = await adminApi.post('/upload/pdf-file/newsletters', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data.data;
+};
