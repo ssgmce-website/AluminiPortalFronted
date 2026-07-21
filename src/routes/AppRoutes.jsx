@@ -47,6 +47,7 @@ const ActivityOrganized = lazy(() => import('../pages/ActivityOrganized'));
 const Contribution = lazy(() => import('../pages/Contribution'));
 const DistinguishedAlumni = lazy(() => import('../components/DistinguishedAlumni'));
 const Newsletter = lazy(() => import('../pages/Newsletter'));
+const NewsDetail = lazy(() => import('../pages/NewsDetail'));
 const AnnualReport = lazy(() => import('../pages/AnnualReport'));
 const Donation = lazy(() => import('../pages/Donation'));
 const EventRegistration = lazy(() => import('../pages/EventRegistration'));
@@ -114,6 +115,7 @@ export const AppRoutes = () => {
           <Route path="/annual-report" element={<AnnualReport />} />
           <Route path="/about/annual-report" element={<AnnualReport />} />
           <Route path="/newsletter" element={<Newsletter />} />
+          <Route path="/news/:newsId" element={<NewsDetail />} />
           <Route path="/donation" element={<Donation />} />
           <Route path="/event/registration" element={<EventRegistration />} />
           <Route path="/event/gallery" element={<EventGallery />} />
