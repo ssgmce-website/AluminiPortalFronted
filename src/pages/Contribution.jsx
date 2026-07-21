@@ -245,8 +245,8 @@ function ContributionTable({ data, selectedBranch, selectedYear }) {
 }
 
 function Contribution() {
-  const [selectedYear, setSelectedYear] = useState(null);
-  const [selectedBranch, setSelectedBranch] = useState("");
+  const [selectedYear, setSelectedYear] = useState(ALL_YEARS);
+  const [selectedBranch, setSelectedBranch] = useState(ALL_BRANCHES);
 
   const filteredRows = useMemo(() => {
     if (!selectedYear || !selectedBranch) return [];
