@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  Users, Clock, Calendar, Megaphone, CheckCircle2, XCircle,
+  Users, Clock, Calendar, Eye, CheckCircle2, XCircle,
   Mail, GraduationCap, ArrowRight, TrendingUp,
 } from 'lucide-react';
 import { fetchRequests } from '../../services/adminService';
+import api from '../../services/api';
 
 function StatCard({ label, value, icon: Icon, iconBg, iconColor, sub, to }) {
   const card = (
@@ -47,6 +48,7 @@ function MiniBar({ label, value, max, color }) {
 
 export const AdminOverview = () => {
   const [counts, setCounts]           = useState({ pending: 0, approved: 0, rejected: 0 });
+  const [visitorCount, setVisitorCount] = useState(0);
   const [recentPending, setRecent]    = useState([]);
   const [loading, setLoading]         = useState(true);
 
@@ -59,6 +61,14 @@ export const AdminOverview = () => {
       } catch (_) {}
       finally { setLoading(false); }
     })();
+
+    api.get('/public/visitor-count')
+      .then((res) => {
+        if (res.data?.data?.count !== undefined) {
+          setVisitorCount(res.data.data.count);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const firstName = 'Admin';
@@ -105,13 +115,12 @@ export const AdminOverview = () => {
           to="/admin/events/current"
         />
         <StatCard
-          label="Active Posts"
-          value={5}
-          icon={Megaphone}
+          label="Website Visitors"
+          value={visitorCount}
+          icon={Eye}
           iconBg="bg-purple-50"
           iconColor="text-purple-600"
-          sub="Jobs & activities"
-          to="/admin/posts/jobs"
+          sub="Total site visits"
         />
       </div>
 
