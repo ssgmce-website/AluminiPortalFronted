@@ -9,13 +9,7 @@ import HeroSlider from '../components/HeroSlider';
 import distinguishedAlumni from '../data/distinguishedAlumni.js';
 import Newsletter from '../pages/Newsletter';
 import { fetchNewlyRegisteredAlumni } from '../services/alumniService';
-import meet2026Guest from '../assets/gallery/AlumniMeet2026.jpeg';
-import meet2026Faculty from '../assets/gallery/AM2026.jpeg';
-import meet2026Library from '../assets/gallery/A_M2026.jpeg';
-import meet2026Auditorium from '../assets/gallery/_A_M2026.jpeg';
-import meet2026Group from '../assets/gallery/_Alumni_M2026.jpeg';
-import meet2026Inauguration from '../assets/gallery/_A-m2026.jpeg';
-import meet2026Session from '../assets/gallery/Alumni_Meet2026.jpeg';
+import api from '../services/api';
 import ankushGawandeImg from '../assets/newly-registered-alumni/ankush-gawande.jpg';
 import chetanAmbalkarImg from '../assets/newly-registered-alumni/chetan-ambalkar.jpg';
 import dnyaneshwariChatarkarImg from '../assets/newly-registered-alumni/dnyaneshwari-chatarkar.jpg';
@@ -125,23 +119,6 @@ const FALLBACK_ALUMNI = [
   { name: "Surabhi Lahoti", branch: "Computer Science & Engineering", batch: "2023", company: "L&T Construction", photo: surabhiLahotiImg },
 ];
 
-const galleryRow1 = [
-  { src: meet2026Group, alt: 'Grand Alumni Meet 2026 Group Photo' },
-  { src: meet2026Guest, alt: 'Guest Interaction Session — Alumni Meet 2026' },
-  { src: meet2026Library, alt: 'Library Inauguration — Alumni Meet 2026' },
-];
-
-const galleryRow2 = [
-  { src: meet2026Faculty, alt: 'Alumni Faculty Interaction — Alumni Meet 2026' },
-  { src: meet2026Auditorium, alt: 'Alumni Meet Auditorium Session 2026' },
-];
-
-const galleryRow3 = [
-  { src: meet2026Inauguration, alt: 'Inauguration Ceremony — Alumni Meet 2026' },
-  { src: meet2026Session, alt: 'Student Interaction Session — Alumni Meet 2026' },
-];
-
-
 function HomeGalleryMarqueeRow({ images, direction = "left", speed = 70 }) {
   const duplicated = useMemo(() => {
     if (!images.length) return [];
@@ -177,9 +154,18 @@ function HomeGalleryMarqueeRow({ images, direction = "left", speed = 70 }) {
       >
         {duplicated.map((img) => (
           <div key={img._key} className="gallery-marquee-item">
-            <img src={img.src} alt={img.alt} loading="lazy" draggable="false" />
+            <img
+              src={img.url || img.src}
+              alt={img.title || img.alt}
+              loading="lazy"
+              draggable="false"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "https://placehold.co/400x300?text=Gallery+Image";
+              }}
+            />
             <div className="gallery-marquee-item-overlay" aria-hidden="true">
-              <span>{img.alt}</span>
+              <span>{img.title || img.alt}</span>
             </div>
           </div>
         ))}
@@ -192,6 +178,7 @@ function HomeGalleryMarqueeRow({ images, direction = "left", speed = 70 }) {
 // ─── HOME PAGE ────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const [newAlumni, setNewAlumni] = useState(FALLBACK_ALUMNI);
+  const [dbGallery, setDbGallery] = useState([]);
 
   // Pull the most recently approved registrations; keep the fallback list
   // showing (rather than an empty section) if the API fails or is still empty.
@@ -206,6 +193,37 @@ export default function HomePage() {
       });
     return () => { cancelled = true; };
   }, []);
+
+  // Fetch dynamic gallery photos from backend API
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .get("/public/gallery")
+      .then((res) => {
+        const list = res.data?.data?.gallery || [];
+        const formatted = list.map((item) => ({
+          id: item._id,
+          url: item.imageUrl,
+          title: item.title,
+          year: String(item.year),
+        }));
+        if (!cancelled) setDbGallery(formatted);
+      })
+      .catch((err) => console.error("[HomePage] Gallery fetch error:", err));
+    return () => { cancelled = true; };
+  }, []);
+
+  // Split gallery images across 3 marquee rows
+  const [galleryRow1, galleryRow2, galleryRow3] = useMemo(() => {
+    if (!dbGallery.length) return [[], [], []];
+    const r1 = [], r2 = [], r3 = [];
+    dbGallery.forEach((img, i) => {
+      if (i % 3 === 0) r1.push(img);
+      else if (i % 3 === 1) r2.push(img);
+      else r3.push(img);
+    });
+    return [r1, r2, r3];
+  }, [dbGallery]);
 
   return (
     <div className="space-y-14 pb-14">
