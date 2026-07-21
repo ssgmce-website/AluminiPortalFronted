@@ -36,6 +36,8 @@ const FeedbacksPanel = lazy(() => import('../pages/admin/FeedbacksPanel').then(m
 const FinancesPanel = lazy(() => import('../pages/admin/FinancesPanel').then(m => ({ default: m.FinancesPanel })));
 const TravelPanel = lazy(() => import('../pages/admin/TravelPanel').then(m => ({ default: m.TravelPanel })));
 const PostsPanel = lazy(() => import('../pages/admin/PostsPanel').then(m => ({ default: m.PostsPanel })));
+const AnnualReportsPanel = lazy(() => import('../pages/admin/AnnualReportsPanel').then(m => ({ default: m.AnnualReportsPanel })));
+
 
 
 
@@ -207,7 +209,12 @@ export const AppRoutes = () => {
           <Route path="posts/jobs" element={<Suspense fallback={<PageLoader />}><PostsPanel tab="jobs" /></Suspense>} />
           <Route path="posts/activities" element={<Suspense fallback={<PageLoader />}><PostsPanel tab="activities" /></Suspense>} />
           <Route path="posts/guest-lectures" element={<Suspense fallback={<PageLoader />}><PostsPanel tab="guest-lectures" /></Suspense>} />
+
+          {/* Reports */}
+          <Route path="reports/annual" element={<Suspense fallback={<PageLoader />}><AnnualReportsPanel /></Suspense>} />
+          <Route path="annual-reports" element={<Suspense fallback={<PageLoader />}><AnnualReportsPanel /></Suspense>} />
         </Route>
+
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

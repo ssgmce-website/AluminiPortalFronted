@@ -27,3 +27,27 @@ export const fetchAlumniFeedbacks = () =>
 export const fetchPublicFeedbacks = () =>
   adminApi.get('/admin/public-feedbacks').then((r) => r.data.data);
 
+// Annual Reports Management
+export const fetchAnnualReportsAdmin = () =>
+  adminApi.get('/admin/annual-reports').then((r) => r.data.data);
+
+export const createAnnualReport = (data) =>
+  adminApi.post('/admin/annual-reports', data).then((r) => r.data.data);
+
+export const updateAnnualReport = (id, data) =>
+  adminApi.put(`/admin/annual-reports/${id}`, data).then((r) => r.data.data);
+
+export const deleteAnnualReport = (id) =>
+  adminApi.delete(`/admin/annual-reports/${id}`).then((r) => r.data.data);
+
+export const uploadAnnualReportPdf = async (file) => {
+  const formData = new FormData();
+  formData.append('pdf-file', file);
+
+  const { data } = await adminApi.post('/upload/pdf-file/anual report', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data.data;
+};
+
+
