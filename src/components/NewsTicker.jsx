@@ -132,7 +132,7 @@ const NewsTicker = ({ items = [] }) => {
       <div className="news-ticker-shell">
         <div className="news-label">
           <span className="news-label-dot" aria-hidden="true" />
-          Notice
+          Notification
         </div>
         <div className="news-track">
           <Marquee speed={36} pauseOnHover gradient={false}>
