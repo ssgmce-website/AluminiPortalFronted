@@ -9,6 +9,7 @@ import HeroSlider from '../components/HeroSlider';
 import NewsTicker from '../components/NewsTicker';
 import distinguishedAlumni from '../data/distinguishedAlumni.js';
 import newsItems from '../data/newsItems.js';
+import { fetchPublicNews } from '../services/newsService';
 import Newsletter from '../pages/Newsletter';
 import { fetchNewlyRegisteredAlumni } from '../services/alumniService';
 import api from '../services/api';
@@ -246,6 +247,22 @@ function HomeLightbox({ image, onClose, onPrev, onNext, hasPrev, hasNext }) {
 export default function HomePage() {
   const [newAlumni, setNewAlumni] = useState(FALLBACK_ALUMNI);
   const [dbGallery, setDbGallery] = useState([]);
+  const [news, setNews] = useState(newsItems);
+
+  // Fetch active news from backend API
+  useEffect(() => {
+    let cancelled = false;
+    fetchPublicNews()
+      .then((data) => {
+        if (!cancelled && data && data.length > 0) {
+          setNews(data);
+        }
+      })
+      .catch((err) => {
+        console.error("[HomePage] News fetch error:", err);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   // Pull the most recently approved registrations; keep the fallback list
   // showing (rather than an empty section) if the API fails or is still empty.
@@ -340,7 +357,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <NewsTicker items={newsItems} />
+      <NewsTicker items={news} />
 
       {/* NEWSLETTER */}
       <Newsletter />
