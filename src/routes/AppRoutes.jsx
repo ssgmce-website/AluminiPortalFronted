@@ -38,6 +38,7 @@ const TravelPanel = lazy(() => import('../pages/admin/TravelPanel').then(m => ({
 const AnnualReportsPanel = lazy(() => import('../pages/admin/AnnualReportsPanel').then(m => ({ default: m.AnnualReportsPanel })));
 const NewslettersPanel = lazy(() => import('../pages/admin/NewslettersPanel').then(m => ({ default: m.NewslettersPanel })));
 const GalleryPanel = lazy(() => import('../pages/admin/GalleryPanel'));
+const NewsPanel = lazy(() => import('../pages/admin/NewsPanel').then(m => ({ default: m.NewsPanel })));
 
 
 
@@ -214,6 +215,7 @@ export const AppRoutes = () => {
           <Route path="reports/newsletters" element={<Suspense fallback={<PageLoader />}><NewslettersPanel /></Suspense>} />
           <Route path="gallery" element={<Suspense fallback={<PageLoader />}><GalleryPanel /></Suspense>} />
           <Route path="media/gallery" element={<Suspense fallback={<PageLoader />}><GalleryPanel /></Suspense>} />
+          <Route path="news" element={<Suspense fallback={<PageLoader />}><NewsPanel /></Suspense>} />
         </Route>
 
 

@@ -9,7 +9,7 @@ const NewsTicker = ({ items = [] }) => {
 
   if (tickerItems.length === 0) return null;
 
-  const getItemPath = (item) => item?.to || (item?.id ? `/news/${item.id}` : '/newsletter');
+  const getItemPath = (item) => `/news/${item?._id || item?.id || ''}`;
 
   return (
     <section

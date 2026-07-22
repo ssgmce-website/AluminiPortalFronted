@@ -1,15 +1,76 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, CalendarDays } from "lucide-react";
+import { ArrowLeft, CalendarDays, Loader2 } from "lucide-react";
 import PageShell from "../components/PageShell";
 import newsItems from "../data/newsItems";
+import { fetchPublicNews, fetchNewsDetail } from "../services/newsService";
+
+const formatDate = (dateVal) => {
+  if (!dateVal) return '';
+  
+  // Try parsing the value to a Date object if it's a string/number
+  const parsedDate = new Date(dateVal);
+  if (!isNaN(parsedDate.getTime())) {
+    const day = String(parsedDate.getDate()).padStart(2, '0');
+    const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+    const year = parsedDate.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+  
+  return String(dateVal).trim();
+};
+
 
 function NewsDetail() {
   const { newsId } = useParams();
-  const news = newsItems.find((item) => item.id === newsId);
+  const [newsList, setNewsList] = useState(newsItems);
+  const [currentNews, setCurrentNews] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const news = currentNews;
   const detailPanelRef = useRef(null);
   const shouldScrollDetail = useRef(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+
+    // Fetch list of active news
+    fetchPublicNews()
+      .then((data) => {
+        if (!cancelled && data && data.length > 0) {
+          setNewsList(data);
+        }
+      })
+      .catch((err) => console.error("Error fetching news list:", err));
+
+    // Fetch current news details
+    const isObjectId = /^[0-9a-fA-F]{24}$/.test(newsId);
+    if (isObjectId) {
+      fetchNewsDetail(newsId)
+        .then((data) => {
+          if (!cancelled) {
+            setCurrentNews(data);
+            setLoading(false);
+          }
+        })
+        .catch((err) => {
+          console.error("Error fetching news details:", err);
+          if (!cancelled) {
+            const fallback = newsItems.find(item => item.id === newsId || item._id === newsId);
+            setCurrentNews(fallback || null);
+            setLoading(false);
+          }
+        });
+    } else {
+      const staticItem = newsItems.find(item => item.id === newsId);
+      setCurrentNews(staticItem || null);
+      setLoading(false);
+    }
+
+    return () => { cancelled = true; };
+  }, [newsId]);
 
   useEffect(() => {
     if (!shouldScrollDetail.current) return undefined;
@@ -28,7 +89,7 @@ function NewsDetail() {
   const handleNewsTap = (event, itemId) => {
     shouldScrollDetail.current = true;
 
-    if (itemId === news?.id) {
+    if (itemId === (news?.id || news?._id)) {
       event.preventDefault();
       detailPanelRef.current?.scrollIntoView({
         behavior: "smooth",
@@ -37,6 +98,20 @@ function NewsDetail() {
       shouldScrollDetail.current = false;
     }
   };
+
+  if (loading) {
+    return (
+      <PageShell
+        eyebrow="News"
+        title="Latest Updates"
+        className="flex flex-col gap-16"
+      >
+        <div className="flex min-h-[40vh] items-center justify-center">
+          <Loader2 size={32} className="animate-spin text-blue-600" />
+        </div>
+      </PageShell>
+    );
+  }
 
  return (
   <PageShell
@@ -76,7 +151,7 @@ function NewsDetail() {
           </motion.div>
         ) : (
           <motion.article
-            key={news.id}
+            key={news._id || news.id}
             initial={{ opacity: 0, y: -18 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 18 }}
@@ -88,7 +163,7 @@ function NewsDetail() {
               <div className="flex flex-wrap gap-3 text-sm font-semibold text-slate-600">
                 <span className="inline-flex items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-3 py-1.5 text-blue-800">
                   <CalendarDays size={16} />
-                  {news.date?.trim()}
+                  {formatDate(news.date)}
                 </span>
               </div>
 
@@ -101,10 +176,32 @@ function NewsDetail() {
               </p>
 
               <div className="mt-6 max-w-4xl space-y-4 text-base leading-8 text-slate-700">
-                {news.details.map((paragraph) => (
-                  <p key={paragraph}>{paragraph}</p>
+                {Array.isArray(news.details) && news.details.map((paragraph, index) => (
+                  <p key={index}>{paragraph}</p>
                 ))}
               </div>
+
+              {news.action && news.action.to && news.action.label && (
+                <div className="mt-8">
+                  {news.action.to.startsWith('http') ? (
+                    <a
+                      href={news.action.to}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-700 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-800 hover:shadow-xl hover:translate-y-[-1px] active:translate-y-[0px]"
+                    >
+                      {news.action.label}
+                    </a>
+                  ) : (
+                    <Link
+                      to={news.action.to}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-700 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-200 transition-all hover:bg-blue-800 hover:shadow-xl hover:translate-y-[-1px] active:translate-y-[0px]"
+                    >
+                      {news.action.label}
+                    </Link>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Right Image */}
@@ -126,14 +223,15 @@ function NewsDetail() {
 
     {/* News Cards */}
     <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {newsItems.map((item) => {
-        const isCurrent = item.id === news?.id;
+      {newsList.map((item) => {
+        const itemId = item._id || item.id;
+        const isCurrent = itemId === (news?._id || news?.id);
 
         return (
           <Link
-            key={item.id}
-            to={`/news/${item.id}`}
-            onClick={(event) => handleNewsTap(event, item.id)}
+            key={itemId}
+            to={`/news/${itemId}`}
+            onClick={(event) => handleNewsTap(event, itemId)}
             aria-current={isCurrent ? "page" : undefined}
             className={`group flex aspect-square flex-col overflow-hidden rounded-lg border transition-all duration-300 ${
               isCurrent
@@ -162,7 +260,7 @@ function NewsDetail() {
 
               <div className="mt-4">
                 <p className="text-xs font-semibold text-slate-500">
-                  {item.date?.trim()}
+                  {formatDate(item.date)}
                 </p>
 
                 {isCurrent && (

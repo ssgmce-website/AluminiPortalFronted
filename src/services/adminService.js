@@ -96,3 +96,30 @@ export const uploadGalleryImage = async (file, year) => {
   return data.data;
 };
 
+// News Management
+export const fetchNewsAdmin = () =>
+  adminApi.get('/admin/news').then((r) => r.data.data);
+
+export const createNewsAdmin = (data) =>
+  adminApi.post('/admin/news', data).then((r) => r.data.data);
+
+export const updateNewsAdmin = (id, data) =>
+  adminApi.put(`/admin/news/${id}`, data).then((r) => r.data.data);
+
+export const deleteNewsAdmin = (id) =>
+  adminApi.delete(`/admin/news/${id}`).then((r) => r.data.data);
+
+export const toggleNewsActiveAdmin = (id) =>
+  adminApi.patch(`/admin/news/${id}/toggle-active`).then((r) => r.data.data);
+
+export const uploadNewsImage = async (file) => {
+  const formData = new FormData();
+  formData.append('image-file', file);
+
+  const { data } = await adminApi.post('/upload/image-file/news', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data.data;
+};
+
+
