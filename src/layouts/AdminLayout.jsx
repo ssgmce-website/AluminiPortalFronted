@@ -53,7 +53,6 @@ const NAV_SECTIONS = [
   {
     label: 'Finances',
     items: [
-      { label: 'Donations', icon: Heart, to: '/admin/finances/donations' },
       { label: 'Contributions', icon: TrendingUp, to: '/admin/finances/contributions' },
     ],
   },

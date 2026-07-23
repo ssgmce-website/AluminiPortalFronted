@@ -122,4 +122,18 @@ export const uploadNewsImage = async (file) => {
   return data.data;
 };
 
+// Contributions Management
+export const fetchContributionsAdmin = () =>
+  adminApi.get('/admin/contributions').then((r) => r.data.data);
+
+export const updateContributionStatusAdmin = (id, status) =>
+  adminApi.patch(`/admin/contributions/${id}/status`, { status }).then((r) => r.data.data);
+
+export const updateContributionBeneficiariesAdmin = (id, beneficiaries) =>
+  adminApi.patch(`/admin/contributions/${id}/beneficiaries`, { beneficiaries }).then((r) => r.data.data);
+
+export const toggleContributionPublicAdmin = (id, isPublic) =>
+  adminApi.patch(`/admin/contributions/${id}/public`, { isPublic }).then((r) => r.data.data);
+
+
 

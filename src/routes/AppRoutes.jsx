@@ -201,7 +201,6 @@ export const AppRoutes = () => {
 
 
           {/* Finances */}
-          <Route path="finances/donations" element={<Suspense fallback={<PageLoader />}><FinancesPanel tab="donations" /></Suspense>} />
           <Route path="finances/contributions" element={<Suspense fallback={<PageLoader />}><FinancesPanel tab="contributions" /></Suspense>} />
 
           {/* Travel */}
