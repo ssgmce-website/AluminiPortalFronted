@@ -48,6 +48,7 @@ const companyWords = new Set([
 const honorifics = new Set(["mr", "mrs", "ms", "miss", "dr", "prof", "shri", "smt", "late"]);
 
 function cleanAlumniName(name = "") {
+  if (name.includes("&")) return name.trim();
   let value = String(name).replace(/\s+/g, " ").trim();
 
   value = value
@@ -296,7 +297,7 @@ function Contribution() {
         <section>
           <div className="mb-3 flex items-center gap-2 text-sm font-extrabold text-slate-800">
             <GraduationCap size={18} className="text-blue-700" />
-            Contribution Year
+            Passout Year
           </div>
           <div className="flex flex-wrap gap-2">
             {YEAR_OPTIONS.map((year) => (
