@@ -8,29 +8,33 @@ import {
   ArrowRight, ShieldCheck, Home, Info, Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../contexts/AuthContext';
+import { Link } from 'react-router-dom';
 import {
   registerForEvent,
   getMyEventRegistration,
-  updateEventRegistration
+  updateEventRegistration,
+  fetchActiveEvent
 } from '../services/alumniService';
-
-const EVENT_YEAR = '2026';
-const EDIT_DEADLINE = new Date('2026-09-01T23:59:59');
 
 const hours = Array.from({ length: 12 }, (_, i) => i + 1);
 const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'));
 const periods = ['AM', 'PM'];
 
 export const EventRegistrationForm = () => {
+  const { userProfile } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [activeEvent, setActiveEvent] = useState(null);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [registration, setRegistration] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Check if we can edit (current date <= Sept 1, 2026)
-  const isEditable = new Date() <= EDIT_DEADLINE;
+  // Check if we can edit (current date <= deadline)
+  const isEditable = activeEvent?.registrationDeadline
+    ? new Date() <= new Date(activeEvent.registrationDeadline)
+    : true;
 
   const {
     register,
@@ -64,41 +68,51 @@ export const EventRegistrationForm = () => {
 
   const selectedTravelMode = watch('travelMode');
 
-  // Load registration status on mount
+  // Load active event and registration status on mount
   useEffect(() => {
-    fetchStatus();
+    fetchActiveEventAndStatus();
   }, []);
 
-  const fetchStatus = async () => {
+  const fetchActiveEventAndStatus = async () => {
     setLoading(true);
     setError('');
     try {
-      const data = await getMyEventRegistration(EVENT_YEAR);
-      if (data.registered && data.registration) {
-        setRegistration(data.registration);
-        // Prefill form defaults for editing
-        const r = data.registration;
-        const arrivalMatch = r.travelDetails?.arrivalTime?.match(/^(\d+):(\d+)\s+(AM|PM)$/);
-        const departureMatch = r.travelDetails?.departureTime?.match(/^(\d+):(\d+)\s+(AM|PM)$/);
+      const eventData = await fetchActiveEvent();
+      if (!eventData) {
+        setActiveEvent(null);
+        setLoading(false);
+        return;
+      }
+      setActiveEvent(eventData);
 
-        reset({
-          arrivalDate: r.travelDetails?.arrivalDate ? new Date(r.travelDetails.arrivalDate) : null,
-          arrivalHour: arrivalMatch ? parseInt(arrivalMatch[1], 10) : '',
-          arrivalMinute: arrivalMatch ? arrivalMatch[2] : '',
-          arrivalPeriod: arrivalMatch ? arrivalMatch[3] : '',
-          departureDate: r.travelDetails?.departureDate ? new Date(r.travelDetails.departureDate) : null,
-          departureHour: departureMatch ? parseInt(departureMatch[1], 10) : '',
-          departureMinute: departureMatch ? departureMatch[2] : '',
-          departurePeriod: departureMatch ? departureMatch[3] : '',
-          travelMode: r.travelDetails?.travelMode || '',
-          busName: r.travelDetails?.busName || '',
-          busAgency: r.travelDetails?.busAgency || '',
-          trainNameOrNumber: r.travelDetails?.trainNameOrNumber || '',
-          coachNumber: r.travelDetails?.coachNumber || '',
-          vehicleNumber: r.travelDetails?.vehicleNumber || '',
-          accommodationRequired: r.accommodationRequired || 'No',
-          familyMembersCount: r.familyMembersCount || 0,
-        });
+      if (userProfile) {
+        const data = await getMyEventRegistration(eventData.year);
+        if (data.registered && data.registration) {
+          setRegistration(data.registration);
+          // Prefill form defaults for editing
+          const r = data.registration;
+          const arrivalMatch = r.travelDetails?.arrivalTime?.match(/^(\d+):(\d+)\s+(AM|PM)$/);
+          const departureMatch = r.travelDetails?.departureTime?.match(/^(\d+):(\d+)\s+(AM|PM)$/);
+
+          reset({
+            arrivalDate: r.travelDetails?.arrivalDate ? new Date(r.travelDetails.arrivalDate) : null,
+            arrivalHour: arrivalMatch ? parseInt(arrivalMatch[1], 10) : '',
+            arrivalMinute: arrivalMatch ? arrivalMatch[2] : '',
+            arrivalPeriod: arrivalMatch ? arrivalMatch[3] : '',
+            departureDate: r.travelDetails?.departureDate ? new Date(r.travelDetails.departureDate) : null,
+            departureHour: departureMatch ? parseInt(departureMatch[1], 10) : '',
+            departureMinute: departureMatch ? departureMatch[2] : '',
+            departurePeriod: departureMatch ? departureMatch[3] : '',
+            travelMode: r.travelDetails?.travelMode || '',
+            busName: r.travelDetails?.busName || '',
+            busAgency: r.travelDetails?.busAgency || '',
+            trainNameOrNumber: r.travelDetails?.trainNameOrNumber || '',
+            coachNumber: r.travelDetails?.coachNumber || '',
+            vehicleNumber: r.travelDetails?.vehicleNumber || '',
+            accommodationRequired: r.accommodationRequired || 'No',
+            familyMembersCount: r.familyMembersCount || 0,
+          });
+        }
       }
     } catch (err) {
       setError('Failed to fetch event registration status.');
@@ -109,6 +123,7 @@ export const EventRegistrationForm = () => {
   };
 
   const onSubmit = async (values) => {
+    if (!activeEvent || !userProfile) return;
     setSubmitting(true);
     setError('');
     setSuccessMsg('');
@@ -121,7 +136,7 @@ export const EventRegistrationForm = () => {
         : '';
 
       const payload = {
-        year: EVENT_YEAR,
+        year: activeEvent.year,
         accommodationRequired: values.accommodationRequired,
         familyMembersCount: Number(values.familyMembersCount),
         travelDetails: {
@@ -140,7 +155,7 @@ export const EventRegistrationForm = () => {
 
       let updatedReg;
       if (isEditing) {
-        updatedReg = await updateEventRegistration(EVENT_YEAR, payload);
+        updatedReg = await updateEventRegistration(activeEvent.year, payload);
         setSuccessMsg('Registration details updated successfully.');
       } else {
         updatedReg = await registerForEvent(payload);
@@ -162,6 +177,36 @@ export const EventRegistrationForm = () => {
       <div className="flex flex-col items-center justify-center py-20 bg-slate-50 rounded-2xl border border-slate-100">
         <Loader2 className="w-10 h-10 animate-spin text-[#0A3287] mb-3" />
         <p className="text-gray-500 font-medium">Checking event registration status...</p>
+      </div>
+    );
+  }
+
+  if (!activeEvent) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-slate-200/80 shadow-md text-center max-w-4xl mx-auto px-6">
+        <Calendar size={48} className="text-[#0A3287] mb-4 opacity-75 animate-pulse" />
+        <h2 className="text-xl font-extrabold text-slate-800">No Active Event Registration</h2>
+        <p className="text-slate-500 text-sm mt-2 max-w-md leading-relaxed">
+          There is no active Alumni Meet registration open at this time. Please check back later or contact the Alumni Cell for details.
+        </p>
+      </div>
+    );
+  }
+
+  if (!userProfile) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border border-slate-200/80 shadow-md text-center max-w-4xl mx-auto px-6">
+        <Calendar size={48} className="text-[#0A3287] mb-4 opacity-75" />
+        <h2 className="text-xl font-extrabold text-slate-800">{activeEvent.title} Registration</h2>
+        <p className="text-slate-500 text-sm mt-2 max-w-md leading-relaxed">
+          Please sign in to your alumnus account to register for the upcoming meet and coordinate transport & accommodation.
+        </p>
+        <Link
+          to="/signin"
+          className="mt-6 inline-flex items-center gap-2 bg-[#0A3287] hover:bg-blue-900 text-white font-bold px-6 py-3 rounded-xl text-sm transition shadow-md cursor-pointer animate-bounce"
+        >
+          Sign In to Register
+        </Link>
       </div>
     );
   }
@@ -205,7 +250,7 @@ export const EventRegistrationForm = () => {
           {/* Header Banner */}
           <div className="bg-gradient-to-r from-[#0A3287] to-[#1e4eb8] px-8 py-6 text-white relative">
             <div className="absolute right-6 top-6 bg-white/10 px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm">
-              Alumni Meet {EVENT_YEAR}
+              {activeEvent.title}
             </div>
             <h2 className="text-2xl font-bold flex items-center gap-2">
               <ShieldCheck className="w-6 h-6 text-emerald-400" />
@@ -265,7 +310,7 @@ export const EventRegistrationForm = () => {
 
                 {/* Badge Bottom Footer */}
                 <div className="mt-6 pt-3 border-t border-white/10 flex justify-between items-center text-[9px] uppercase font-black tracking-wider text-white/50">
-                  <span>Alumni Meet 2026</span>
+                  <span>{activeEvent.title}</span>
                   <span className="text-emerald-400 font-bold flex items-center gap-1">
                     <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" />
                     {registration.attendanceStatus === 'present' ? 'Present' : 'Verified'}
@@ -414,8 +459,8 @@ export const EventRegistrationForm = () => {
                   <Info className="w-4 h-4 text-slate-500 shrink-0" />
                   <span>
                     {isEditable
-                      ? 'Registration is editable up to Sept 1, 2026.'
-                      : 'Editing is locked (Sept 1, 2026 deadline passed).'
+                      ? `Registration is editable up to ${activeEvent.registrationDeadline ? new Date(activeEvent.registrationDeadline).toLocaleDateString('en-IN') : 'event start'}.`
+                      : 'Editing is locked (deadline passed).'
                     }
                   </span>
                 </div>

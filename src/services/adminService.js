@@ -162,6 +162,17 @@ export const uploadExecutivePhoto = async (file) => {
   return data.data;
 };
 
+// Event Management
+export const createEventAdmin = (data) =>
+  adminApi.post('/event/admin/create', data).then((r) => r.data.data.event);
+
+export const listEventsAdmin = () =>
+  adminApi.get('/event/admin/list').then((r) => r.data.data.events);
+
+export const activateEventAdmin = (eventId) =>
+  adminApi.patch(`/event/admin/${eventId}/activate`).then((r) => r.data.data.event);
+
+
 
 
 

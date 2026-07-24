@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
 import {
-  LogOut, Clock, CheckCircle2, XCircle, LayoutGrid, CalendarClock, History,
+  LogOut, Clock, CheckCircle2, XCircle, LayoutGrid, CalendarClock, History, Calendar,
   Heart, TrendingUp, Navigation, Hotel, Briefcase, Activity,
   GraduationCap, LayoutDashboard, Search, Bell, Sun, Moon, User,
   MessageSquareQuote, MessageSquare, FileText, Newspaper, Image as ImageIcon, Megaphone,
@@ -32,6 +32,7 @@ const NAV_SECTIONS = [
   {
     label: 'Events',
     items: [
+      { label: 'Manage Events', icon: Calendar, to: '/admin/events/manage' },
       { label: 'Current Meet Reg', icon: CalendarClock, to: '/admin/events/current' },
       { label: 'Old Meet Reg', icon: History, to: '/admin/events/old' },
     ],

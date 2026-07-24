@@ -13,6 +13,7 @@ import { uploadProfilePhoto } from '../services/uploadService';
 import { Onboarding } from '../components/Onboarding';
 import { EventRegistrationForm } from '../components/EventRegistrationForm';
 import { AlumniContributionForm } from '../components/AlumniContributionForm';
+import { fetchActiveEvent } from '../services/alumniService';
 import PhoneInput from '../components/PhoneInput';
 import { parsePhoneNumberFromString, getCountryCallingCode } from 'libphonenumber-js';
 import api from '../services/api';
@@ -114,6 +115,19 @@ export const Dashboard = () => {
   const [contributions, setContributions] = useState([]);
   const [loadingContributions, setLoadingContributions] = useState(false);
   const [showContributionForm, setShowContributionForm] = useState(false);
+  const [activeEvent, setActiveEvent] = useState(null);
+
+  useEffect(() => {
+    fetchActiveEvent()
+      .then(setActiveEvent)
+      .catch((err) => console.error("Error fetching active event in Dashboard:", err));
+  }, []);
+
+  const tabs = ['Overview'];
+  if (activeEvent) {
+    tabs.push('Events');
+  }
+  tabs.push('Contributions', 'Connections', 'Posts');
 
   useEffect(() => {
     if (activeTab === 'Contributions') {
@@ -378,7 +392,7 @@ export const Dashboard = () => {
 
           {/* ── TABS ──────────────────────────────────────────────────────── */}
           <div className="mt-5 flex gap-1 overflow-x-auto">
-            {TABS.map((tab) => (
+            {tabs.map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
