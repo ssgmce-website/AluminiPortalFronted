@@ -16,9 +16,8 @@ export const ActiveEventPopup = () => {
     // Only show for logged-in alumni users
     if (!userProfile) return;
 
-    // Skip on registration, login, register, and admin pages
-    const skipPaths = ['/event/registration', '/login', '/register'];
-    if (skipPaths.includes(location.pathname) || location.pathname.startsWith('/admin')) {
+    // Skip only on admin and auth pages
+    if (location.pathname.startsWith('/admin') || location.pathname === '/login' || location.pathname === '/register') {
       return;
     }
 
@@ -27,40 +26,36 @@ export const ActiveEventPopup = () => {
         const event = await fetchActiveEvent();
         if (!event) return;
 
-        // Check if dismissed in this session
-        const sessionDismissed = sessionStorage.getItem(`dismissedEventPopup_${event.year}`);
-        if (sessionDismissed === 'true') return;
-
-        // If user is logged in, check if they are already registered
-        if (userProfile) {
+        // Check if alumni is already registered — if check fails, assume not registered
+        try {
           const regData = await getMyEventRegistration(event.year);
           if (regData && regData.registered) {
             return; // Already registered, no need to show popup
           }
+        } catch (regErr) {
+          // Registration check failed (401, network error, etc.) — show popup anyway
+          console.warn('Could not check event registration status:', regErr);
         }
 
         setActiveEvent(event);
         setIsOpen(true);
       } catch (err) {
-        console.error('Error checking active event popup status:', err);
+        console.error('Error fetching active event:', err);
       }
     };
 
-    // Delay slightly for better UX feel
-    const timer = setTimeout(checkActiveEvent, 1500);
+    // Small delay for smoother UX on page load
+    const timer = setTimeout(checkActiveEvent, 1000);
     return () => clearTimeout(timer);
   }, [location.pathname, userProfile]);
 
   const handleClose = () => {
-    if (activeEvent) {
-      sessionStorage.setItem(`dismissedEventPopup_${activeEvent.year}`, 'true');
-    }
     setIsOpen(false);
   };
 
   const handleRegisterRedirect = () => {
     handleClose();
-    navigate('/event/registration');
+    navigate('/dashboard?tab=Events');
   };
 
   if (!isOpen || !activeEvent) return null;

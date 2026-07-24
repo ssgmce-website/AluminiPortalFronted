@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { ChevronDown, Menu, X } from "lucide-react";
-import { fetchActiveEvent } from "../services/alumniService";
 
 const linkClass =
   "block min-w-24 border-l border-blue-100 px-5 py-4 text-center text-[15px] font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-800";
@@ -101,23 +100,12 @@ function MobileDropdown({ name, label, mainPath, items, openMenu, setOpenMenu, a
 function Navbar() {
   const [openMenu, setOpenMenu] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeEvent, setActiveEvent] = useState(null);
   const location = useLocation();
-
-  useEffect(() => {
-    fetchActiveEvent()
-      .then(setActiveEvent)
-      .catch((err) => console.error("Error fetching active event in Navbar:", err));
-  }, []);
 
   const aboutItems = [
     { label: "SSGMCE Alumni Cell", path: "/about/alumni-cell" },
     { label: "Executive Team", path: "/about/executive-team" },
     { label: "Alumni Cell Activities", path: "/about/activity-organized" },
-  ];
-
-  const eventItems = [
-    { label: "Event Registration", path: "/event/registration" },
   ];
 
   const closeMobileMenu = () => {
@@ -213,18 +201,7 @@ function Navbar() {
               Newsletter
             </NavLink>
 
-            {activeEvent && (
-              <MobileDropdown
-                name="event"
-                label="Event"
-                mainPath="/event/registration"
-                items={eventItems}
-                openMenu={openMenu}
-                setOpenMenu={setOpenMenu}
-                active={location.pathname.startsWith("/event")}
-                onNavigate={closeMobileMenu}
-              />
-            )}
+
 
             <NavLink
               to="/contact"
@@ -270,17 +247,7 @@ function Navbar() {
             Newsletter
           </NavLink>
 
-          {activeEvent && (
-            <DropdownMenu
-              name="event"
-              label="Event"
-              mainPath="/event/registration"
-              items={eventItems}
-              openMenu={openMenu}
-              setOpenMenu={setOpenMenu}
-              active={location.pathname.startsWith("/event")}
-            />
-          )}
+
 
           <NavLink to="/contact" className={({ isActive }) => `${linkClass} border-r ${isActive ? "bg-blue-50 text-blue-800" : ""}`}>
             Contact
