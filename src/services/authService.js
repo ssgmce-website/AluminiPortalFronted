@@ -57,9 +57,15 @@ export const registerWithBackend = (details) =>
 export const checkEmailRegistered = (email) =>
   api.post('/auth/check-email', { email }).then((r) => r.data.data);
 
-// Verify a captcha token explicitly from the frontend before proceeding with login/registration
-export const verifyCaptchaOnBackend = (captchaToken) =>
-  api.post('/public/verify-captcha', { captchaToken }).then((r) => r.data.data);
+/**
+ * Optional pre-check: verify a reCAPTCHA v3 token before OAuth / login.
+ * @param {string} captchaToken - from getRecaptchaToken(action)
+ * @param {string} [captchaAction] - must match the action used in execute()
+ */
+export const verifyCaptchaOnBackend = (captchaToken, captchaAction) =>
+  api
+    .post('/public/verify-captcha', { captchaToken, captchaAction })
+    .then((r) => r.data.data);
 
 // ── Email OTP (Firebase passwordless email link) ───────────────────────────────
 
@@ -70,13 +76,26 @@ const actionCodeSettings = () => ({
 });
 
 /**
- * Ask the backend to rate-limit-check (max 3/hour), then have Firebase email a
- * one-time sign-in link. The caller is responsible for setting the auth intent
- * (login/register) beforehand. We stash the email so we can complete sign-in
- * when the user returns via the link.
+ * Ask the backend to rate-limit-check (max 3/hour), then send an OTP email.
+ * reCAPTCHA v3 token is required unless isReauth is true.
+ *
+ * @param {string} email
+ * @param {string | null} captchaToken
+ * @param {boolean} isReauth
+ * @param {string} captchaAction - action name used in grecaptcha.execute()
  */
-export const requestEmailOtp = async (email, captchaToken, isReauth = false) => {
-  const { data } = await api.post('/auth/send-otp', { email, captchaToken, isReauth });
+export const requestEmailOtp = async (
+  email,
+  captchaToken = null,
+  isReauth = false,
+  captchaAction = 'send_otp'
+) => {
+  const body = { email, isReauth };
+  if (captchaToken) {
+    body.captchaToken = captchaToken;
+    body.captchaAction = captchaAction;
+  }
+  const { data } = await api.post('/auth/send-otp', body);
   window.localStorage.setItem(EMAIL_FOR_SIGNIN_KEY, email);
   return data.data; // { success, remaining }
 };
