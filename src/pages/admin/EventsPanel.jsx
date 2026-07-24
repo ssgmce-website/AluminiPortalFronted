@@ -457,7 +457,7 @@ export const EventsPanel = ({ tab }) => {
 
           <div className="bg-slate-50 px-6 py-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-500">
             <span>Showing {filteredRegistrations.length} of {registrations.length} records</span>
-            <span>Alumni Meet {targetYear} Portal</span>
+            <span>Alumni Meet {selectedYear} Portal</span>
           </div>
         </div>
       )}
