@@ -5,7 +5,7 @@ import {
   Heart, TrendingUp, Navigation, Hotel, Briefcase, Activity,
   GraduationCap, LayoutDashboard, Search, Bell, Sun, Moon, User,
   MessageSquareQuote, MessageSquare, FileText, Newspaper, Image as ImageIcon, Megaphone,
-  Star
+  Star, Users
 } from 'lucide-react';
 import { adminLogout } from '../services/adminAuth';
 import { fetchRequests } from '../services/adminService';
@@ -43,6 +43,7 @@ const NAV_SECTIONS = [
       { label: 'Newsletters', icon: Newspaper, to: '/admin/reports/newsletters' },
       { label: 'News Ticker', icon: Megaphone, to: '/admin/news' },
       { label: 'Gallery', icon: ImageIcon, to: '/admin/gallery' },
+      { label: 'Executive Team', icon: Users, to: '/admin/executive-team' },
     ],
   },
   {

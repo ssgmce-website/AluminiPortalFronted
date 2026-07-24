@@ -142,6 +142,26 @@ export const addDistinguishedAlumni = (userId) =>
 export const removeDistinguishedAlumni = (userId) =>
   adminApi.delete(`/admin/distinguished/${userId}`).then((r) => r.data.data);
 
+// Executive Team Management
+export const createExecutiveMemberAdmin = (data) =>
+  adminApi.post('/admin/executive-members', data).then((r) => r.data.data);
+
+export const deleteExecutiveMemberAdmin = (id) =>
+  adminApi.delete(`/admin/executive-members/${id}`).then((r) => r.data.data);
+
+export const updateExecutiveMemberAdmin = (id, data) =>
+  adminApi.put(`/admin/executive-members/${id}`, data).then((r) => r.data.data);
+
+export const uploadExecutivePhoto = async (file) => {
+  const formData = new FormData();
+  formData.append('image-file', file);
+
+  const { data } = await adminApi.post('/upload/image-file/ExecutiveTeammember', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data.data;
+};
+
 
 
 

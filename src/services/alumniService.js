@@ -6,6 +6,9 @@ export const fetchNewlyRegisteredAlumni = (limit = 8) =>
 export const fetchDistinguishedAlumni = () =>
   api.get('/public/distinguished-alumni').then((r) => r.data.data.alumni);
 
+export const fetchExecutiveMembers = () =>
+  api.get('/public/executive-members').then((r) => r.data.data.members);
+
 
 // Event registration
 export const registerForEvent = (payload) =>
