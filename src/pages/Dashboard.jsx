@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Pencil, Settings, MoreHorizontal, Camera, GraduationCap,
@@ -102,8 +102,14 @@ function Section({ title, onEdit, children }) {
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
 export const Dashboard = () => {
   const { userProfile, setUserProfile, backendError } = useAuth();
-  const [searchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'Overview');
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'Overview');
+
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+  }, [location.state]);
   const [editSection, setEditSection] = useState(null);
   const [editData, setEditData] = useState({});
   const [saving, setSaving] = useState(false);

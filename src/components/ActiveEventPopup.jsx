@@ -55,7 +55,7 @@ export const ActiveEventPopup = () => {
 
   const handleRegisterRedirect = () => {
     handleClose();
-    navigate('/dashboard?tab=Events');
+    navigate('/dashboard', { state: { activeTab: 'Events' } });
   };
 
   if (!isOpen || !activeEvent) return null;
