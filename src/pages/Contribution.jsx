@@ -1,11 +1,18 @@
-import { useMemo, useState } from "react";
-import { BookOpen, GraduationCap, Layers, Users } from "lucide-react";
+import React, { useMemo, useState, useEffect } from "react";
+import { BookOpen, GraduationCap, Layers, Users, Loader2, Heart } from "lucide-react";
 import PageShell from "../components/PageShell";
-import contributions from "../data/contributions.json";
+import legacyContributions from "../data/contributions.json";
+import api from "../services/api";
 
 const ALL_YEARS = "all";
 const ALL_BRANCHES = "all-branches";
-const YEARS = Array.from({ length: 10 }, (_, index) => 2017 + index);
+
+const currentYear = new Date().getFullYear();
+const YEARS = [];
+for (let y = 2017; y <= currentYear; y++) {
+  YEARS.push(y);
+}
+
 const YEAR_OPTIONS = [
   { value: ALL_YEARS, label: "All Years" },
   ...YEARS.map((year) => ({ value: year, label: String(year) })),
@@ -18,7 +25,6 @@ const BRANCHES = [
   { value: "elpo", label: "ELPO" },
   { value: "mech", label: "MECH" },
   { value: "mba", label: "MBA" },
-  { value: "mca", label: "MCA" },
 ];
 
 const BRANCH_OPTIONS = [
@@ -31,57 +37,12 @@ function getBranchLabel(value) {
 }
 
 const companyWords = new Set([
-  "abb",
-  "accenture",
-  "adani",
-  "aakash",
-  "badve",
-  "barclays",
-  "bosch",
-  "byju",
-  "byjus",
-  "capgemini",
-  "cisco",
-  "coe",
-  "company",
-  "credit",
-  "etech",
-  "fidelity",
-  "global",
-  "group",
-  "india",
-  "industries",
-  "industry",
-  "infosys",
-  "investments",
-  "jade",
-  "limited",
-  "ltd",
-  "mahagenco",
-  "marico",
-  "mindtree",
-  "momentum",
-  "mit",
-  "msedcl",
-  "phronesis",
-  "pvt",
-  "reliance",
-  "service",
-  "services",
-  "siemens",
-  "solutions",
-  "suisse",
-  "system",
-  "systems",
-  "tcs",
-  "technology",
-  "technologies",
-  "unistal",
-  "value",
-  "whirlpool",
-  "wipro",
-  "work",
-  "works",
+  "abb", "accenture", "adani", "aakash", "badve", "barclays", "bosch", "byju", "byjus",
+  "capgemini", "cisco", "coe", "company", "credit", "etech", "fidelity", "global", "group",
+  "india", "industries", "industry", "infosys", "investments", "jade", "limited", "ltd",
+  "mahagenco", "marico", "mindtree", "momentum", "mit", "msedcl", "phronesis", "pvt",
+  "reliance", "service", "services", "siemens", "solutions", "suisse", "system", "systems",
+  "tcs", "technology", "technologies", "unistal", "value", "whirlpool", "wipro", "work", "works",
 ]);
 
 const honorifics = new Set(["mr", "mrs", "ms", "miss", "dr", "prof", "shri", "smt", "late"]);
@@ -123,31 +84,16 @@ function cleanAlumniName(name = "") {
   return cleanedWords.join(" ").replace(/\s+/g, " ").trim() || name;
 }
 
-const rows = contributions
-  .map((item) => ({
-    id: item.id,
-    name: cleanAlumniName(item.name),
-    year: Number(item.contributionYear || item.year),
-    branch: item.departmentKey,
-    passoutYear: item.passoutYear || "-",
-    contribution: item.contribution,
-    contributionDate: item.contributionDate,
-    details: item.details,
-  }))
-  .filter((item) => YEARS.includes(item.year) && item.branch)
-  .sort((a, b) => a.name.localeCompare(b.name));
-
 function TabButton({ active, children, onClick }) {
   return (
     <button
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={`rounded-full border px-4 py-2 text-sm font-bold transition ${
-        active
-          ? "border-blue-700 bg-blue-700 text-white shadow-sm"
-          : "border-blue-100 bg-white text-slate-600 hover:border-blue-300 hover:bg-blue-50"
-      }`}
+      className={`rounded-full border px-4 py-2 text-sm font-bold transition ${active
+        ? "border-blue-700 bg-blue-700 text-white shadow-sm"
+        : "border-blue-100 bg-white text-slate-600 hover:border-blue-300 hover:bg-blue-50"
+        }`}
     >
       {children}
     </button>
@@ -186,45 +132,53 @@ function ContributionTable({ data, selectedBranch, selectedYear }) {
               </th>
               {showingAllBranches && (
                 <th className="px-4 py-3 text-xs font-extrabold uppercase tracking-wide text-slate-500">
-                  Branch
+                  Branch 
                 </th>
               )}
               <th className="px-4 py-3 text-xs font-extrabold uppercase tracking-wide text-slate-500">
                 Passout Year
               </th>
               <th className="px-4 py-3 text-xs font-extrabold uppercase tracking-wide text-slate-500">
-                Contribution
+                Contribution details
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {data.length > 0 ? (
               data.map((row) => (
-                <tr key={row.id} className="align-top">
+                <tr key={row.id} className="align-top hover:bg-slate-50/40">
                   <td className="px-4 py-4 text-sm font-bold text-slate-900">
                     {row.name}
                   </td>
                   {showingAllBranches && (
                     <td className="px-4 py-4 text-sm text-slate-600">
-                      <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 font-semibold text-blue-800">
-                        <Layers size={14} />
+                      <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 font-semibold text-blue-800 capitalize text-xs">
+                        <Layers size={12} />
                         {getBranchLabel(row.branch)}
                       </span>
                     </td>
                   )}
                   <td className="px-4 py-4 text-sm text-slate-600">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 font-semibold">
-                      <GraduationCap size={14} />
+                    <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 font-semibold text-xs">
+                      <GraduationCap size={12} />
                       {row.passoutYear}
                     </span>
                   </td>
                   <td className="px-4 py-4 text-sm leading-6 text-slate-700">
-                    <p>{row.contribution || "-"}</p>
-                    {(row.contributionDate || row.details) && (
-                      <p className="mt-1 text-xs font-semibold text-slate-500">
-                        {[row.contributionDate && `Date: ${row.contributionDate}`, row.details]
-                          .filter(Boolean)
-                          .join(" | ")}
+                    <p className="font-bold text-slate-800">{row.contribution || "-"}</p>
+                    {row.details && <p className="text-slate-600 mt-1">{row.details}</p>}
+
+                    {/* Display Impact / Beneficiaries */}
+                    {row.beneficiaries && (
+                      <p className="mt-2 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded px-2.5 py-1 w-fit flex items-center gap-1.5">
+                        <Heart size={12} className="fill-emerald-600 text-emerald-600" />
+                        Impact: {row.beneficiaries}
+                      </p>
+                    )}
+
+                    {row.contributionDate && !row.beneficiaries && (
+                      <p className="mt-1 text-xs font-semibold text-slate-400">
+                        Date: {row.contributionDate}
                       </p>
                     )}
                   </td>
@@ -248,36 +202,96 @@ function Contribution() {
   const [selectedYear, setSelectedYear] = useState(ALL_YEARS);
   const [selectedBranch, setSelectedBranch] = useState(ALL_BRANCHES);
 
+  const [dbContributions, setDbContributions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPublicContributions();
+  }, []);
+
+  const fetchPublicContributions = async () => {
+    try {
+      setLoading(true);
+      const { data } = await api.get('/public/contributions');
+      setDbContributions(data?.data?.contributions || []);
+    } catch (err) {
+      console.error('Failed to fetch contributions:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const allRows = useMemo(() => {
+    // 1. Process legacy
+    const legacyRows = legacyContributions
+      .map((item) => ({
+        id: `legacy-${item.id}`,
+        name: cleanAlumniName(item.name),
+        year: Number(item.contributionYear || item.year),
+        branch: item.departmentKey,
+        passoutYear: item.passoutYear || "-",
+        contribution: item.contribution,
+        details: item.details,
+        contributionDate: item.contributionDate,
+        beneficiaries: null,
+      }))
+      .filter((item) => item.branch);
+
+    // 2. Process DB contributions
+    const dbRows = dbContributions.map((item) => {
+      const yearVal = item.paymentDate
+        ? new Date(item.paymentDate).getFullYear()
+        : new Date(item.createdAt).getFullYear();
+
+      return {
+        id: item._id,
+        name: item.alumnusName,
+        year: yearVal,
+        branch: String(item.target || '').toLowerCase() === 'ssgmce' ? ALL_BRANCHES : String(item.target || '').toLowerCase(),
+        passoutYear: String(item.passoutYear),
+        contribution: item.contributionType,
+        details: item.description,
+        contributionDate: item.paymentDate
+          ? new Date(item.paymentDate).toLocaleDateString('en-IN')
+          : new Date(item.createdAt).toLocaleDateString('en-IN'),
+        beneficiaries: item.beneficiaries || null,
+      };
+    });
+
+    return [...legacyRows, ...dbRows].sort((a, b) => a.name.localeCompare(b.name));
+  }, [dbContributions]);
+
   const filteredRows = useMemo(() => {
     if (!selectedYear || !selectedBranch) return [];
 
-    return rows.filter(
+    return allRows.filter(
       (item) =>
-        (selectedYear === ALL_YEARS || item.year === selectedYear) &&
-        (selectedBranch === ALL_BRANCHES || item.branch === selectedBranch),
+        (selectedYear === ALL_YEARS || item.year === Number(selectedYear)) &&
+        (selectedBranch === ALL_BRANCHES || item.branch === selectedBranch || (item.branch === ALL_BRANCHES && selectedBranch === ALL_BRANCHES)),
     );
-  }, [selectedBranch, selectedYear]);
+  }, [allRows, selectedBranch, selectedYear]);
 
   const showList = Boolean(selectedYear && selectedBranch);
 
   return (
     <PageShell eyebrow="Alumni Support" title="Contribution">
       <div className="space-y-8">
-        <section className="rounded-lg border border-blue-100 bg-blue-50/50 p-4 md:p-5">
-          <div className="flex items-start gap-3">
-            <div className="rounded-lg bg-white p-2 text-blue-700 shadow-sm">
-              <BookOpen size={20} />
-            </div>
-            <div>
-              <h3 className="text-lg font-extrabold text-slate-900">
-                Select passout year and branch
-              </h3>
-              <p className="mt-1 text-sm leading-6 text-slate-600">
-                The contribution list appears after both tabs are selected.
-              </p>
-            </div>
+
+        {/* Intro */}
+        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <h2 className="text-lg font-bold text-slate-800">Support your Alma Mater</h2>
+            <p className="text-sm text-slate-500 leading-relaxed max-w-2xl">
+              Thank you to all alumni who support our mission. Contributions help expand infrastructure, sponsor scholarships, and develop laboratory facilities.
+            </p>
           </div>
-        </section>
+          <a
+            href="/dashboard"
+            className="inline-flex items-center justify-center bg-blue-700 hover:bg-blue-800 text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow transition shrink-0"
+          >
+            Contribute Now
+          </a>
+        </div>
 
         <section>
           <div className="mb-3 flex items-center gap-2 text-sm font-extrabold text-slate-800">
@@ -315,7 +329,12 @@ function Contribution() {
           </div>
         </section>
 
-        {showList ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white rounded-lg border border-blue-100">
+            <Loader2 className="animate-spin text-blue-700" size={36} />
+            <p className="text-slate-500 font-semibold text-sm mt-3">Loading contributions list...</p>
+          </div>
+        ) : showList ? (
           <ContributionTable
             data={filteredRows}
             selectedBranch={selectedBranch}

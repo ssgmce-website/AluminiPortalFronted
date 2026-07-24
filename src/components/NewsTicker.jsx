@@ -9,7 +9,7 @@ const NewsTicker = ({ items = [] }) => {
 
   if (tickerItems.length === 0) return null;
 
-  const getItemPath = (item) => item?.to || (item?.id ? `/news/${item.id}` : '/newsletter');
+  const getItemPath = (item) => `/news/${item?._id || item?.id || ''}`;
 
   return (
     <section
@@ -132,7 +132,7 @@ const NewsTicker = ({ items = [] }) => {
       <div className="news-ticker-shell">
         <div className="news-label">
           <span className="news-label-dot" aria-hidden="true" />
-          Notice
+          Notification
         </div>
         <div className="news-track">
           <Marquee speed={36} pauseOnHover gradient={false}>

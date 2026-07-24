@@ -9,8 +9,8 @@ import HeroSlider from '../components/HeroSlider';
 import NewsTicker from '../components/NewsTicker';
 import distinguishedAlumni from '../data/distinguishedAlumni.js';
 import newsItems from '../data/newsItems.js';
-import Newsletter from '../pages/Newsletter';
-import { fetchNewlyRegisteredAlumni } from '../services/alumniService';
+import { fetchPublicNews } from '../services/newsService';
+import { fetchNewlyRegisteredAlumni, fetchDistinguishedAlumni } from '../services/alumniService';
 import api from '../services/api';
 import ankushGawandeImg from '../assets/newly-registered-alumni/ankush-gawande.jpg';
 import chetanAmbalkarImg from '../assets/newly-registered-alumni/chetan-ambalkar.jpg';
@@ -246,9 +246,24 @@ function HomeLightbox({ image, onClose, onPrev, onNext, hasPrev, hasNext }) {
 export default function HomePage() {
   const [newAlumni, setNewAlumni] = useState(FALLBACK_ALUMNI);
   const [dbGallery, setDbGallery] = useState([]);
+  const [news, setNews] = useState(newsItems);
+  const [alumniList, setAlumniList] = useState(distinguishedAlumni);
 
-  // Pull the most recently approved registrations; keep the fallback list
-  // showing (rather than an empty section) if the API fails or is still empty.
+  // Fetch active news from backend API
+  useEffect(() => {
+    let cancelled = false;
+    fetchPublicNews()
+      .then((data) => {
+        if (!cancelled && data && data.length > 0) {
+          setNews(data);
+        }
+      })
+      .catch((err) => {
+        console.error("[HomePage] News fetch error:", err);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     fetchNewlyRegisteredAlumni(8)
@@ -257,6 +272,22 @@ export default function HomePage() {
       })
       .catch(() => {
         // keep FALLBACK_ALUMNI on error
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchDistinguishedAlumni()
+      .then((dbAlumni) => {
+        if (!cancelled && dbAlumni) {
+          const dbNames = new Set(dbAlumni.map(a => a.name.toLowerCase().trim()));
+          const uniqueStatic = distinguishedAlumni.filter(a => !dbNames.has(a.name.toLowerCase().trim()));
+          setAlumniList([...uniqueStatic, ...dbAlumni]);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to fetch distinguished alumni for homepage:', err);
       });
     return () => { cancelled = true; };
   }, []);
@@ -340,10 +371,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <NewsTicker items={newsItems} />
-
-      {/* NEWSLETTER */}
-      <Newsletter />
+      <NewsTicker items={news} />
 
       {/* ── ABOUT ALUMNI CELL ───────────────────────────────────────────────── */}
       <section className="mx-auto max-w-[1425px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -467,7 +495,7 @@ export default function HomePage() {
           variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }}
           className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
         >
-          {distinguishedAlumni.slice(0, 8).map((person) => (
+          {alumniList.slice(0, 8).map((person) => (
             <motion.div
               key={person.name}
               variants={fadeUp}

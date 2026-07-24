@@ -96,3 +96,83 @@ export const uploadGalleryImage = async (file, year) => {
   return data.data;
 };
 
+// News Management
+export const fetchNewsAdmin = () =>
+  adminApi.get('/admin/news').then((r) => r.data.data);
+
+export const createNewsAdmin = (data) =>
+  adminApi.post('/admin/news', data).then((r) => r.data.data);
+
+export const updateNewsAdmin = (id, data) =>
+  adminApi.put(`/admin/news/${id}`, data).then((r) => r.data.data);
+
+export const deleteNewsAdmin = (id) =>
+  adminApi.delete(`/admin/news/${id}`).then((r) => r.data.data);
+
+export const toggleNewsActiveAdmin = (id) =>
+  adminApi.patch(`/admin/news/${id}/toggle-active`).then((r) => r.data.data);
+
+export const uploadNewsImage = async (file) => {
+  const formData = new FormData();
+  formData.append('image-file', file);
+
+  const { data } = await adminApi.post('/upload/image-file/news', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data.data;
+};
+
+// Contributions Management
+export const fetchContributionsAdmin = () =>
+  adminApi.get('/admin/contributions').then((r) => r.data.data);
+
+export const updateContributionStatusAdmin = (id, status) =>
+  adminApi.patch(`/admin/contributions/${id}/status`, { status }).then((r) => r.data.data);
+
+export const updateContributionBeneficiariesAdmin = (id, beneficiaries) =>
+  adminApi.patch(`/admin/contributions/${id}/beneficiaries`, { beneficiaries }).then((r) => r.data.data);
+
+export const toggleContributionPublicAdmin = (id, isPublic) =>
+  adminApi.patch(`/admin/contributions/${id}/public`, { isPublic }).then((r) => r.data.data);
+
+// Distinguished Alumni Management
+export const addDistinguishedAlumni = (userId) =>
+  adminApi.post(`/admin/distinguished/${userId}`).then((r) => r.data.data);
+
+export const removeDistinguishedAlumni = (userId) =>
+  adminApi.delete(`/admin/distinguished/${userId}`).then((r) => r.data.data);
+
+// Executive Team Management
+export const createExecutiveMemberAdmin = (data) =>
+  adminApi.post('/admin/executive-members', data).then((r) => r.data.data);
+
+export const deleteExecutiveMemberAdmin = (id) =>
+  adminApi.delete(`/admin/executive-members/${id}`).then((r) => r.data.data);
+
+export const updateExecutiveMemberAdmin = (id, data) =>
+  adminApi.put(`/admin/executive-members/${id}`, data).then((r) => r.data.data);
+
+export const uploadExecutivePhoto = async (file) => {
+  const formData = new FormData();
+  formData.append('image-file', file);
+
+  const { data } = await adminApi.post('/upload/image-file/ExecutiveTeammember', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data.data;
+};
+
+// Event Management
+export const createEventAdmin = (data) =>
+  adminApi.post('/event/admin/create', data).then((r) => r.data.data.event);
+
+export const listEventsAdmin = () =>
+  adminApi.get('/event/admin/list').then((r) => r.data.data.events);
+
+export const activateEventAdmin = (eventId) =>
+  adminApi.patch(`/event/admin/${eventId}/activate`).then((r) => r.data.data.event);
+
+
+
+
+

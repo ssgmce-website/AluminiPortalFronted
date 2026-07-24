@@ -56,8 +56,7 @@ function MobileDropdown({ name, label, mainPath, items, openMenu, setOpenMenu, a
           to={mainPath}
           onClick={onNavigate}
           className={({ isActive }) =>
-            `flex-1 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-800 ${
-              active || isActive ? "bg-blue-50 text-blue-800" : ""
+            `flex-1 px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-800 ${active || isActive ? "bg-blue-50 text-blue-800" : ""
             }`
           }
         >
@@ -104,13 +103,9 @@ function Navbar() {
   const location = useLocation();
 
   const aboutItems = [
-    { label: "Alumni Cell", path: "/about/alumni-cell" },
+    { label: "SSGMCE Alumni Cell", path: "/about/alumni-cell" },
     { label: "Executive Team", path: "/about/executive-team" },
     { label: "Alumni Cell Activities", path: "/about/activity-organized" },
-    ,];
-
-  const eventItems = [
-    { label: "Event Registration", path: "/event/registration" },
   ];
 
   const closeMobileMenu = () => {
@@ -174,11 +169,10 @@ function Navbar() {
             </NavLink>
 
             <NavLink
-              to="/distinguished-alumni"   
+              to="/distinguished-alumni"
               onClick={closeMobileMenu}
               className={({ isActive }) =>
-                `block border-b border-blue-100 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-800 ${
-                  isActive ? "bg-blue-50 text-blue-800" : ""
+                `block border-b border-blue-100 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-800 ${isActive ? "bg-blue-50 text-blue-800" : ""
                 }`
               }
             >
@@ -189,8 +183,7 @@ function Navbar() {
               to="/about/annual-report"
               onClick={closeMobileMenu}
               className={({ isActive }) =>
-                `block border-b border-blue-100 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-800 ${
-                  isActive ? "bg-blue-50 text-blue-800" : ""
+                `block border-b border-blue-100 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-blue-50 hover:text-blue-800 ${isActive ? "bg-blue-50 text-blue-800" : ""
                 }`
               }
             >
@@ -208,16 +201,7 @@ function Navbar() {
               Newsletter
             </NavLink>
 
-            <MobileDropdown
-              name="event"
-              label="Event"
-              mainPath="/event/registration"
-              items={eventItems}
-              openMenu={openMenu}
-              setOpenMenu={setOpenMenu}
-              active={location.pathname.startsWith("/event")}
-              onNavigate={closeMobileMenu}
-            />
+
 
             <NavLink
               to="/contact"
@@ -263,15 +247,7 @@ function Navbar() {
             Newsletter
           </NavLink>
 
-          <DropdownMenu
-            name="event"
-            label="Event"
-            mainPath="/event/registration"
-            items={eventItems}
-            openMenu={openMenu}
-            setOpenMenu={setOpenMenu}
-            active={location.pathname.startsWith("/event")}
-          />
+
 
           <NavLink to="/contact" className={({ isActive }) => `${linkClass} border-r ${isActive ? "bg-blue-50 text-blue-800" : ""}`}>
             Contact
