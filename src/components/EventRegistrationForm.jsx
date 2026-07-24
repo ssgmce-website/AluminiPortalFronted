@@ -129,7 +129,7 @@ export const EventRegistrationForm = () => {
           arrivalTime: arrivalTimeStr,
           departureDate: values.departureDate,
           departureTime: departureTimeStr,
-          travelMode: values.travelMode,
+          travelMode: values.travelMode || undefined,
           busName: values.travelMode === 'Bus' ? values.busName : undefined,
           busAgency: values.travelMode === 'Bus' ? values.busAgency : undefined,
           trainNameOrNumber: values.travelMode === 'Train' ? values.trainNameOrNumber : undefined,
@@ -663,9 +663,9 @@ export const EventRegistrationForm = () => {
                 3. Travel Mode
               </h3>
               <div>
-                <label className="text-xs font-bold text-slate-600 block mb-2">Arrival Mode of Travel *</label>
+                <label className="text-xs font-bold text-slate-600 block mb-2">Arrival Mode of Travel</label>
                 <select
-                  {...register('travelMode', { required: 'Please select a travel mode' })}
+                  {...register('travelMode', { required: false })}
                   className="w-full border border-[#cbd5e1] rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0A3287]/20 focus:border-[#0A3287] outline-none bg-white"
                 >
                   <option value="">Select Travel Mode</option>
@@ -809,9 +809,9 @@ export const EventRegistrationForm = () => {
                     className="w-full border border-[#cbd5e1] rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#0A3287]/20 focus:border-[#0A3287] outline-none bg-white"
                   >
                     <option value={0}>0 (Alone)</option>
-                    <option value={1}>1 </option>
-                    <option value={2}>2 </option>
-                    <option value={3}>3 (Max)</option>
+                    <option value={1}>1 (Family Member)</option>
+                    <option value={2}>2 (Family Members)</option>
+                    <option value={3}>3 (Family Members - Max)</option>
                   </select>
                 </div>
               </div>

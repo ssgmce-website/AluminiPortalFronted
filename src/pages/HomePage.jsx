@@ -10,7 +10,6 @@ import NewsTicker from '../components/NewsTicker';
 import distinguishedAlumni from '../data/distinguishedAlumni.js';
 import newsItems from '../data/newsItems.js';
 import { fetchPublicNews } from '../services/newsService';
-import Newsletter from '../pages/Newsletter';
 import { fetchNewlyRegisteredAlumni, fetchDistinguishedAlumni } from '../services/alumniService';
 import api from '../services/api';
 import ankushGawandeImg from '../assets/newly-registered-alumni/ankush-gawande.jpg';
@@ -373,9 +372,6 @@ export default function HomePage() {
       </section>
 
       <NewsTicker items={news} />
-
-      {/* NEWSLETTER */}
-      <Newsletter />
 
       {/* ── ABOUT ALUMNI CELL ───────────────────────────────────────────────── */}
       <section className="mx-auto max-w-[1425px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
