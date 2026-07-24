@@ -135,5 +135,13 @@ export const updateContributionBeneficiariesAdmin = (id, beneficiaries) =>
 export const toggleContributionPublicAdmin = (id, isPublic) =>
   adminApi.patch(`/admin/contributions/${id}/public`, { isPublic }).then((r) => r.data.data);
 
+// Distinguished Alumni Management
+export const addDistinguishedAlumni = (userId) =>
+  adminApi.post(`/admin/distinguished/${userId}`).then((r) => r.data.data);
+
+export const removeDistinguishedAlumni = (userId) =>
+  adminApi.delete(`/admin/distinguished/${userId}`).then((r) => r.data.data);
+
+
 
 

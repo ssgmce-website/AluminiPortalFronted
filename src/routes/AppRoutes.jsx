@@ -190,6 +190,7 @@ export const AppRoutes = () => {
           <Route path="members/approved" element={<Suspense fallback={<PageLoader />}><MembersPanel tab="approved" /></Suspense>} />
           <Route path="members/rejected" element={<Suspense fallback={<PageLoader />}><MembersPanel tab="rejected" /></Suspense>} />
           <Route path="members/dept-wise" element={<Suspense fallback={<PageLoader />}><MembersPanel tab="dept-wise" /></Suspense>} />
+          <Route path="members/distinguished" element={<Suspense fallback={<PageLoader />}><MembersPanel tab="distinguished" /></Suspense>} />
 
           {/* Events */}
           <Route path="events/current" element={<Suspense fallback={<PageLoader />}><EventsPanel tab="current" /></Suspense>} />

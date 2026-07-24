@@ -4,7 +4,8 @@ import {
   LogOut, Clock, CheckCircle2, XCircle, LayoutGrid, CalendarClock, History,
   Heart, TrendingUp, Navigation, Hotel, Briefcase, Activity,
   GraduationCap, LayoutDashboard, Search, Bell, Sun, Moon, User,
-  MessageSquareQuote, MessageSquare, FileText, Newspaper, Image as ImageIcon, Megaphone
+  MessageSquareQuote, MessageSquare, FileText, Newspaper, Image as ImageIcon, Megaphone,
+  Star
 } from 'lucide-react';
 import { adminLogout } from '../services/adminAuth';
 import { fetchRequests } from '../services/adminService';
@@ -25,6 +26,7 @@ const NAV_SECTIONS = [
       { label: 'Approved', icon: CheckCircle2, to: '/admin/members/approved' },
       { label: 'Rejected', icon: XCircle, to: '/admin/members/rejected' },
       { label: 'Dept-wise', icon: LayoutGrid, to: '/admin/members/dept-wise' },
+      { label: 'Distinguished', icon: Star, to: '/admin/members/distinguished' },
     ],
   },
   {
