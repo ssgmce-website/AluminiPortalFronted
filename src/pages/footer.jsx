@@ -12,7 +12,6 @@ const aboutLinks = [
 
 const quickLinks = [
   { label: "SSGMCE", path: "https://www.ssgmce.ac.in/" },
-  { label: "SSGMCE News", path: "https://www.ssgmce.ac.in/news" },
   { label: "Contribution", path: "/contribution" },
   { label: "Newsletter", path: "/newsletter" },
   { label: "Event Registration", path: "/event/registration" },

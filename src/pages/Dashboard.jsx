@@ -1,11 +1,11 @@
-import { useState, useCallback, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Pencil, Settings, MoreHorizontal, Camera, GraduationCap,
   Briefcase, Phone, Mail, CalendarDays, CheckCircle,
   AlertTriangle, Building2, User, Loader2, X, Save,
-  Users, Clock, BookOpen, IdCard, Copy, Check, CalendarCheck,
+  Users, Clock, BookOpen, IdCard, Copy, Check, CalendarCheck, Heart, TrendingUp
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { updateProfile } from '../services/authService';
@@ -13,8 +13,10 @@ import { uploadProfilePhoto } from '../services/uploadService';
 import { Onboarding } from '../components/Onboarding';
 import { EventRegistrationForm } from '../components/EventRegistrationForm';
 import { AlumniContributionForm } from '../components/AlumniContributionForm';
+import { fetchActiveEvent } from '../services/alumniService';
 import PhoneInput from '../components/PhoneInput';
 import { parsePhoneNumberFromString, getCountryCallingCode } from 'libphonenumber-js';
+import api from '../services/api';
 
 const getCallingCode = (countryCode) => {
   if (!countryCode) return '';
@@ -26,7 +28,7 @@ const getCallingCode = (countryCode) => {
 };
 
 // ─── constants ────────────────────────────────────────────────────────────────
-const TABS = ['Overview', 'Events', 'Contributions', 'Connections', 'Activity'];
+const TABS = ['Overview', 'Events', 'Contributions', 'Connections', 'Posts'];
 
 const COMPLETION_FIELDS = [
   { key: 'nationalNumber', label: 'Contact Number' },
@@ -100,7 +102,14 @@ function Section({ title, onEdit, children }) {
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
 export const Dashboard = () => {
   const { userProfile, setUserProfile, backendError } = useAuth();
-  const [activeTab, setActiveTab] = useState('Overview');
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(location.state?.activeTab || 'Overview');
+
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+  }, [location.state]);
   const [editSection, setEditSection] = useState(null);
   const [editData, setEditData] = useState({});
   const [saving, setSaving] = useState(false);
@@ -109,6 +118,41 @@ export const Dashboard = () => {
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoError, setPhotoError] = useState('');
   const photoInputRef = useRef(null);
+
+  const [contributions, setContributions] = useState([]);
+  const [loadingContributions, setLoadingContributions] = useState(false);
+  const [showContributionForm, setShowContributionForm] = useState(false);
+  const [activeEvent, setActiveEvent] = useState(null);
+
+  useEffect(() => {
+    fetchActiveEvent()
+      .then(setActiveEvent)
+      .catch((err) => console.error("Error fetching active event in Dashboard:", err));
+  }, []);
+
+  const tabs = ['Overview'];
+  if (activeEvent) {
+    tabs.push('Events');
+  }
+  tabs.push('Contributions', 'Connections', 'Posts');
+
+  useEffect(() => {
+    if (activeTab === 'Contributions') {
+      loadUserContributions();
+    }
+  }, [activeTab]);
+
+  const loadUserContributions = async () => {
+    setLoadingContributions(true);
+    try {
+      const { data } = await api.get('/user/contributions');
+      setContributions(data?.data?.contributions || []);
+    } catch (err) {
+      console.error('Failed to load user contributions:', err);
+    } finally {
+      setLoadingContributions(false);
+    }
+  };
 
   const handlePhotoChange = async (e) => {
     const file = e.target.files?.[0];
@@ -355,13 +399,13 @@ export const Dashboard = () => {
 
           {/* ── TABS ──────────────────────────────────────────────────────── */}
           <div className="mt-5 flex gap-1 overflow-x-auto">
-            {TABS.map((tab) => (
+            {tabs.map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`relative whitespace-nowrap pb-3 pr-4 text-sm font-semibold transition-colors ${activeTab === tab
-                    ? 'text-slate-900'
-                    : 'text-slate-400 hover:text-slate-600'
+                  ? 'text-slate-900'
+                  : 'text-slate-400 hover:text-slate-600'
                   }`}
               >
                 {tab}
@@ -642,7 +686,143 @@ export const Dashboard = () => {
             // </motion.div>
             <EventRegistrationForm />
           ) : activeTab === 'Contributions' ? (
-            <AlumniContributionForm />
+            showContributionForm ? (
+              <AlumniContributionForm
+                onSuccess={() => {
+                  setShowContributionForm(false);
+                  loadUserContributions();
+                }}
+                onCancel={() => setShowContributionForm(false)}
+              />
+            ) : (
+              <motion.div
+                key="contributions-list"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-6"
+              >
+                {/* Header Row */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-base font-extrabold text-slate-800">My Contributions</h2>
+                    <p className="mt-0.5 text-sm text-slate-500">
+                      Track the verification and impact of your contributions.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowContributionForm(true)}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-bold text-xs px-4 py-2 shadow-sm transition-all"
+                  >
+                    <TrendingUp size={14} className="text-white" /> Add Contribution
+                  </button>
+                </div>
+
+                {loadingContributions ? (
+                  <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-slate-100">
+                    <Loader2 className="animate-spin text-blue-700 mb-2" size={32} />
+                    <p className="text-slate-500 font-semibold text-sm">Loading contribution records...</p>
+                  </div>
+                ) : contributions.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-blue-200 bg-white py-16 text-center">
+                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50">
+                      <TrendingUp size={32} className="text-blue-500" />
+                    </div>
+                    <p className="text-lg font-bold text-slate-700">No Contributions Found</p>
+                    <p className="mt-2 max-w-sm text-sm text-slate-400">
+                      You haven't reported any contributions yet. Support your alma mater by offering scholarships, placements, mentoring, or other campus assistance.
+                    </p>
+                    <button
+                      onClick={() => setShowContributionForm(true)}
+                      className="mt-5 inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-all shadow-sm"
+                    >
+                      Report Contribution
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {contributions.map((c) => (
+                      <div
+                        key={c._id}
+                        className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-4 hover:border-blue-200 transition-colors text-left"
+                      >
+                        {/* Upper row */}
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-bold text-slate-800 text-base">
+                                {c.contributionType}
+                              </span>
+                              <span className="text-xs bg-blue-50 text-blue-800 font-semibold px-2 py-0.5 rounded border border-blue-100 uppercase">
+                                For: {c.target}
+                              </span>
+                              <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200">
+                                {c.typeOfContribution === 'Money' ? 'Financial' : 'Non-Financial'}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-400 mt-1.5 flex items-center gap-1">
+                              <CalendarCheck size={12} /> Reported on: {new Date(c.createdAt).toLocaleDateString('en-IN')}
+                            </p>
+                          </div>
+
+                          {/* Status Badge */}
+                          <div>
+                            {c.status === 'Pending' && (
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                                <Clock size={12} /> Verification Pending
+                              </span>
+                            )}
+                            {c.status === 'Approved' && (
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+                                <CheckCircle size={12} /> Verified & Approved
+                              </span>
+                            )}
+                            {c.status === 'Rejected' && (
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 border border-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+                                <X size={12} /> Verification Failed
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Description & financial details */}
+                        <div className="bg-slate-50 rounded-lg p-3.5 border border-slate-100 text-sm text-slate-600 leading-relaxed">
+                          {c.description && <p className="font-medium text-slate-700">{c.description}</p>}
+
+                          {c.typeOfContribution === 'Money' && (
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 mt-3 border-t border-slate-200/60 text-xs">
+                              <div>
+                                <span className="text-slate-400 font-semibold block">Amount</span>
+                                <span className="font-bold text-slate-800">₹{Number(c.amount).toLocaleString('en-IN')}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-400 font-semibold block">Transaction ID / UTR</span>
+                                <span className="font-mono font-bold text-slate-800">{c.transactionId}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-400 font-semibold block">Date of Payment</span>
+                                <span className="font-bold text-slate-800">
+                                  {c.paymentDate ? new Date(c.paymentDate).toLocaleDateString('en-IN') : '—'}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Impact Section */}
+                        {c.status === 'Approved' && c.beneficiaries && (
+                          <div className="bg-emerald-50/60 border border-emerald-100 rounded-lg px-4 py-2.5 text-xs font-bold text-emerald-800 flex items-center gap-2">
+                            <Heart size={14} className="fill-emerald-600 text-emerald-600 shrink-0" />
+                            <span>Impact: Your contribution benefited {c.beneficiaries}!</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            )
           ) : (
             /* ── Other coming-soon tabs ───────────────────────────────── */
             <motion.div
@@ -654,7 +834,7 @@ export const Dashboard = () => {
               className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white py-16 text-center"
             >
               {activeTab === 'Connections' && <Users size={32} className="mb-3 text-slate-300" />}
-              {activeTab === 'Activity' && <Clock size={32} className="mb-3 text-slate-300" />}
+              {activeTab === 'Posts' && <BookOpen size={32} className="mb-3 text-slate-300" />}
               <p className="font-semibold text-slate-500">{activeTab}</p>
               <p className="mt-1 text-sm text-slate-400">This section is coming soon.</p>
               <span className="mt-3 rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-400">

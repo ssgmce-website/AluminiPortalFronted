@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Loader2, Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { adminLogin } from '../services/adminAuth';
-import Captcha from '../components/Captcha';
+import { getRecaptchaToken, RECAPTCHA_ACTIONS } from '../utils/recaptcha';
+import { RecaptchaNotice } from '../components/Captcha';
 
 // Standalone admin login — email + password checked against the backend env.
-// No registration, no Firebase. On success the admin lands on /admin.
+// reCAPTCHA v3 runs invisibly on submit (no checkbox / text code).
 export const AdminLogin = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -14,24 +15,19 @@ export const AdminLogin = () => {
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
-    if (!captchaToken) {
-      setError('Please verify that you are not a robot.');
-      return;
-    }
-
     setLoading(true);
     try {
-      await adminLogin(email.trim(), password, captchaToken);
+      const captchaToken = await getRecaptchaToken(RECAPTCHA_ACTIONS.ADMIN_LOGIN);
+      await adminLogin(email.trim(), password, captchaToken, RECAPTCHA_ACTIONS.ADMIN_LOGIN);
       navigate('/admin', { replace: true });
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
+        err?.message ||
         (err?.response?.status === 401 ? 'Invalid email or password.' : 'Something went wrong. Please try again.');
       setError(msg);
     } finally {
@@ -101,11 +97,6 @@ export const AdminLogin = () => {
             </div>
           </div>
 
-          {/* reCAPTCHA verification container */}
-          <div className="flex justify-center py-2">
-            <Captcha onVerify={setCaptchaToken} />
-          </div>
-
           <button
             type="submit"
             disabled={loading}
@@ -114,6 +105,8 @@ export const AdminLogin = () => {
             {loading ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
             {loading ? 'Login in…' : 'Login'}
           </button>
+
+          <RecaptchaNotice />
         </form>
       </motion.div>
     </div>
