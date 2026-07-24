@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
 import {
-  LogOut, Clock, CheckCircle2, XCircle, LayoutGrid, CalendarClock, History,
+  LogOut, Clock, CheckCircle2, XCircle, LayoutGrid, CalendarClock, History, Calendar,
   Heart, TrendingUp, Navigation, Hotel, Briefcase, Activity,
   GraduationCap, LayoutDashboard, Search, Bell, Sun, Moon, User,
-  MessageSquareQuote, MessageSquare, FileText, Newspaper, Image as ImageIcon, Megaphone
+  MessageSquareQuote, MessageSquare, FileText, Newspaper, Image as ImageIcon, Megaphone,
+  Star, Users
 } from 'lucide-react';
 import { adminLogout } from '../services/adminAuth';
 import { fetchRequests } from '../services/adminService';
@@ -25,11 +26,13 @@ const NAV_SECTIONS = [
       { label: 'Approved', icon: CheckCircle2, to: '/admin/members/approved' },
       { label: 'Rejected', icon: XCircle, to: '/admin/members/rejected' },
       { label: 'Dept-wise', icon: LayoutGrid, to: '/admin/members/dept-wise' },
+      { label: 'Distinguished', icon: Star, to: '/admin/members/distinguished' },
     ],
   },
   {
     label: 'Events',
     items: [
+      { label: 'Manage Events', icon: Calendar, to: '/admin/events/manage' },
       { label: 'Current Meet Reg', icon: CalendarClock, to: '/admin/events/current' },
       { label: 'Old Meet Reg', icon: History, to: '/admin/events/old' },
     ],
@@ -41,6 +44,7 @@ const NAV_SECTIONS = [
       { label: 'Newsletters', icon: Newspaper, to: '/admin/reports/newsletters' },
       { label: 'News Ticker', icon: Megaphone, to: '/admin/news' },
       { label: 'Gallery', icon: ImageIcon, to: '/admin/gallery' },
+      { label: 'Executive Team', icon: Users, to: '/admin/executive-team' },
     ],
   },
   {
@@ -53,7 +57,6 @@ const NAV_SECTIONS = [
   {
     label: 'Finances',
     items: [
-      { label: 'Donations', icon: Heart, to: '/admin/finances/donations' },
       { label: 'Contributions', icon: TrendingUp, to: '/admin/finances/contributions' },
     ],
   },

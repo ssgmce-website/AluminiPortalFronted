@@ -3,9 +3,13 @@ import { motion } from 'framer-motion';
 import {
   Users, Clock, CheckCircle2, XCircle, RefreshCw, Loader2, Mail,
   GraduationCap, AlertTriangle, LayoutGrid, ChevronDown, ChevronRight, Download, IdCard,
-  Briefcase, User as UserIcon, Heart, Link2,
+  Briefcase, User as UserIcon, Heart, Link2, Star, Search
 } from 'lucide-react';
-import { fetchRequests, approveRequest, rejectRequest, fetchDeptWiseAlumni } from '../../services/adminService';
+import {
+  fetchRequests, approveRequest, rejectRequest, fetchDeptWiseAlumni,
+  addDistinguishedAlumni, removeDistinguishedAlumni
+} from '../../services/adminService';
+import { fetchDistinguishedAlumni } from '../../services/alumniService';
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -342,6 +346,7 @@ const TAB_META = {
   approved:   { label: 'Approved Members',        icon: CheckCircle2 },
   rejected:   { label: 'Rejected Requests',       icon: XCircle },
   'dept-wise': { label: 'Department-wise Members', icon: LayoutGrid },
+  distinguished: { label: 'Distinguished Alumni', icon: Star },
 };
 
 const downloadMembersCSV = (membersList, statusName) => {
@@ -397,7 +402,241 @@ const downloadMembersCSV = (membersList, statusName) => {
   URL.revokeObjectURL(url);
 };
 
+const DistinguishedManagementView = () => {
+  const [currentDistinguished, setCurrentDistinguished] = useState([]);
+  const [allApproved, setAllApproved] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedUserIds, setSelectedUserIds] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const loadData = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const [distData, approvedData] = await Promise.all([
+        fetchDistinguishedAlumni(),
+        fetchRequests('approved')
+      ]);
+      setCurrentDistinguished(distData || []);
+      setAllApproved(approvedData.requests || []);
+    } catch (err) {
+      setError(err?.response?.data?.message || err.message || 'Failed to load data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleRemove = async (userId) => {
+    if (!window.confirm('Are you sure you want to remove this alumnus from the distinguished list?')) return;
+    try {
+      await removeDistinguishedAlumni(userId);
+      await loadData();
+    } catch (err) {
+      setError(err?.response?.data?.message || err.message);
+    }
+  };
+
+  const handleAddSelected = async () => {
+    if (selectedUserIds.length === 0) return;
+    setSubmitting(true);
+    setError('');
+    try {
+      await Promise.all(selectedUserIds.map(id => addDistinguishedAlumni(id)));
+      setSelectedUserIds([]);
+      setSearchQuery('');
+      await loadData();
+    } catch (err) {
+      setError(err?.response?.data?.message || err.message || 'Failed to add some alumni');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const toggleSelectUser = (userId) => {
+    setSelectedUserIds(prev =>
+      prev.includes(userId)
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  // Filter approved candidates who are NOT already distinguished
+  const existingDistinguishedUserIds = new Set(currentDistinguished.map(d => d.userId));
+  
+  const filteredCandidates = allApproved.filter(u => {
+    if (existingDistinguishedUserIds.has(u.id)) return false;
+    if (!searchQuery) return false;
+    const query = searchQuery.toLowerCase();
+    const nameMatch = (u.name || '').toLowerCase().includes(query);
+    const emailMatch = (u.email || '').toLowerCase().includes(query);
+    const branchMatch = (u.branch || '').toLowerCase().includes(query);
+    return nameMatch || emailMatch || branchMatch;
+  });
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <Star size={24} className="text-amber-500 fill-amber-500" />
+          Distinguished Alumni Management
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
+          Search and promote approved alumni to the distinguished list, or remove existing ones.
+        </p>
+      </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg flex items-center gap-2">
+          <AlertTriangle size={16} />
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 size={32} className="animate-spin text-blue-600" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Column: Search & Add */}
+          <div className="lg:col-span-5 bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
+            <h2 className="text-base font-bold text-gray-900">Add Distinguished Alumni</h2>
+            
+            <div className="relative">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by name, email, or branch..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
+              />
+            </div>
+
+            {searchQuery && (
+              <div className="border border-gray-100 rounded-lg divide-y divide-gray-100 max-h-60 overflow-y-auto">
+                {filteredCandidates.length === 0 ? (
+                  <p className="text-xs text-gray-400 text-center py-4">No matching approved alumni found</p>
+                ) : (
+                  filteredCandidates.map((u) => {
+                    const isSelected = selectedUserIds.includes(u.id);
+                    return (
+                      <div
+                        key={u.id}
+                        onClick={() => toggleSelectUser(u.id)}
+                        className={`flex items-center justify-between p-3 hover:bg-slate-50 cursor-pointer transition ${
+                          isSelected ? 'bg-blue-50/50' : ''
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => {}} 
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          />
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-gray-800 truncate">{u.name || 'Unnamed'}</p>
+                            <p className="text-xs text-gray-400 truncate">
+                              {u.course} ({u.branch}) · Batch {u.yearOfPassout}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-2">
+              <span className="text-xs text-gray-500 font-medium">
+                {selectedUserIds.length} selected
+              </span>
+              <button
+                onClick={handleAddSelected}
+                disabled={selectedUserIds.length === 0 || submitting}
+                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition cursor-pointer"
+              >
+                {submitting ? <Loader2 size={13} className="animate-spin" /> : <Star size={13} />}
+                Add Selected
+              </button>
+            </div>
+          </div>
+
+          {/* Right Column: Current List */}
+          <div className="lg:col-span-7 bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
+            <h2 className="text-base font-bold text-gray-900 flex items-center justify-between">
+              Current Distinguished Alumni
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                {currentDistinguished.length} Total
+              </span>
+            </h2>
+
+            {currentDistinguished.length === 0 ? (
+              <div className="text-center py-12 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                <Star size={36} className="mx-auto text-gray-300 mb-2" />
+                <p className="text-sm text-gray-500 font-medium">No distinguished alumni added yet.</p>
+              </div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {currentDistinguished.map((person) => (
+                  <div
+                    key={person.id}
+                    className="flex items-center justify-between p-3 border border-gray-200 rounded-xl hover:shadow-xs transition"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      {person.photo ? (
+                        <img
+                          src={person.photo}
+                          alt={person.name}
+                          className="h-10 w-10 rounded-full object-cover shrink-0 border border-slate-100"
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-full bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-sm shrink-0 border border-slate-100">
+                          {person.name?.[0]?.toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-gray-800 truncate">{person.name}</p>
+                        <p className="text-[11px] text-gray-500 truncate leading-snug">
+                          {person.role || 'Alumnus'} {person.company ? `@ ${person.company}` : ''}
+                        </p>
+                        <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mt-0.5">
+                          {person.branch} {person.batch}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={() => handleRemove(person.userId)}
+                      title="Remove from distinguished list"
+                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                    >
+                      <XCircle size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const MembersPanel = ({ tab }) => {
+  if (tab === 'distinguished') {
+    return <DistinguishedManagementView />;
+  }
+
   const [members, setMembers]   = useState([]);
   const [deptGroups, setDeptGroups] = useState({});
   const [counts, setCounts]     = useState({ pending: 0, approved: 0, rejected: 0 });
