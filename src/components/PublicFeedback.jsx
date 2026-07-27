@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { MessageSquareText, X, CheckCircle2, AlertCircle } from "lucide-react";
-import Captcha from "./Captcha";
+import { RecaptchaNotice } from "./Captcha";
+import { getRecaptchaToken, RECAPTCHA_ACTIONS } from "../utils/recaptcha";
 import api from "../services/api";
 
 function FieldError({ message }) {
@@ -20,18 +21,10 @@ function PublicFeedback() {
   const [rating, setRating] = useState("Good");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [captchaToken, setCaptchaToken] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [errors, setErrors] = useState({});
-
-  const handleCaptchaVerify = (token) => {
-    setCaptchaToken(token || "");
-    if (token && errors.captchaToken) {
-      setErrors((prev) => ({ ...prev, captchaToken: "" }));
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -54,10 +47,6 @@ function PublicFeedback() {
       newErrors.email = "Please enter a valid email address.";
     }
 
-    if (!captchaToken) {
-      newErrors.captchaToken = "Please verify that you are not a robot.";
-    }
-
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -66,6 +55,7 @@ function PublicFeedback() {
     setIsLoading(true);
 
     try {
+      const captchaToken = await getRecaptchaToken(RECAPTCHA_ACTIONS.FEEDBACK);
       await api.post("/public/feedback", {
         feedbackType,
         message,
@@ -73,6 +63,7 @@ function PublicFeedback() {
         name: name.trim(),
         email: email.trim(),
         captchaToken,
+        captchaAction: RECAPTCHA_ACTIONS.FEEDBACK,
       });
 
       setIsSubmitted(true);
@@ -83,7 +74,6 @@ function PublicFeedback() {
         setMessage("");
         setName("");
         setEmail("");
-        setCaptchaToken("");
         setFeedbackType("bug");
         setRating("Good");
         setErrors({});
@@ -258,12 +248,6 @@ function PublicFeedback() {
                     </div>
                   </div>
 
-                  {/* Google reCAPTCHA Verification Box */}
-                  <div className="flex flex-col gap-1 items-start">
-                    <Captcha onVerify={handleCaptchaVerify} />
-                    <FieldError message={errors.captchaToken} />
-                  </div>
-
                   {/* General Error Notification */}
                   {error && (
                     <div className="rounded border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-semibold text-red-600 flex items-start gap-2 animate-fade-in">
@@ -271,6 +255,8 @@ function PublicFeedback() {
                       <span>{error}</span>
                     </div>
                   )}
+
+                  <RecaptchaNotice />
                 </>
               )}
             </div>

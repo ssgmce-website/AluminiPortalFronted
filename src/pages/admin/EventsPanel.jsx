@@ -5,16 +5,18 @@ import {
   Filter, CheckCircle2, XCircle, Loader2, Download, Bus,
   Train, Car, Home, Clock, Phone, Mail, Award, Check
 } from 'lucide-react';
-import { fetchEventRegistrations, updateEventAttendance } from '../../services/adminService';
+import { fetchEventRegistrations, updateEventAttendance, listEventsAdmin } from '../../services/adminService';
+import { fetchActiveEvent } from '../../services/alumniService';
 import { search } from 'fast-fuzzy';
 
 export const EventsPanel = ({ tab }) => {
-  // Current meet is 2026, old meets can be 2025, etc.
-  const targetYear = tab === 'current' ? '2026' : '2025';
-
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const [activeEvent, setActiveEvent] = useState(null);
+  const [allEvents, setAllEvents] = useState([]);
+  const [selectedYear, setSelectedYear] = useState('');
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,14 +30,52 @@ export const EventsPanel = ({ tab }) => {
 
   // Load data
   useEffect(() => {
-    loadRegistrations();
-  }, [targetYear]);
+    initPanel();
+  }, [tab]);
 
-  const loadRegistrations = async () => {
+  const initPanel = async () => {
     try {
       setLoading(true);
       setError('');
-      const data = await fetchEventRegistrations(targetYear);
+      if (tab === 'current') {
+        const active = await fetchActiveEvent();
+        if (active) {
+          setActiveEvent(active);
+          setSelectedYear(active.year);
+          const data = await fetchEventRegistrations(active.year);
+          setRegistrations(data.registrations || []);
+        } else {
+          setActiveEvent(null);
+          setSelectedYear('');
+          setRegistrations([]);
+        }
+      } else {
+        const events = await listEventsAdmin();
+        setAllEvents(events || []);
+        const inactiveEvents = (events || []).filter(e => !e.isActive);
+        if (inactiveEvents.length > 0) {
+          setSelectedYear(inactiveEvents[0].year);
+          const data = await fetchEventRegistrations(inactiveEvents[0].year);
+          setRegistrations(data.registrations || []);
+        } else {
+          setSelectedYear('');
+          setRegistrations([]);
+        }
+      }
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to initialize event registrations.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleYearChange = async (year) => {
+    setSelectedYear(year);
+    try {
+      setLoading(true);
+      setError('');
+      const data = await fetchEventRegistrations(year);
       setRegistrations(data.registrations || []);
     } catch (err) {
       setError(err?.response?.data?.message || 'Failed to load registration data.');
@@ -132,7 +172,7 @@ export const EventsPanel = ({ tab }) => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `Meet-${targetYear}-Registrations.xls`;
+    link.download = `Meet-${selectedYear || 'Event'}-Registrations.xls`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -149,6 +189,18 @@ export const EventsPanel = ({ tab }) => {
 
   const Icon = tab === 'current' ? CalendarClock : History;
 
+  if (tab === 'current' && !activeEvent && !loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-slate-200 shadow-sm text-center max-w-xl mx-auto px-6">
+        <Calendar size={48} className="text-[#0A3287] mb-4 opacity-75 animate-pulse" />
+        <h2 className="text-xl font-bold text-slate-800">No Active Event Configured</h2>
+        <p className="text-slate-500 text-sm mt-2 max-w-md leading-relaxed">
+          There is no active Alumni Meet event in the system. Go to <strong>Manage Events</strong> to create one and activate it.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Title block */}
@@ -156,21 +208,38 @@ export const EventsPanel = ({ tab }) => {
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
             <Icon className="w-7 h-7 text-[#0A3287]" />
-            {tab === 'current' ? `Alumni Meet ${targetYear} Registrations` : `Past Meet ${targetYear} Records`}
+            {tab === 'current' ? `Alumni Meet ${selectedYear || ''} Registrations` : `Past Meet ${selectedYear || ''} Records`}
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">
             Manage registrations, view travel plans, accommodation requests, and track attendance.
           </p>
         </div>
 
-        {registrations.length > 0 && (
-          <button
-            onClick={handleExport}
-            className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition shadow-md shrink-0 cursor-pointer"
-          >
-            <Download size={14} /> Export to Excel
-          </button>
-        )}
+        <div className="flex items-center gap-3 shrink-0">
+          {tab === 'old' && allEvents.filter(e => !e.isActive).length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-500 uppercase">Select Meet:</span>
+              <select
+                value={selectedYear}
+                onChange={(e) => handleYearChange(e.target.value)}
+                className="border border-[#cbd5e1] rounded-xl px-3 py-2 text-xs font-bold text-slate-700 bg-white focus:ring-2 focus:ring-[#0A3287]/20 outline-none"
+              >
+                {allEvents.filter(e => !e.isActive).map(e => (
+                  <option key={e._id} value={e.year}>{e.title} ({e.year})</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {registrations.length > 0 && (
+            <button
+              onClick={handleExport}
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition shadow-md shrink-0 cursor-pointer"
+            >
+              <Download size={14} /> Export to Excel
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Analytics Stats Strip */}
@@ -388,7 +457,7 @@ export const EventsPanel = ({ tab }) => {
 
           <div className="bg-slate-50 px-6 py-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-500">
             <span>Showing {filteredRegistrations.length} of {registrations.length} records</span>
-            <span>Alumni Meet {targetYear} Portal</span>
+            <span>Alumni Meet {selectedYear} Portal</span>
           </div>
         </div>
       )}

@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, CheckCircle2, AlertCircle, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   googleAuth,
@@ -20,7 +20,8 @@ import { routeForProfile } from '../utils/authRoutes';
 import { useAuth } from '../contexts/AuthContext';
 import logo from '../assets/logo.png';
 import loginBg from '../assets/REGISITER.png';
-import Captcha from '../components/Captcha';
+import { RecaptchaNotice } from '../components/Captcha';
+import { getRecaptchaToken, RECAPTCHA_ACTIONS } from '../utils/recaptcha';
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const NOT_REGISTERED_MSG = 'This email is not registered. Please register first.';
@@ -58,7 +59,6 @@ export const SignIn = () => {
   const [resetSent, setResetSent] = useState(false);
   const [forgotPasswordLoading, setForgotPasswordLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState('');
 
   const loginForm = useForm({ resolver: zodResolver(loginSchema) });
 
@@ -68,22 +68,21 @@ export const SignIn = () => {
     if (urlError) setError(friendlyAuthError(urlError));
   }, [searchParams]);
 
+  /** reCAPTCHA v3 — run before auth; backend verifies score via /public/verify-captcha */
+  const runLoginCaptcha = async () => {
+    const captchaToken = await getRecaptchaToken(RECAPTCHA_ACTIONS.LOGIN);
+    await verifyCaptchaOnBackend(captchaToken, RECAPTCHA_ACTIONS.LOGIN);
+  };
+
   // ── Handlers ──────────────────────────────────────────────────────────────
   const onSubmit = async (data) => {
     setError('');
     setResetSent(false);
-    if (!captchaToken) {
-      setError('Please verify that you are not a robot first.');
-      return;
-    }
     try {
       setAuthIntent('login');
-      // 1) Verify Captcha with Backend
-      await verifyCaptchaOnBackend(captchaToken);
-      // 2) Authenticate on Firebase
+      await runLoginCaptcha();
       await loginWithEmailPassword(data.email, data.password);
 
-      // 3) Authenticate on Backend
       const { user } = await loginWithBackend();
       setUserProfile(user);
       navigate(routeForProfile(user));
@@ -93,7 +92,7 @@ export const SignIn = () => {
         setError(NOT_REGISTERED_MSG);
         await logout();
       } else {
-        setError(err?.response?.data?.message || friendlyAuthError(err));
+        setError(err?.response?.data?.message || err?.message || friendlyAuthError(err));
       }
     }
   };
@@ -120,13 +119,9 @@ export const SignIn = () => {
   const handleGoogle = async () => {
     setError('');
     setResetSent(false);
-    if (!captchaToken) {
-      setError('Please verify that you are not a robot first.');
-      return;
-    }
     setGoogleLoading(true);
     try {
-      await verifyCaptchaOnBackend(captchaToken);
+      await runLoginCaptcha();
       setAuthIntent('login');
       const popped = await googleAuth();
       if (popped) {
@@ -139,7 +134,7 @@ export const SignIn = () => {
         setError(NOT_REGISTERED_MSG);
         await logout();
       } else {
-        setError(err?.response?.data?.message || friendlyAuthError(err));
+        setError(err?.response?.data?.message || err?.message || friendlyAuthError(err));
       }
     } finally {
       setGoogleLoading(false);
@@ -149,16 +144,12 @@ export const SignIn = () => {
   const handleLinkedIn = async () => {
     setError('');
     setResetSent(false);
-    if (!captchaToken) {
-      setError('Please verify that you are not a robot first.');
-      return;
-    }
     try {
-      await verifyCaptchaOnBackend(captchaToken);
+      await runLoginCaptcha();
       setAuthIntent('login');
       linkedInRedirect();
     } catch (err) {
-      setError(err?.response?.data?.message || 'Captcha verification failed.');
+      setError(err?.response?.data?.message || err?.message || 'Captcha verification failed.');
     }
   };
 
@@ -267,12 +258,7 @@ export const SignIn = () => {
                 </button>
               </div>
 
-              {/* reCAPTCHA verification container */}
-              <div className="flex justify-center py-2">
-                <Captcha onVerify={setCaptchaToken} />
-              </div>
-
-              {/* Primary CTA */}
+              {/* Primary CTA — reCAPTCHA v3 runs invisibly on submit */}
               <button
                 type="submit"
                 disabled={loginForm.formState.isSubmitting}
@@ -284,6 +270,8 @@ export const SignIn = () => {
                   'Login'
                 )}
               </button>
+
+              <RecaptchaNotice className="pt-1" />
             </form>
 
             {/* ── Divider ──────────────────────────────────────────────────── */}

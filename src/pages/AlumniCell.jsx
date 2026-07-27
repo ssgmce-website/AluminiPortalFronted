@@ -137,7 +137,7 @@ function AlumniCell() {
         >
           {/* About text */}
           <motion.div variants={fadeUp}>
-            <SectionHeading eyebrow="Who We Are" title="About the Alumni Cell" />
+            <SectionHeading eyebrow="Who We Are" title="About SSGMCE Alumni Cell" />
             <p className="mt-6 text-base leading-8 text-slate-600">
               The <strong className="text-slate-800">SSGMCE Alumni Cell</strong> is the official body that
               fosters a lasting connection between the college and its vast network of graduates. Established

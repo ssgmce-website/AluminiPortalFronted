@@ -18,7 +18,8 @@ import {
   loginWithBackend,
   verifyCaptchaOnBackend,
 } from '../services/authService';
-import Captcha from '../components/Captcha';
+import { RecaptchaNotice } from '../components/Captcha';
+import { getRecaptchaToken, RECAPTCHA_ACTIONS } from '../utils/recaptcha';
 import { auth } from '../firebase/firebase';
 import { updatePassword } from 'firebase/auth';
 import { friendlyAuthError } from '../utils/authErrors';
@@ -372,7 +373,6 @@ export const Register = () => {
   const [emailInput, setEmailInput] = useState('');
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState('');
   const [phone, setPhone] = useState("");
   const [reauthEmail, setReauthEmail] = useState('');
   const [reauthOtpSent, setReauthOtpSent] = useState(false);
@@ -549,15 +549,17 @@ export const Register = () => {
     setTimeout(() => navigate(status === 'approved' ? '/login' : '/pending'), 1500);
   };
 
+  /** reCAPTCHA v3 pre-check for OAuth registration paths */
+  const runRegisterCaptcha = async () => {
+    const captchaToken = await getRecaptchaToken(RECAPTCHA_ACTIONS.REGISTER);
+    await verifyCaptchaOnBackend(captchaToken, RECAPTCHA_ACTIONS.REGISTER);
+  };
+
   const handleGoogle = async () => {
     setError('');
-    if (!captchaToken) {
-      setError('Please verify that you are not a robot first.');
-      return;
-    }
     setBusy('google');
     try {
-      await verifyCaptchaOnBackend(captchaToken);
+      await runRegisterCaptcha();
       setAuthIntent('register');
       const popped = await googleAuth();
       if (popped) {
@@ -575,7 +577,7 @@ export const Register = () => {
         clearAuthIntent();
       }
     } catch (err) {
-      setError(err?.response?.data?.message || friendlyAuthError(err));
+      setError(err?.response?.data?.message || err?.message || friendlyAuthError(err));
     } finally {
       setBusy('');
     }
@@ -583,17 +585,13 @@ export const Register = () => {
 
   const handleLinkedIn = async () => {
     setError('');
-    if (!captchaToken) {
-      setError('Please verify that you are not a robot first.');
-      return;
-    }
     setBusy('email');
     try {
-      await verifyCaptchaOnBackend(captchaToken);
+      await runRegisterCaptcha();
       setAuthIntent('register');
       linkedInRedirect();
     } catch (err) {
-      setError(err?.response?.data?.message || 'Captcha verification failed.');
+      setError(err?.response?.data?.message || err?.message || 'Captcha verification failed.');
     } finally {
       setBusy('');
     }
@@ -607,19 +605,16 @@ export const Register = () => {
       setError('Please enter a valid email address.');
       return;
     }
-    if (!captchaToken) {
-      setError('Please verify that you are not a robot first.');
-      return;
-    }
     setBusy('email');
     try {
       const { exists, status } = await checkEmailRegistered(email);
       if (exists) return handleAlreadyRegistered(status);
       setAuthIntent('register');
-      await requestEmailOtp(email, captchaToken);
+      const captchaToken = await getRecaptchaToken(RECAPTCHA_ACTIONS.SEND_OTP);
+      await requestEmailOtp(email, captchaToken, false, RECAPTCHA_ACTIONS.SEND_OTP);
       setOtpSent(email);
     } catch (err) {
-      setError(err?.response?.data?.message || friendlyAuthError(err));
+      setError(err?.response?.data?.message || err?.message || friendlyAuthError(err));
     } finally {
       setBusy('');
     }
@@ -856,11 +851,6 @@ export const Register = () => {
                   </div>
                 </div>
 
-                {/* reCAPTCHA verification container */}
-                <div className="flex justify-center py-2">
-                  <Captcha onVerify={setCaptchaToken} />
-                </div>
-
                 <button
                   type="submit"
                   disabled={busy === 'email'}
@@ -870,6 +860,8 @@ export const Register = () => {
                   {busy === 'email' ? 'Sending link…' : 'Verify Email Address'}
                   {busy !== 'email' && <ArrowRight size={16} />}
                 </button>
+
+                <RecaptchaNotice />
               </form>
 
               {/* Social Login/Verification Divider */}

@@ -32,6 +32,7 @@ const AdminLogin = lazy(() => import('../pages/AdminLogin').then(m => ({ default
 const AdminOverview = lazy(() => import('../pages/admin/AdminOverview').then(m => ({ default: m.AdminOverview })));
 const MembersPanel = lazy(() => import('../pages/admin/MembersPanel').then(m => ({ default: m.MembersPanel })));
 const EventsPanel = lazy(() => import('../pages/admin/EventsPanel').then(m => ({ default: m.EventsPanel })));
+const EventsManagementPanel = lazy(() => import('../pages/admin/EventsManagementPanel').then(m => ({ default: m.EventsManagementPanel })));
 const FeedbacksPanel = lazy(() => import('../pages/admin/FeedbacksPanel').then(m => ({ default: m.FeedbacksPanel })));
 const FinancesPanel = lazy(() => import('../pages/admin/FinancesPanel').then(m => ({ default: m.FinancesPanel })));
 const TravelPanel = lazy(() => import('../pages/admin/TravelPanel').then(m => ({ default: m.TravelPanel })));
@@ -39,6 +40,7 @@ const AnnualReportsPanel = lazy(() => import('../pages/admin/AnnualReportsPanel'
 const NewslettersPanel = lazy(() => import('../pages/admin/NewslettersPanel').then(m => ({ default: m.NewslettersPanel })));
 const GalleryPanel = lazy(() => import('../pages/admin/GalleryPanel'));
 const NewsPanel = lazy(() => import('../pages/admin/NewsPanel').then(m => ({ default: m.NewsPanel })));
+const ExecutiveTeamPanel = lazy(() => import('../pages/admin/ExecutiveTeamPanel').then(m => ({ default: m.ExecutiveTeamPanel })));
 
 
 
@@ -54,7 +56,6 @@ const Newsletter = lazy(() => import('../pages/Newsletter'));
 const NewsDetail = lazy(() => import('../pages/NewsDetail'));
 const AnnualReport = lazy(() => import('../pages/AnnualReport'));
 const Donation = lazy(() => import('../pages/Donation'));
-const EventRegistration = lazy(() => import('../pages/EventRegistration'));
 const AlumniFeedback = lazy(() => import('../pages/AlumniFeedback'));
 const Gallery = lazy(() => import('../pages/Gallery'));
 const ContactPage = lazy(() => import('../pages/ContactPage'));
@@ -120,7 +121,6 @@ export const AppRoutes = () => {
           <Route path="/newsletter" element={<Newsletter />} />
           <Route path="/news/:newsId" element={<NewsDetail />} />
           <Route path="/donation" element={<Donation />} />
-          <Route path="/event/registration" element={<EventRegistration />} />
           <Route path="/event/gallery" element={<Navigate to="/gallery" replace />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/contact" element={<ContactPage />} />
@@ -190,10 +190,12 @@ export const AppRoutes = () => {
           <Route path="members/approved" element={<Suspense fallback={<PageLoader />}><MembersPanel tab="approved" /></Suspense>} />
           <Route path="members/rejected" element={<Suspense fallback={<PageLoader />}><MembersPanel tab="rejected" /></Suspense>} />
           <Route path="members/dept-wise" element={<Suspense fallback={<PageLoader />}><MembersPanel tab="dept-wise" /></Suspense>} />
+          <Route path="members/distinguished" element={<Suspense fallback={<PageLoader />}><MembersPanel tab="distinguished" /></Suspense>} />
 
           {/* Events */}
           <Route path="events/current" element={<Suspense fallback={<PageLoader />}><EventsPanel tab="current" /></Suspense>} />
           <Route path="events/old" element={<Suspense fallback={<PageLoader />}><EventsPanel tab="old" /></Suspense>} />
+          <Route path="events/manage" element={<Suspense fallback={<PageLoader />}><EventsManagementPanel /></Suspense>} />
 
           {/* Feedbacks */}
           <Route path="feedbacks/alumni" element={<Suspense fallback={<PageLoader />}><FeedbacksPanel tab="alumni" /></Suspense>} />
@@ -201,7 +203,6 @@ export const AppRoutes = () => {
 
 
           {/* Finances */}
-          <Route path="finances/donations" element={<Suspense fallback={<PageLoader />}><FinancesPanel tab="donations" /></Suspense>} />
           <Route path="finances/contributions" element={<Suspense fallback={<PageLoader />}><FinancesPanel tab="contributions" /></Suspense>} />
 
           {/* Travel */}
@@ -216,6 +217,7 @@ export const AppRoutes = () => {
           <Route path="gallery" element={<Suspense fallback={<PageLoader />}><GalleryPanel /></Suspense>} />
           <Route path="media/gallery" element={<Suspense fallback={<PageLoader />}><GalleryPanel /></Suspense>} />
           <Route path="news" element={<Suspense fallback={<PageLoader />}><NewsPanel /></Suspense>} />
+          <Route path="executive-team" element={<Suspense fallback={<PageLoader />}><ExecutiveTeamPanel /></Suspense>} />
         </Route>
 
 

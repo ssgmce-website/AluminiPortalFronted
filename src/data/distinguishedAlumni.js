@@ -44,4 +44,28 @@ const distinguishedAlumni = [
   { name: 'Vinayak Pandit',         branch: 'Computer Science and Engineering', batch: '', role: 'Sr. Director, Digital Transformation', company: 'Reynolds Consumer Products',                            location: '', achievement: '', photo: vinayakPanditImg },
 ];
 
+export const mapBranchToAbbreviation = (branchName) => {
+  if (!branchName) return 'CSE';
+  const lower = branchName.toLowerCase();
+  if (lower.includes('computer') || lower.includes('cse')) return 'CSE';
+  if (lower.includes('information') || lower.includes('it')) return 'IT';
+  if (lower.includes('telecommunication') || lower.includes('entc')) return 'ENTC';
+  if (lower.includes('electrical') || lower.includes('elpo')) return 'ELPO';
+  if (lower.includes('mechanical') || lower.includes('mech')) return 'MECH';
+  if (lower.includes('mba')) return 'MBA';
+  return branchName;
+};
+
+export const getAlumniBranchId = (branchName) => {
+  if (!branchName) return 'cse';
+  const lower = branchName.toLowerCase();
+  if (lower.includes('computer') || lower.includes('cse')) return 'cse';
+  if (lower.includes('information') || lower.includes('it')) return 'it';
+  if (lower.includes('telecommunication') || lower.includes('entc')) return 'entc';
+  if (lower.includes('electrical') || lower.includes('elpo')) return 'elpo';
+  if (lower.includes('mechanical') || lower.includes('mech')) return 'mech';
+  if (lower.includes('mba')) return 'mba';
+  return 'cse';
+};
+
 export default distinguishedAlumni;

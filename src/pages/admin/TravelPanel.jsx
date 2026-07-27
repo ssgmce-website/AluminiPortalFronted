@@ -5,7 +5,7 @@ import {
   Train, Car, Plane, Bus, ChevronDown, Loader2, Phone, Mail,
   XCircle, CheckCircle2, ShieldAlert
 } from 'lucide-react';
-import { fetchEventRegistrations } from '../../services/adminService';
+import { fetchEventRegistrations, listEventsAdmin } from '../../services/adminService';
 
 const MODE_ICON = { Train: Train, Bus: Bus, 'Own Vehicle': Car };
 
@@ -16,14 +16,43 @@ const STATUS_COLOR = {
 };
 
 export const TravelPanel = ({ tab }) => {
-  const [selectedYear, setSelectedYear] = useState('2026');
+  const [selectedYear, setSelectedYear] = useState('');
+  const [allEvents, setAllEvents] = useState([]);
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    loadData();
+    initPanel();
+  }, []);
+
+  useEffect(() => {
+    if (selectedYear) {
+      loadData();
+    }
   }, [selectedYear]);
+
+  const initPanel = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const events = await listEventsAdmin();
+      setAllEvents(events || []);
+      
+      const active = (events || []).find(e => e.isActive);
+      if (active) {
+        setSelectedYear(active.year);
+      } else if (events && events.length > 0) {
+        setSelectedYear(events[0].year);
+      } else {
+        setLoading(false);
+      }
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to initialize travel dashboard.');
+      console.error(err);
+      setLoading(false);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -191,9 +220,9 @@ export const TravelPanel = ({ tab }) => {
             onChange={e => setSelectedYear(e.target.value)}
             className="appearance-none bg-white border border-slate-200 rounded-xl pl-4 pr-10 py-2.5 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-100 cursor-pointer shadow-sm"
           >
-            <option value="2026">Alumni Meet 2026</option>
-            <option value="2025">Alumni Meet 2025</option>
-            <option value="2024">Alumni Meet 2024</option>
+            {allEvents.map(e => (
+              <option key={e._id} value={e.year}>{e.title} ({e.year})</option>
+            ))}
           </select>
           <ChevronDown size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
         </div>

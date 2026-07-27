@@ -1,35 +1,19 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
-  Heart, TrendingUp, IndianRupee, Download, Search,
-  CheckCircle2, XCircle, AlertTriangle, Clock,
+  TrendingUp, Search, CheckCircle2, XCircle, Clock, Eye, Globe, Check, Loader2
 } from 'lucide-react';
-
-const INITIAL_DONATIONS = [
-  { id: 1, name: 'Rajesh Kumar',  email: 'rajesh@example.com',  amount: 5000,  date: '2025-01-15', purpose: 'Library Fund',     mode: 'UPI',    utr: null,          status: 'completed' },
-  { id: 2, name: 'Priya Sharma',  email: 'priya@example.com',   amount: 10000, date: '2025-02-03', purpose: 'Scholarship Fund', mode: 'NEFT',   utr: null,          status: 'completed' },
-  { id: 3, name: 'Amit Patel',    email: 'amit@example.com',    amount: 2500,  date: '2025-02-20', purpose: 'Sports Fund',      mode: 'UPI',    utr: null,          status: 'completed' },
-  { id: 4, name: 'Sneha Desai',   email: 'sneha@example.com',   amount: 7500,  date: '2025-03-01', purpose: 'Infrastructure',   mode: 'NEFT',   utr: 'NEFT25030112', status: 'pending' },
-  { id: 5, name: 'Vikram Singh',  email: 'vikram@example.com',  amount: 15000, date: '2025-03-10', purpose: 'Scholarship Fund', mode: 'Cheque', utr: null,          status: 'completed' },
-  { id: 6, name: 'Neha Joshi',    email: 'neha@example.com',    amount: 3000,  date: '2025-03-18', purpose: 'Library Fund',     mode: 'UPI',    utr: 'UPI253180842', status: 'pending' },
-  { id: 7, name: 'Ravi Sharma',   email: 'ravi.s@example.com',  amount: 5000,  date: '2025-03-22', purpose: 'Scholarship Fund', mode: 'UPI',    utr: 'UPI253220019', status: 'pending' },
-  { id: 8, name: 'Anita Pillai',  email: 'anita@example.com',   amount: 20000, date: '2025-03-25', purpose: 'Infrastructure',   mode: 'RTGS',   utr: 'RTGS25325004', status: 'pending' },
-];
-
-const CONTRIBUTIONS = [
-  { id: 1, name: 'Suresh Mehta',  email: 'suresh@example.com', type: 'Book Donation',    description: '25 Engineering textbooks donated to library',      date: '2025-01-20', value: '~₹12,000', status: 'received' },
-  { id: 2, name: 'Kavita Rao',    email: 'kavita@example.com', type: 'Equipment',        description: 'Lab equipment for Electronics dept',               date: '2025-02-05', value: '~₹45,000', status: 'received' },
-  { id: 3, name: 'Deepak Nair',   email: 'deepak@example.com', type: 'Mentorship',       description: '10-session career mentorship program for students', date: '2025-02-15', value: 'Pro-bono', status: 'ongoing' },
-  { id: 4, name: 'Anita Pillai',  email: 'anita@example.com',  type: 'Book Donation',    description: '15 Management & Finance books',                    date: '2025-03-02', value: '~₹6,000',  status: 'received' },
-  { id: 5, name: 'Ravi Tiwari',   email: 'ravi@example.com',   type: 'Software License', description: 'AutoCAD licenses for Civil dept (1 year)',          date: '2025-03-12', value: '~₹80,000', status: 'received' },
-];
+import {
+  fetchContributionsAdmin,
+  updateContributionStatusAdmin,
+  updateContributionBeneficiariesAdmin,
+  toggleContributionPublicAdmin
+} from '../../services/adminService';
 
 const STATUS_COLOR = {
-  completed: 'bg-emerald-100 text-emerald-700',
-  pending:   'bg-blue-100 text-blue-700',
-  rejected:  'bg-red-100 text-red-700',
-  received:  'bg-emerald-100 text-emerald-700',
-  ongoing:   'bg-blue-100 text-blue-700',
+  Approved:  'bg-emerald-100 text-emerald-700 border border-emerald-200',
+  Pending:   'bg-blue-100 text-blue-700 border border-blue-200',
+  Rejected:  'bg-red-100 text-red-700 border border-red-200',
 };
 
 function SummaryCard({ label, value, icon: Icon, valueColor = 'text-gray-900' }) {
@@ -58,168 +42,88 @@ function SearchBar({ value, onChange, placeholder }) {
   );
 }
 
-function PendingConfirmations({ donations, onConfirm, onReject }) {
-  const pending = donations.filter(d => d.status === 'pending');
-  if (pending.length === 0) return null;
+export const FinancesPanel = () => {
+  const [search, setSearch] = useState('');
 
-  return (
-    <div className="bg-blue-50 border border-blue-200 rounded-xl overflow-hidden">
-      {/* Section header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-blue-200 bg-blue-100/60">
-        <AlertTriangle size={16} className="text-blue-600 shrink-0" />
-        <span className="font-semibold text-blue-800 text-sm">
-          Pending Donation Confirmations
-        </span>
-        <span className="ml-auto bg-blue-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-          {pending.length}
-        </span>
-      </div>
+  // Contributions state
+  const [contributions, setContributions] = useState([]);
+  const [loadingContribs, setLoadingContribs] = useState(true);
+  const [beneficiaryInputs, setBeneficiaryInputs] = useState({});
+  const [savingBeneficiaryId, setSavingBeneficiaryId] = useState(null);
 
-      <div className="divide-y divide-blue-100">
-        <AnimatePresence initial={false}>
-          {pending.map(d => (
-            <motion.div
-              key={d.id}
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
-              transition={{ duration: 0.22 }}
-            >
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-3">
-                {/* Info */}
-                <div className="flex-1 min-w-0 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-                  <span className="font-semibold text-gray-900">{d.name}</span>
-                  <span className="text-gray-500">{d.email}</span>
-                  <span className="font-semibold text-gray-900">
-                    ₹{d.amount.toLocaleString('en-IN')}
-                  </span>
-                  <span className="text-gray-500">{d.purpose}</span>
-                  <span className="flex items-center gap-1 text-xs text-gray-400">
-                    <Clock size={12} /> {new Date(d.date).toLocaleDateString('en-IN')}
-                  </span>
-                </div>
+  useEffect(() => {
+    loadContributions();
+  }, []);
 
-                {/* UTR + actions */}
-                <div className="flex items-center gap-3 shrink-0 flex-wrap">
-                  {d.utr && (
-                    <div className="text-xs">
-                      <span className="text-gray-400 mr-1">UTR:</span>
-                      <span className="font-mono font-semibold text-gray-700 bg-white border border-gray-200 px-2 py-0.5 rounded">
-                        {d.utr}
-                      </span>
-                    </div>
-                  )}
-                  <button
-                    onClick={() => onConfirm(d.id)}
-                    className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
-                  >
-                    <CheckCircle2 size={13} /> Mark Confirmed
-                  </button>
-                  <button
-                    onClick={() => onReject(d.id)}
-                    className="flex items-center gap-1.5 border border-red-300 text-red-600 hover:bg-red-50 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
-                  >
-                    <XCircle size={13} /> Reject
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
-    </div>
-  );
-}
+  const loadContributions = async () => {
+    setLoadingContribs(true);
+    try {
+      const data = await fetchContributionsAdmin();
+      setContributions(data?.contributions || []);
+      const inputs = {};
+      (data?.contributions || []).forEach(c => {
+        inputs[c._id] = c.beneficiaries || '';
+      });
+      setBeneficiaryInputs(inputs);
+    } catch (err) {
+      console.error('Failed to load contributions:', err);
+    } finally {
+      setLoadingContribs(false);
+    }
+  };
 
-export const FinancesPanel = ({ tab }) => {
-  const [search, setSearch]     = useState('');
-  const [donations, setDonations] = useState(INITIAL_DONATIONS);
+  const handleStatusChange = async (id, status) => {
+    try {
+      await updateContributionStatusAdmin(id, status);
+      setContributions(prev =>
+        prev.map(c => (c._id === id ? { ...c, status } : c))
+      );
+    } catch (err) {
+      alert(err.message || 'Failed to update status');
+    }
+  };
 
-  const confirm = (id) =>
-    setDonations(prev => prev.map(d => d.id === id ? { ...d, status: 'completed' } : d));
+  const handleBeneficiaryInputChange = (id, val) => {
+    setBeneficiaryInputs(prev => ({ ...prev, [id]: val }));
+  };
 
-  const reject = (id) =>
-    setDonations(prev => prev.map(d => d.id === id ? { ...d, status: 'rejected' } : d));
+  const handleBeneficiariesSave = async (id) => {
+    setSavingBeneficiaryId(id);
+    try {
+      const val = beneficiaryInputs[id] || '';
+      await updateContributionBeneficiariesAdmin(id, val);
+      setContributions(prev =>
+        prev.map(c => (c._id === id ? { ...c, beneficiaries: val } : c))
+      );
+      alert('Beneficiaries updated and notification email sent to alumni!');
+    } catch (err) {
+      alert(err.message || 'Failed to update beneficiaries');
+    } finally {
+      setSavingBeneficiaryId(null);
+    }
+  };
 
-  if (tab === 'donations') {
-    const filtered = donations.filter(d =>
-      d.name.toLowerCase().includes(search.toLowerCase()) ||
-      d.purpose.toLowerCase().includes(search.toLowerCase())
-    );
-    const totalReceived = donations.filter(d => d.status === 'completed').reduce((s, d) => s + d.amount, 0);
-    const totalPending  = donations.filter(d => d.status === 'pending').reduce((s, d) => s + d.amount, 0);
+  const handlePublicToggle = async (id, currentVal) => {
+    try {
+      const newVal = !currentVal;
+      await toggleContributionPublicAdmin(id, newVal);
+      setContributions(prev =>
+        prev.map(c => (c._id === id ? { ...c, isPublic: newVal } : c))
+      );
+      if (newVal) {
+        alert('Contribution is now live on the public website and notification email has been sent!');
+      } else {
+        alert('Contribution has been removed from the public website.');
+      }
+    } catch (err) {
+      alert(err.message || 'Failed to toggle public status');
+    }
+  };
 
-    return (
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Heart size={24} className="text-blue-700" /> Donations
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">Monetary donations received from alumni.</p>
-          </div>
-          <button className="flex items-center gap-2 text-sm text-gray-600 border border-gray-300 rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors">
-            <Download size={14} /> Export
-          </button>
-        </div>
-
-        {/* Summary cards */}
-        <div className="grid grid-cols-3 gap-4">
-          <SummaryCard label="Total Received" value={`₹${totalReceived.toLocaleString('en-IN')}`} icon={IndianRupee} valueColor="text-emerald-700" />
-          <SummaryCard label="Pending"        value={`₹${totalPending.toLocaleString('en-IN')}`}  icon={Clock}       valueColor="text-blue-600" />
-          <SummaryCard label="Total Donors"   value={donations.length}                             icon={Heart} />
-        </div>
-
-        {/* Pending confirmations */}
-        <PendingConfirmations donations={donations} onConfirm={confirm} onReject={reject} />
-
-        {/* Search + full table */}
-        <SearchBar value={search} onChange={setSearch} placeholder="Search by name or purpose…" />
-
-        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
-              <tr>
-                {['#', 'Donor', 'Email', 'Amount', 'Purpose', 'Mode', 'UTR', 'Date', 'Status'].map(h => (
-                  <th key={h} className="px-4 py-3 text-left">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filtered.map((d, i) => (
-                <motion.tr
-                  key={d.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="hover:bg-blue-50/40 transition-colors"
-                >
-                  <td className="px-4 py-3 text-gray-400">{i + 1}</td>
-                  <td className="px-4 py-3 font-medium text-gray-900">{d.name}</td>
-                  <td className="px-4 py-3 text-gray-500">{d.email}</td>
-                  <td className="px-4 py-3 font-semibold text-gray-900">₹{d.amount.toLocaleString('en-IN')}</td>
-                  <td className="px-4 py-3 text-gray-500">{d.purpose}</td>
-                  <td className="px-4 py-3 text-gray-500">{d.mode}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-gray-500">{d.utr || '—'}</td>
-                  <td className="px-4 py-3 text-gray-400">{new Date(d.date).toLocaleDateString('en-IN')}</td>
-                  <td className="px-4 py-3">
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize ${STATUS_COLOR[d.status] ?? 'bg-gray-100 text-gray-500'}`}>
-                      {d.status}
-                    </span>
-                  </td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Contributions tab ──────────────────────────────────────────────────────
-  const filtered = CONTRIBUTIONS.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.type.toLowerCase().includes(search.toLowerCase())
+  const filtered = contributions.filter(c =>
+    (c.alumnusName || '').toLowerCase().includes(search.toLowerCase()) ||
+    (c.contributionType || '').toLowerCase().includes(search.toLowerCase()) ||
+    (c.target || '').toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -229,47 +133,196 @@ export const FinancesPanel = ({ tab }) => {
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <TrendingUp size={24} className="text-blue-700" /> Contributions
           </h1>
-          <p className="text-sm text-gray-500 mt-1">Non-monetary contributions from alumni (books, equipment, mentorship).</p>
+          <p className="text-sm text-gray-500 mt-1">Monetary and non-monetary support requests from alumni.</p>
         </div>
-        <button className="flex items-center gap-2 text-sm text-gray-600 border border-gray-300 rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors">
-          <Download size={14} /> Export
+        <button 
+          onClick={loadContributions} 
+          disabled={loadingContribs}
+          className="flex items-center gap-2 text-sm text-gray-600 border border-gray-300 rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors disabled:opacity-50"
+        >
+          {loadingContribs ? 'Loading...' : 'Refresh'}
         </button>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <SummaryCard label="Total Contributions" value={CONTRIBUTIONS.length}                                      icon={TrendingUp} />
-        <SummaryCard label="Received"            value={CONTRIBUTIONS.filter(c => c.status === 'received').length} icon={TrendingUp} valueColor="text-emerald-700" />
-        <SummaryCard label="Ongoing"             value={CONTRIBUTIONS.filter(c => c.status === 'ongoing').length}  icon={TrendingUp} valueColor="text-blue-700" />
+        <SummaryCard label="Total Requests" value={contributions.length} icon={TrendingUp} />
+        <SummaryCard label="Pending Approval" value={contributions.filter(c => c.status === 'Pending').length} icon={Clock} valueColor="text-blue-700" />
+        <SummaryCard label="Approved / Public" value={contributions.filter(c => c.status === 'Approved' && c.isPublic).length} icon={Globe} valueColor="text-emerald-700" />
       </div>
 
-      <SearchBar value={search} onChange={setSearch} placeholder="Search by name or type…" />
+      <SearchBar value={search} onChange={setSearch} placeholder="Search by name, department, or contribution type…" />
 
-      <div className="space-y-3">
-        {filtered.map(c => (
-          <motion.div key={c.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-lg border border-gray-200 p-4"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-semibold text-gray-900">{c.name}</span>
-                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{c.type}</span>
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[c.status]}`}>{c.status}</span>
-                </div>
-                <p className="text-sm text-gray-500 mt-1">{c.description}</p>
-                <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
-                  <span>{c.email}</span>
-                  <span>{new Date(c.date).toLocaleDateString('en-IN')}</span>
-                </div>
-              </div>
-              <div className="text-right shrink-0">
-                <p className="font-semibold text-gray-900">{c.value}</p>
-                <p className="text-xs text-gray-400">est. value</p>
-              </div>
+      {loadingContribs ? (
+        <div className="text-center py-10">
+          <Loader2 className="animate-spin text-blue-700 mx-auto" size={32} />
+          <p className="text-sm text-gray-500 mt-2">Loading contributions...</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filtered.length === 0 ? (
+            <div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-sm text-gray-500 font-semibold">
+              No matching contributions found.
             </div>
-          </motion.div>
-        ))}
-      </div>
+          ) : (
+            filtered.map(c => (
+              <motion.div 
+                key={c._id} 
+                initial={{ opacity: 0, y: 6 }} 
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-lg border border-gray-200 p-5 shadow-sm space-y-4 hover:border-blue-200 transition-all"
+              >
+                {/* Upper row: Status & Type */}
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-gray-900 text-base">{c.alumnusName}</span>
+                      <span className="text-xs bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded border border-slate-200">
+                        {c.branch} ({c.passoutYear})
+                      </span>
+                      <span className="text-xs bg-blue-50 text-blue-800 font-semibold px-2 py-0.5 rounded border border-blue-100">
+                        For: {c.target}
+                      </span>
+                      <span className="text-xs bg-indigo-50 text-indigo-800 font-semibold px-2 py-0.5 rounded border border-indigo-100">
+                        Type: {c.contributionType}
+                      </span>
+                      <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full capitalize ${STATUS_COLOR[c.status]}`}>
+                        {c.status}
+                      </span>
+                    </div>
+                    
+                    {/* Alumnus Job Details & Contact */}
+                    <div className="text-xs text-gray-500 mt-1.5 space-y-0.5">
+                      <p>
+                        <span className="font-semibold text-gray-700">Profile:</span> {c.designation} at {c.organization}
+                      </p>
+                      <p>
+                        <span className="font-semibold text-gray-700">Contact:</span> {c.email} | {c.mobile}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <span className="text-xs font-bold text-slate-400 block uppercase">Mode</span>
+                    <span className="font-extrabold text-slate-700 text-sm block">
+                      {c.typeOfContribution === 'Money' ? 'Financial (Money)' : 'Non-Financial'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Details Section */}
+                <div className="bg-slate-50 rounded-lg p-3 border border-slate-100 space-y-2.5">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Description</span>
+                    <p className="text-sm text-slate-700 font-medium leading-relaxed">{c.description || '—'}</p>
+                  </div>
+
+                  {c.typeOfContribution === 'Money' && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t border-slate-200/60 text-xs">
+                      <div>
+                        <span className="text-gray-400 block font-semibold">Amount</span>
+                        <span className="font-bold text-gray-900">₹{Number(c.amount).toLocaleString('en-IN')}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400 block font-semibold">UTR/Transaction ID</span>
+                        <span className="font-mono text-gray-900 bg-white border px-1.5 py-0.5 rounded font-bold">{c.transactionId}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400 block font-semibold">Transaction Date</span>
+                        <span className="font-bold text-gray-900">{c.paymentDate ? new Date(c.paymentDate).toLocaleDateString('en-IN') : '—'}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400 block font-semibold">Receipt / Proof</span>
+                        {c.receiptUrl ? (
+                          <a 
+                            href={c.receiptUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 font-bold underline cursor-pointer"
+                          >
+                            <Eye size={12} /> View Receipt
+                          </a>
+                        ) : (
+                          <span className="text-red-500 font-medium">No proof uploaded</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Admin Actions */}
+                <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-slate-100">
+                  {/* Action 1: Pending Verification */}
+                  {c.status === 'Pending' ? (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleStatusChange(c._id, 'Approved')}
+                        className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-colors shadow-sm"
+                      >
+                        <CheckCircle2 size={14} /> Approve Contribution
+                      </button>
+                      <button
+                        onClick={() => handleStatusChange(c._id, 'Rejected')}
+                        className="flex items-center gap-1.5 border border-red-300 text-red-600 hover:bg-red-50 text-xs font-semibold px-3.5 py-2 rounded-lg transition-colors"
+                      >
+                        <XCircle size={14} /> Reject Request
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                      Status settled as: <span className="font-bold text-slate-800">{c.status}</span>
+                    </div>
+                  )}
+
+                  {/* Action 2: Approved details (Beneficiaries + Make Public) */}
+                  {c.status === 'Approved' && (
+                    <div className="flex flex-wrap items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+                      
+                      {/* Beneficiaries String Input */}
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-bold text-gray-500 shrink-0">Beneficiaries:</label>
+                        <input
+                          type="text"
+                          value={beneficiaryInputs[c._id] || ''}
+                          onChange={(e) => handleBeneficiaryInputChange(c._id, e.target.value)}
+                          placeholder="e.g. 10 students"
+                          className="px-3 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 w-36"
+                        />
+                        <button
+                          onClick={() => handleBeneficiariesSave(c._id)}
+                          disabled={savingBeneficiaryId === c._id}
+                          className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg transition-colors flex items-center justify-center shrink-0 disabled:opacity-50"
+                          title="Save Beneficiaries"
+                        >
+                          {savingBeneficiaryId === c._id ? (
+                            <Loader2 size={14} className="animate-spin" />
+                          ) : (
+                            <Check size={14} />
+                          )}
+                        </button>
+                      </div>
+
+                      {/* Make Public Toggle */}
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs font-bold text-gray-500 cursor-pointer flex items-center gap-1.5">
+                          <input
+                            type="checkbox"
+                            checked={c.isPublic || false}
+                            onChange={() => handlePublicToggle(c._id, c.isPublic)}
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          />
+                          Make Public on Static Web
+                        </label>
+                      </div>
+
+                    </div>
+                  )}
+                </div>
+
+              </motion.div>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 };

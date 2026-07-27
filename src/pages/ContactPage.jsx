@@ -2,7 +2,8 @@ import { useState } from "react";
 import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import PageShell from "../components/PageShell";
 import FormField from "../components/FormField";
-import Captcha from "../components/Captcha";
+import { RecaptchaNotice } from "../components/Captcha";
+import { getRecaptchaToken, RECAPTCHA_ACTIONS } from "../utils/recaptcha";
 import api from "../services/api";
 
 function ContactPage() {
@@ -13,7 +14,6 @@ function ContactPage() {
     subject: "",
     message: "",
   });
-  const [captchaToken, setCaptchaToken] = useState("");
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,13 +24,6 @@ function ContactPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
-  };
-
-  const handleCaptchaVerify = (token) => {
-    setCaptchaToken(token || "");
-    if (token && errors.captchaToken) {
-      setErrors((prev) => ({ ...prev, captchaToken: "" }));
     }
   };
 
@@ -49,7 +42,6 @@ function ContactPage() {
     if (!formData.contactNo.trim()) newErrors.contactNo = "Please enter your contact number.";
     if (!formData.subject.trim()) newErrors.subject = "Please enter a subject.";
     if (!formData.message.trim()) newErrors.message = "Please enter your message.";
-    if (!captchaToken) newErrors.captchaToken = "Please verify that you are not a robot.";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -58,6 +50,7 @@ function ContactPage() {
 
     try {
       setLoading(true);
+      const captchaToken = await getRecaptchaToken(RECAPTCHA_ACTIONS.CONTACT_US);
       await api.post("/public/contact-us", {
         name: formData.name.trim(),
         email: formData.email.trim(),
@@ -65,6 +58,7 @@ function ContactPage() {
         subject: formData.subject.trim(),
         message: formData.message.trim(),
         captchaToken,
+        captchaAction: RECAPTCHA_ACTIONS.CONTACT_US,
       });
 
       setSubmitted(true);
@@ -85,7 +79,6 @@ function ContactPage() {
       subject: "",
       message: "",
     });
-    setCaptchaToken("");
     setErrors({});
     setServerError("");
     setSubmitted(false);
@@ -195,17 +188,6 @@ function ContactPage() {
               textarea
             />
 
-            {/* Captcha Security */}
-            <div className="pt-2">
-              <Captcha onVerify={handleCaptchaVerify} />
-              {errors.captchaToken && (
-                <p className="mt-1 flex items-center gap-1 text-xs text-rose-600 font-semibold">
-                  <AlertCircle size={12} className="shrink-0" />
-                  <span>{errors.captchaToken}</span>
-                </p>
-              )}
-            </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -220,6 +202,8 @@ function ContactPage() {
                 "SUBMIT"
               )}
             </button>
+
+            <RecaptchaNotice />
           </form>
         )}
       </div>
