@@ -13,32 +13,46 @@ export const ActiveEventPopup = () => {
   const [activeEvent, setActiveEvent] = useState(null);
 
   useEffect(() => {
-    // Only show for logged-in alumni users
-    if (!userProfile) return;
-
-    // Skip only on admin and auth pages
-    if (location.pathname.startsWith('/admin') || location.pathname === '/login' || location.pathname === '/register') {
+    // Skip on admin, auth, and pending approval pages
+    if (
+      location.pathname.startsWith('/admin') ||
+      location.pathname === '/login' ||
+      location.pathname === '/register' ||
+      location.pathname === '/pending'
+    ) {
       return;
     }
+
+    // Check if popup has already been shown in this session
+    if (sessionStorage.getItem('event_popup_shown')) return;
 
     const checkActiveEvent = async () => {
       try {
         const event = await fetchActiveEvent();
         if (!event) return;
 
-        // Check if alumni is already registered — if check fails, assume not registered
-        try {
-          const regData = await getMyEventRegistration(event.year);
-          if (regData && regData.registered) {
-            return; // Already registered, no need to show popup
+        const sessionKey = `event_popup_shown_${event._id || event.id || event.year}`;
+        if (sessionStorage.getItem(sessionKey) || sessionStorage.getItem('event_popup_shown')) {
+          return;
+        }
+
+        // Check if alumni is already registered (only for logged-in users)
+        if (userProfile) {
+          try {
+            const regData = await getMyEventRegistration(event.year);
+            if (regData && regData.registered) {
+              return; // Already registered for event, no need to show popup
+            }
+          } catch (regErr) {
+            // Registration check failed (401, network error, etc.) — show popup anyway
+            console.warn('Could not check event registration status:', regErr);
           }
-        } catch (regErr) {
-          // Registration check failed (401, network error, etc.) — show popup anyway
-          console.warn('Could not check event registration status:', regErr);
         }
 
         setActiveEvent(event);
         setIsOpen(true);
+        sessionStorage.setItem('event_popup_shown', 'true');
+        sessionStorage.setItem(sessionKey, 'true');
       } catch (err) {
         console.error('Error fetching active event:', err);
       }
@@ -51,11 +65,20 @@ export const ActiveEventPopup = () => {
 
   const handleClose = () => {
     setIsOpen(false);
+    sessionStorage.setItem('event_popup_shown', 'true');
+    if (activeEvent) {
+      const sessionKey = `event_popup_shown_${activeEvent._id || activeEvent.id || activeEvent.year}`;
+      sessionStorage.setItem(sessionKey, 'true');
+    }
   };
 
   const handleRegisterRedirect = () => {
     handleClose();
-    navigate('/dashboard', { state: { activeTab: 'Events' } });
+    if (userProfile) {
+      navigate('/dashboard', { state: { activeTab: 'Events' } });
+    } else {
+      navigate('/register');
+    }
   };
 
   if (!isOpen || !activeEvent) return null;
