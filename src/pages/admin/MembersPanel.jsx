@@ -133,7 +133,7 @@ const MemberCard = ({ u, onApprove, onReject, actingId }) => {
 
       {/* Expanded details view */}
       {expanded && (
-        <div className="border-t border-slate-100 pt-4 mt-2 grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50/50 p-4 rounded-xl">
+        <div className="border-t border-slate-100 pt-4 mt-2 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50/50 p-4 rounded-xl">
           {/* Column 1: Personal Profile */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 border-b border-slate-100 pb-1.5">
@@ -206,20 +206,6 @@ const MemberCard = ({ u, onApprove, onReject, actingId }) => {
                   ) : '—'
                 }
               />
-            </div>
-          </div>
-
-          {/* Column 3: Engagement Profile */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 border-b border-slate-100 pb-1.5">
-              <Heart size={16} className="text-blue-700" />
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Alumni Engagement</h4>
-            </div>
-            <div className="space-y-3 pt-1">
-              <DetailCheckbox label="Mentoring Students" checked={u.interestedInMentoring} />
-              <DetailCheckbox label="Campus Recruitment" checked={u.interestedInRecruitment} />
-              <DetailCheckbox label="Guest Lectures / Webinars" checked={u.interestedInGuestLectures} />
-              <DetailCheckbox label="Donations / Sponsorships" checked={u.interestedInDonations} />
             </div>
           </div>
         </div>
