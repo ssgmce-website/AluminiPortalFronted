@@ -1,7 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { BookOpen, GraduationCap, Layers, Users, Loader2, Heart } from "lucide-react";
 import PageShell from "../components/PageShell";
-import legacyContributions from "../data/contributions.json";
 import api from "../services/api";
 
 const ALL_YEARS = "all";
@@ -133,7 +132,7 @@ function ContributionTable({ data, selectedBranch, selectedYear }) {
               </th>
               {showingAllBranches && (
                 <th className="px-4 py-3 text-xs font-extrabold uppercase tracking-wide text-slate-500">
-                  Branch 
+                  Branch
                 </th>
               )}
               <th className="px-4 py-3 text-xs font-extrabold uppercase tracking-wide text-slate-500">
@@ -170,12 +169,12 @@ function ContributionTable({ data, selectedBranch, selectedYear }) {
                     {row.details && <p className="text-slate-600 mt-1">{row.details}</p>}
 
                     {/* Display Impact / Beneficiaries */}
-                    {row.beneficiaries && (
+                    {/* {row.beneficiaries && (
                       <p className="mt-2 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded px-2.5 py-1 w-fit flex items-center gap-1.5">
                         <Heart size={12} className="fill-emerald-600 text-emerald-600" />
                         Impact: {row.beneficiaries}
                       </p>
-                    )}
+                    )} */}
 
                     {row.contributionDate && !row.beneficiaries && (
                       <p className="mt-1 text-xs font-semibold text-slate-400">
@@ -223,33 +222,18 @@ function Contribution() {
   };
 
   const allRows = useMemo(() => {
-    // 1. Process legacy
-    const legacyRows = legacyContributions
-      .map((item) => ({
-        id: `legacy-${item.id}`,
-        name: cleanAlumniName(item.name),
-        year: Number(item.contributionYear || item.year),
-        branch: item.departmentKey,
-        passoutYear: item.passoutYear || "-",
-        contribution: item.contribution,
-        details: item.details,
-        contributionDate: item.contributionDate,
-        beneficiaries: null,
-      }))
-      .filter((item) => item.branch);
-
-    // 2. Process DB contributions
-    const dbRows = dbContributions.map((item) => {
+    // Process DB contributions
+    return dbContributions.map((item) => {
       const yearVal = item.paymentDate
         ? new Date(item.paymentDate).getFullYear()
         : new Date(item.createdAt).getFullYear();
 
       return {
         id: item._id,
-        name: item.alumnusName,
+        name: cleanAlumniName(item.alumnusName),
         year: yearVal,
         branch: String(item.target || '').toLowerCase() === 'ssgmce' ? ALL_BRANCHES : String(item.target || '').toLowerCase(),
-        passoutYear: String(item.passoutYear),
+        passoutYear: item.passoutYear ? String(item.passoutYear) : "-",
         contribution: item.contributionType,
         details: item.description,
         contributionDate: item.paymentDate
@@ -257,9 +241,7 @@ function Contribution() {
           : new Date(item.createdAt).toLocaleDateString('en-IN'),
         beneficiaries: item.beneficiaries || null,
       };
-    });
-
-    return [...legacyRows, ...dbRows].sort((a, b) => a.name.localeCompare(b.name));
+    }).sort((a, b) => a.name.localeCompare(b.name));
   }, [dbContributions]);
 
   const filteredRows = useMemo(() => {
