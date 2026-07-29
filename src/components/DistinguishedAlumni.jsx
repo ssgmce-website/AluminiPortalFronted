@@ -46,11 +46,11 @@ function DistinguishedAlumni() {
 
   return (
     <PageShell eyebrow="Pride of SSGMCE" title="Distinguished Alumni">
-      <p className="mx-auto mb-8 max-w-3xl text-center text-sm leading-7 text-slate-500 md:text-base">
+      {/* <p className="mx-auto mb-8 max-w-3xl text-center text-sm leading-7 text-slate-500 md:text-base">
         Meet the graduates who carry the SSGMCE legacy forward — leaders, innovators, and
         changemakers across industries who continue to inspire the students and alumni who
         follow in their footsteps.
-      </p>
+      </p> */}
 
       {/* Branch Tabs Filter */}
       <div className="flex flex-wrap justify-center gap-2.5 mb-12">
