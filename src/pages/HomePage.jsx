@@ -267,8 +267,13 @@ export default function HomePage() {
   useEffect(() => {
     let cancelled = false;
     fetchNewlyRegisteredAlumni(8)
-      .then((alumni) => {
-        if (!cancelled && alumni?.length) setNewAlumni(alumni);
+      .then((dbAlumni) => {
+        if (!cancelled && dbAlumni) {
+          const dbNames = new Set((dbAlumni || []).map(a => a.name.toLowerCase().trim()));
+          const uniqueFallback = FALLBACK_ALUMNI.filter(a => !dbNames.has(a.name.toLowerCase().trim()));
+          const combined = [...(dbAlumni || []), ...uniqueFallback];
+          setNewAlumni(combined.slice(0, 8));
+        }
       })
       .catch(() => {
         // keep FALLBACK_ALUMNI on error
@@ -283,7 +288,7 @@ export default function HomePage() {
         if (!cancelled && dbAlumni) {
           const dbNames = new Set(dbAlumni.map(a => a.name.toLowerCase().trim()));
           const uniqueStatic = distinguishedAlumni.filter(a => !dbNames.has(a.name.toLowerCase().trim()));
-          setAlumniList([...uniqueStatic, ...dbAlumni]);
+          setAlumniList([...dbAlumni, ...uniqueStatic]);
         }
       })
       .catch((err) => {
@@ -441,6 +446,7 @@ export default function HomePage() {
 
           <div className="flex gap-5 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <motion.div
+              key={newAlumni.map(a => a.name).join(',')}
               variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }}
               className="flex gap-5"
             >
@@ -492,6 +498,7 @@ export default function HomePage() {
         <SectionHeader eyebrow="Pride of SSGMCE" title="Distinguished Alumni" cta="View All" href="/distinguished-alumni" />
 
         <motion.div
+          key={alumniList.map(a => a.name).join(',')}
           variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }}
           className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4"
         >

@@ -737,7 +737,7 @@ export const Dashboard = () => {
                       onClick={() => setShowContributionForm(true)}
                       className="mt-5 inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-all shadow-sm"
                     >
-                      Report Contribution
+                      Add Contribution
                     </button>
                   </div>
                 ) : (
