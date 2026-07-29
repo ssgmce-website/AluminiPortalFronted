@@ -56,7 +56,7 @@ const schema = z
       .string()
       .regex(/^\d{7,15}$/, 'Enter a valid phone number'),
     countryCode: z.string().min(2, 'Country code is required'),
-    profilePhoto: z.string().min(1, 'Profile photo is required'),
+    profilePhoto: z.string().optional(),
     dob: z.union([
       z.date(),
       z.string().min(1, 'Date of birth is required'),
@@ -1229,7 +1229,7 @@ export const Register = () => {
                           </label>
                         </div>
                         <div className="text-center">
-                          <p className="text-xs font-bold text-[#1a3a75]">Profile Photo<span className="text-red-500 ml-0.5">*</span></p>
+                          <p className="text-xs font-bold text-[#1a3a75]">Profile Photo</p>
                           <p className="text-[10px] text-gray-400">JPG, PNG or WEBP · Max 2MB</p>
                           <FieldError message={errors.profilePhoto?.message} />
                         </div>
