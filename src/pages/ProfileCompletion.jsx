@@ -12,10 +12,9 @@ import { uploadProfilePhoto } from '../services/uploadService';
 
 // ─── constants ────────────────────────────────────────────────────────────────
 const STEPS = [
-  { id: 1, label: 'Personal',      icon: User       },
-  { id: 2, label: 'Professional',  icon: Briefcase  },
-  { id: 3, label: 'Engagement',    icon: Heart      },
-  { id: 4, label: 'Review',        icon: ClipboardList },
+  { id: 1, label: 'Personal', icon: User },
+  { id: 2, label: 'Professional', icon: Briefcase },
+  { id: 3, label: 'Review', icon: ClipboardList },
 ];
 
 const EMPLOYMENT_OPTIONS = [
@@ -76,11 +75,10 @@ function Toggle({ label, description, checked, onChange }) {
     <button
       type="button"
       onClick={onChange}
-      className={`flex w-full items-center justify-between rounded-xl border px-4 py-3.5 text-left transition ${
-        checked
+      className={`flex w-full items-center justify-between rounded-xl border px-4 py-3.5 text-left transition ${checked
           ? 'border-blue-200 bg-blue-50'
           : 'border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50'
-      }`}
+        }`}
     >
       <div>
         <p className={`text-sm font-semibold ${checked ? 'text-blue-800' : 'text-slate-700'}`}>{label}</p>
@@ -100,21 +98,19 @@ function StepIndicator({ current }) {
   return (
     <div className="mb-8 flex items-center justify-center gap-0">
       {STEPS.map((step, idx) => {
-        const done   = current > step.id;
+        const done = current > step.id;
         const active = current === step.id;
         return (
           <div key={step.id} className="flex items-center">
             <div className="flex flex-col items-center gap-1.5">
-              <div className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-sm font-bold transition-all ${
-                done   ? 'border-blue-700 bg-blue-700 text-white'
-                : active ? 'border-blue-700 bg-white text-blue-700 shadow-sm shadow-blue-200'
-                : 'border-slate-200 bg-white text-slate-400'
-              }`}>
+              <div className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-sm font-bold transition-all ${done ? 'border-blue-700 bg-blue-700 text-white'
+                  : active ? 'border-blue-700 bg-white text-blue-700 shadow-sm shadow-blue-200'
+                    : 'border-slate-200 bg-white text-slate-400'
+                }`}>
                 {done ? <Check size={15} strokeWidth={2.5} /> : step.id}
               </div>
-              <span className={`hidden text-[11px] font-semibold sm:block ${
-                active ? 'text-blue-700' : done ? 'text-slate-500' : 'text-slate-300'
-              }`}>
+              <span className={`hidden text-[11px] font-semibold sm:block ${active ? 'text-blue-700' : done ? 'text-slate-500' : 'text-slate-300'
+                }`}>
                 {step.label}
               </span>
             </div>
@@ -283,11 +279,10 @@ function Step2({ form, set, onChange }) {
               key={opt}
               type="button"
               onClick={() => set('employmentStatus', opt)}
-              className={`rounded-full border px-4 py-1.5 text-sm font-semibold transition ${
-                status === opt
+              className={`rounded-full border px-4 py-1.5 text-sm font-semibold transition ${status === opt
                   ? 'border-blue-700 bg-blue-700 text-white'
                   : 'border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-600'
-              }`}
+                }`}
             >
               {opt}
             </button>
@@ -400,39 +395,6 @@ function Step2({ form, set, onChange }) {
   );
 }
 
-// ─── STEP 3 — Engagement ──────────────────────────────────────────────────────
-function Step3({ form, set }) {
-  const toggles = [
-    { key: 'interestedInMentoring',     label: 'Mentoring Students',         description: 'Guide current students with career and academic advice' },
-    { key: 'interestedInRecruitment',   label: 'Campus Recruitment',         description: 'Help recruit talented SSGMCE students for your organisation' },
-    { key: 'interestedInGuestLectures', label: 'Guest Lectures / Webinars',  description: 'Share your expertise through talks and online sessions' },
-    { key: 'interestedInDonations',     label: 'Donations / Contributions',  description: 'Support college infrastructure and student scholarships' },
-  ];
-
-  return (
-    <div className="space-y-5">
-      <div>
-        <h2 className="text-lg font-extrabold text-slate-800">Alumni Engagement</h2>
-        <p className="mt-0.5 text-sm text-slate-500">How you'd like to give back to the SSGMCE community.</p>
-        <div className="mt-3 h-1 w-10 rounded-full bg-amber-400" />
-      </div>
-
-      <div className="space-y-3">
-        {toggles.map(({ key, label, description }) => (
-          <Toggle
-            key={key}
-            label={label}
-            description={description}
-            checked={!!form[key]}
-            onChange={() => set(key, !form[key])}
-          />
-        ))}
-      </div>
-
-
-    </div>
-  );
-}
 
 // ─── STEP 4 — Review ─────────────────────────────────────────────────────────
 function ReviewRow({ label, value }) {
@@ -464,48 +426,42 @@ function Step4({ form, profile, consent, setConsent }) {
       </div>
 
       <ReviewSection title="Personal">
-        <ReviewRow label="Full Name"         value={profile.name} />
-        <ReviewRow label="Email"             value={profile.email} />
-        <ReviewRow label="Gender"            value={form.gender} />
-        <ReviewRow label="Date of Birth"     value={form.dob ? new Date(form.dob).toLocaleDateString('en-IN') : ''} />
-        <ReviewRow label="Contact"           value={profile.contactNumber ? `+91 ${profile.contactNumber}` : ''} />
+        <ReviewRow label="Full Name" value={profile.name} />
+        <ReviewRow label="Email" value={profile.email} />
+        <ReviewRow label="Gender" value={form.gender} />
+        <ReviewRow label="Date of Birth" value={form.dob ? new Date(form.dob).toLocaleDateString('en-IN') : ''} />
+        <ReviewRow label="Contact" value={profile.contactNumber ? `+91 ${profile.contactNumber}` : ''} />
 
-        <ReviewRow label="City / State"      value={[form.city, form.state, form.country, form.pinCode].filter(Boolean).join(', ')} />
-        <ReviewRow label="LinkedIn"          value={form.linkedinUrl} />
-        <ReviewRow label="About"             value={form.about} />
+        <ReviewRow label="City / State" value={[form.city, form.state, form.country, form.pinCode].filter(Boolean).join(', ')} />
+        <ReviewRow label="LinkedIn" value={form.linkedinUrl} />
+        <ReviewRow label="About" value={form.about} />
       </ReviewSection>
 
       <ReviewSection title="Academic">
-        <ReviewRow label="Course"     value={profile.course} />
-        <ReviewRow label="Branch"     value={profile.branch} />
-        <ReviewRow label="Admission"  value={profile.yearOfAdmission} />
-        <ReviewRow label="Passout"    value={profile.yearOfPassout} />
+        <ReviewRow label="Course" value={profile.course} />
+        <ReviewRow label="Branch" value={profile.branch} />
+        <ReviewRow label="Admission" value={profile.yearOfAdmission} />
+        <ReviewRow label="Passout" value={profile.yearOfPassout} />
       </ReviewSection>
 
       <ReviewSection title="Professional">
-        <ReviewRow label="Status"      value={form.employmentStatus} />
-        <ReviewRow label="Company"     value={form.companyName} />
-        <ReviewRow label="Work Email"  value={form.workEmail} />
+        <ReviewRow label="Status" value={form.employmentStatus} />
+        <ReviewRow label="Company" value={form.companyName} />
+        <ReviewRow label="Work Email" value={form.workEmail} />
         <ReviewRow label="Office Address" value={[form.officeAddress, form.officeCity, form.officeState, form.officeCountry, form.officePinCode].filter(Boolean).join(', ')} />
         <ReviewRow label="Designation" value={form.designation} />
-        <ReviewRow label="Industry"    value={form.industry} />
-        <ReviewRow label="Experience"  value={form.workExperience ? `${form.workExperience} years` : ''} />
-        <ReviewRow label="Skills"      value={form.skills} />
-        <ReviewRow label="Startup"     value={form.startupName} />
-        <ReviewRow label="University"  value={form.universityName} />
-        <ReviewRow label="Course"      value={form.higherStudiesCourse} />
+        <ReviewRow label="Industry" value={form.industry} />
+        <ReviewRow label="Experience" value={form.workExperience ? `${form.workExperience} years` : ''} />
+        <ReviewRow label="Skills" value={form.skills} />
+        <ReviewRow label="Startup" value={form.startupName} />
+        <ReviewRow label="University" value={form.universityName} />
+        <ReviewRow label="Course" value={form.higherStudiesCourse} />
       </ReviewSection>
 
-      <ReviewSection title="Engagement">
-        <ReviewRow label="Mentoring"       value={form.interestedInMentoring} />
-        <ReviewRow label="Campus Recruit"  value={form.interestedInRecruitment} />
-        <ReviewRow label="Guest Lectures"  value={form.interestedInGuestLectures} />
-        <ReviewRow label="Donations"       value={form.interestedInDonations} />
 
-      </ReviewSection>
 
       {/* Consent */}
-      <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:bg-slate-50">
+      {/* <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-white p-4 hover:bg-slate-50">
         <input
           type="checkbox"
           checked={consent}
@@ -518,7 +474,7 @@ function Step4({ form, profile, consent, setConsent }) {
           <span className="font-semibold text-blue-700">Alumni Association Terms &amp; Conditions</span>.
           <span className="ml-1 text-red-500">*</span>
         </span>
-      </label>
+      </label> */}
     </div>
   );
 }
@@ -529,12 +485,12 @@ export default function ProfileCompletion() {
   const navigate = useNavigate();
   const p = userProfile || {};
 
-  const [step,    setStep]    = useState(1);
-  const [saving,  setSaving]  = useState(false);
-  const [error,   setError]   = useState('');
+  const [step, setStep] = useState(1);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   const [consent, setConsent] = useState(p.dataConsentGiven || false);
   const [photoUploading, setPhotoUploading] = useState(false);
-  const [photoError,     setPhotoError]     = useState('');
+  const [photoError, setPhotoError] = useState('');
 
   const handlePhotoUpload = async (file) => {
     setPhotoError('');
@@ -552,46 +508,42 @@ export default function ProfileCompletion() {
 
   const [form, setForm] = useState({
     // Personal
-    gender:           p.gender           || '',
-    dob:              p.dob ? new Date(p.dob).toISOString().split('T')[0] : '',
-    about:            p.about            || '',
-    city:             p.city             || '',
-    state:            p.state            || '',
-    country:          p.country          || 'India',
-    pinCode:          p.pinCode          || '',
-    linkedinUrl:      p.linkedinUrl      || '',
+    gender: p.gender || '',
+    dob: p.dob ? new Date(p.dob).toISOString().split('T')[0] : '',
+    about: p.about || '',
+    city: p.city || '',
+    state: p.state || '',
+    country: p.country || 'India',
+    pinCode: p.pinCode || '',
+    linkedinUrl: p.linkedinUrl || '',
 
     // Professional
-    employmentStatus:     p.employmentStatus     || '',
-    companyName:          p.companyName          || '',
-    designation:          p.designation          || '',
-    industry:             p.industry             || '',
-    workExperience:       p.workExperience       || '',
-    skills:               p.skills               || '',
-    workEmail:            p.workEmail            || '',
-    officeAddress:        p.officeAddress        || '',
-    officeCity:           p.officeCity           || '',
-    officeState:          p.officeState          || '',
-    officeCountry:        p.officeCountry        || 'India',
-    officePinCode:        p.officePinCode        || '',
-    startupName:          p.startupName          || '',
-    startupWebsite:       p.startupWebsite       || '',
-    startupDescription:   p.startupDescription   || '',
-    universityName:       p.universityName       || '',
-    higherStudiesCourse:  p.higherStudiesCourse  || '',
+    employmentStatus: p.employmentStatus || '',
+    companyName: p.companyName || '',
+    designation: p.designation || '',
+    industry: p.industry || '',
+    workExperience: p.workExperience || '',
+    skills: p.skills || '',
+    workEmail: p.workEmail || '',
+    officeAddress: p.officeAddress || '',
+    officeCity: p.officeCity || '',
+    officeState: p.officeState || '',
+    officeCountry: p.officeCountry || 'India',
+    officePinCode: p.officePinCode || '',
+    startupName: p.startupName || '',
+    startupWebsite: p.startupWebsite || '',
+    startupDescription: p.startupDescription || '',
+    universityName: p.universityName || '',
+    higherStudiesCourse: p.higherStudiesCourse || '',
     higherStudiesCountry: p.higherStudiesCountry || '',
-    // Engagement
-    interestedInMentoring:     p.interestedInMentoring     || false,
-    interestedInRecruitment:   p.interestedInRecruitment   || false,
-    interestedInGuestLectures: p.interestedInGuestLectures || false,
-    interestedInDonations:     p.interestedInDonations     || false,
+
 
   });
 
-  const set        = (key, val) => setForm((prev) => ({ ...prev, [key]: val }));
-  const onChange   = (e) => set(e.target.name, e.target.value);
+  const set = (key, val) => setForm((prev) => ({ ...prev, [key]: val }));
+  const onChange = (e) => set(e.target.name, e.target.value);
 
-  const next = () => { setError(''); setStep((s) => Math.min(s + 1, 4)); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const next = () => { setError(''); setStep((s) => Math.min(s + 1, 3)); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const back = () => { setError(''); setStep((s) => Math.max(s - 1, 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
   const handleSubmit = async () => {
@@ -651,8 +603,7 @@ export default function ProfileCompletion() {
                 />
               )}
               {step === 2 && <Step2 form={form} set={set} onChange={onChange} />}
-              {step === 3 && <Step3 form={form} set={set} />}
-              {step === 4 && <Step4 form={form} profile={p} consent={consent} setConsent={setConsent} />}
+              {step === 3 && <Step4 form={form} profile={p} consent={consent} setConsent={setConsent} />}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -675,7 +626,7 @@ export default function ProfileCompletion() {
             <div />
           )}
 
-          {step < 4 ? (
+          {step < 3 ? (
             <button
               onClick={next}
               className="inline-flex items-center gap-2 rounded-lg bg-blue-700 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800"

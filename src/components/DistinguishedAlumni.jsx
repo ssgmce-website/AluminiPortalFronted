@@ -37,7 +37,7 @@ function DistinguishedAlumni() {
         // Filter out any static entries that are now in the database (matching by name)
         const dbNames = new Set((dbAlumni || []).map(a => a.name.toLowerCase().trim()));
         const uniqueStatic = distinguishedAlumni.filter(a => !dbNames.has(a.name.toLowerCase().trim()));
-        setAlumniList([...uniqueStatic, ...(dbAlumni || [])]);
+        setAlumniList([...(dbAlumni || []), ...uniqueStatic]);
       })
       .catch((err) => {
         console.error('Failed to fetch database distinguished alumni:', err);
@@ -106,6 +106,7 @@ function DistinguishedAlumni() {
 
               {branchAlumni.length > 0 ? (
                 <motion.div
+                  key={branchAlumni.map(a => a.name).join(',')}
                   variants={stagger}
                   initial="hidden"
                   whileInView="show"
