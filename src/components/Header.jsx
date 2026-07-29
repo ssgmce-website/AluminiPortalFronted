@@ -33,7 +33,7 @@ function Header() {
               Shri Sant Gajanan Maharaj College of Engineering, Shegaon,
             </p>
             <p>
-              An Autonomous Institution | NAAC "A+" Accredited | NBA Accredited | Estd. 1983
+              An Autonomous Institution | NAAC "A+" Accredited | Estd. 1983
             </p>
           </div>
         </div>
