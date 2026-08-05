@@ -248,6 +248,13 @@ export default function HomePage() {
   const [dbGallery, setDbGallery] = useState([]);
   const [news, setNews] = useState(newsItems);
   const [alumniList, setAlumniList] = useState(distinguishedAlumni);
+  const newAlumniScrollRef = useRef(null);
+
+  const scrollNewAlumni = (direction) => {
+    const el = newAlumniScrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: direction * (el.clientWidth * 0.8), behavior: 'smooth' });
+  };
 
   // Fetch active news from backend API
   useEffect(() => {
@@ -444,13 +451,27 @@ export default function HomePage() {
         <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm md:p-10">
           <SectionHeader eyebrow="Welcome" title="Newly Registered Alumni" cta="Register Now" href="/register" />
 
-          <div className="flex gap-5 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <motion.div
-              key={newAlumni.map(a => a.name).join(',')}
-              variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }}
-              className="flex gap-5"
+          <div className="relative">
+            {/* Left scroll button */}
+            <button
+              type="button"
+              onClick={() => scrollNewAlumni(-1)}
+              aria-label="Scroll left"
+              className="absolute left-0 top-1/2 z-10 hidden h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-md transition hover:bg-blue-50 hover:text-blue-700 sm:flex"
             >
-              {newAlumni.map((a, idx) => (
+              <ChevronLeft size={18} />
+            </button>
+
+            <div
+              ref={newAlumniScrollRef}
+              className="flex gap-5 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              <motion.div
+                key={newAlumni.map(a => a.name).join(',')}
+                variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true }}
+                className="flex gap-5"
+              >
+                {newAlumni.map((a, idx) => (
                 <motion.div
                   key={a.name + idx}
                   variants={fadeUp}
@@ -485,7 +506,18 @@ export default function HomePage() {
                   </div>
                 </motion.div>
               ))}
-            </motion.div>
+              </motion.div>
+            </div>
+
+            {/* Right scroll button */}
+            <button
+              type="button"
+              onClick={() => scrollNewAlumni(1)}
+              aria-label="Scroll right"
+              className="absolute right-0 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-md transition hover:bg-blue-50 hover:text-blue-700 sm:flex"
+            >
+              <ChevronRight size={18} />
+            </button>
           </div>
         </div>
       </section>

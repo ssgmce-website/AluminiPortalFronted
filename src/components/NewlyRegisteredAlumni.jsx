@@ -136,42 +136,47 @@ function NewlyRegisteredAlumni() {
 
         {/* Cards */}
         <div className="relative mt-8">
+
+
+
+          {/* Left scroll button */}
+          <button
+            onClick={prev}
+            disabled={start === 0}
+            aria-label="Scroll left"
+            className="absolute left-0 top-1/2 z-10 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-blue-200 bg-white text-blue-600 shadow-md transition hover:bg-blue-50 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <ChevronLeft size={18} />
+          </button>
+
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {visible.map((alum) => (
               <AlumniCard key={alum.name} alum={alum} />
             ))}
           </div>
 
-          {/* Navigation */}
-          <div className="mt-6 flex items-center justify-center gap-3">
-            <button
-              onClick={prev}
-              disabled={start === 0}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-blue-200 text-blue-600 transition hover:bg-blue-50 disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft size={18} />
-            </button>
+          {/* Right scroll button */}
+          <button
+            onClick={next}
+            disabled={start >= alumni.length - VISIBLE}
+            aria-label="Scroll right"
+            className="absolute right-0 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-blue-200 bg-white text-blue-600 shadow-md transition hover:bg-blue-50 disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <ChevronRight size={18} />
+          </button>
 
-            {/* Dots */}
-            <div className="flex gap-2">
-              {Array.from({ length: alumni.length - VISIBLE + 1 }).map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setStart(i)}
-                  className={`h-2 rounded-full transition-all ${
-                    i === start ? "w-6 bg-blue-600" : "w-2 bg-blue-200"
-                  }`}
-                />
-              ))}
-            </div>
-
-            <button
-              onClick={next}
-              disabled={start >= alumni.length - VISIBLE}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-blue-200 text-blue-600 transition hover:bg-blue-50 disabled:opacity-30 disabled:cursor-not-allowed"
-            >
-              <ChevronRight size={18} />
-            </button>
+          {/* Dots */}
+          <div className="mt-6 flex items-center justify-center gap-2">
+            {Array.from({ length: alumni.length - VISIBLE + 1 }).map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setStart(i)}
+                aria-label={`Go to slide ${i + 1}`}
+                className={`h-2 rounded-full transition-all ${
+                  i === start ? "w-6 bg-blue-600" : "w-2 bg-blue-200"
+                }`}
+              />
+            ))}
           </div>
         </div>
       </div>

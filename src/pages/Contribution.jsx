@@ -136,7 +136,7 @@ function ContributionTable({ data, selectedBranch, selectedYear }) {
                 </th>
               )}
               <th className="px-4 py-3 text-xs font-extrabold uppercase tracking-wide text-slate-500">
-                Passout Year
+                Contribution Year
               </th>
               <th className="px-4 py-3 text-xs font-extrabold uppercase tracking-wide text-slate-500">
                 Contribution details
@@ -279,7 +279,7 @@ function Contribution() {
         <section>
           <div className="mb-3 flex items-center gap-2 text-sm font-extrabold text-slate-800">
             <GraduationCap size={18} className="text-blue-700" />
-            Passout Year
+            Contribution Year
           </div>
           <div className="flex flex-wrap gap-2">
             {YEAR_OPTIONS.map((year) => (
